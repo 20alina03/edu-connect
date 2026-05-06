@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
 import { Search, Star, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PortalNav } from "@/components/PortalNav";
+import { PortalNav } from "@/components/PortalNav/PortalNav";
 import { teachers, Portal } from "@/data/teachers";
 import { cn } from "@/lib/utils";
+import "./portalhome.css";
 
 interface Props {
   portal: Portal;
@@ -57,29 +58,27 @@ const PortalHome = ({ portal }: Props) => {
   const previewTeachers = teachers.filter(t => t.portal === portal).slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="portal-home-page">
       <PortalNav portal={portal} />
 
       {/* HERO */}
-      <section className={cn("relative overflow-hidden", isIslamic ? "bg-forest" : "bg-navy")}>
-        <div className={cn("absolute -right-32 -top-32 w-[400px] h-[400px] rounded-full blur-3xl",
-          isIslamic ? "bg-primary/10" : "bg-secondary/15")} />
-        <div className="container relative grid lg:grid-cols-2 gap-10 py-16 lg:py-20 items-center">
+      <section className={cn("portal-home-hero", isIslamic ? "bg-forest" : "bg-navy") }>
+        <div className={cn("portal-home-glow", isIslamic ? "bg-primary/10" : "bg-secondary/15") } />
+        <div className="portal-home-container">
           <div className="animate-fade-in">
-            <div className={cn("inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold mb-5 border",
-              isIslamic ? "bg-primary/10 border-primary/30 text-primary-glow" : "bg-secondary/10 border-secondary/30 text-blue-300")}>
+            <div className={cn("portal-home-tag", isIslamic ? "bg-primary/10 border-primary/30 text-primary-glow" : "bg-secondary/10 border-secondary/30 text-blue-300") }>
               <span className={cn("w-1.5 h-1.5 rounded-full pulse-dot", isIslamic ? "bg-primary" : "bg-blue-400")}/>
               {c.tag}
             </div>
-            <h1 className="font-display font-extrabold text-4xl md:text-5xl lg:text-6xl text-white leading-[1.05] tracking-tight mb-4">
+            <h1 className="portal-home-title">
               {c.title}<br/>
               <span className="text-accent">{c.titleAccent}</span><br/>
               {c.subtitle}
             </h1>
-            <p className="text-white/55 text-sm md:text-base max-w-lg mb-7 leading-relaxed">{c.copy}</p>
+            <p className="portal-home-copy">{c.copy}</p>
             <div className="flex flex-wrap gap-3">
               <Link to={isIslamic ? "/islamic/teachers" : "/school/teachers"}>
-                <Button size="lg" className={cn("rounded-full font-bold", isIslamic ? "bg-primary hover:bg-primary-dark" : "bg-secondary hover:bg-secondary/90")}>
+                <Button size="lg" className={cn("rounded-full font-bold", isIslamic ? "bg-primary hover:bg-primary-dark" : "bg-secondary hover:bg-secondary/90") }>
                   {c.primaryCta} <ArrowRight className="w-4 h-4 ml-1"/>
                 </Button>
               </Link>
@@ -100,7 +99,7 @@ const PortalHome = ({ portal }: Props) => {
           </div>
 
           {/* SEARCH WIDGET */}
-          <div className="bg-white/[.04] border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
+          <div className="portal-home-search">
             <h3 className="font-display font-bold text-white mb-3 text-sm">{isIslamic ? "Find a Quran Teacher" : "Find a School Tutor"}</h3>
             <div className="bg-white/[.06] border border-white/10 rounded-xl px-3 py-2.5 mb-3 flex items-center gap-2">
               <Search className="w-3.5 h-3.5 text-white/30"/>
@@ -108,7 +107,7 @@ const PortalHome = ({ portal }: Props) => {
             </div>
             <div className="flex gap-1.5 flex-wrap mb-4">
               {c.chips.map((chip,i) => (
-                <span key={chip} className={cn("text-[10px] font-semibold px-2.5 py-1 rounded-full cursor-pointer border",
+                <span key={chip} className={cn("portal-home-chip",
                   i===0
                     ? (isIslamic ? "bg-primary text-white border-primary" : "bg-secondary text-white border-secondary")
                     : "bg-white/[.06] border-white/10 text-white/55 hover:text-white"
@@ -117,7 +116,7 @@ const PortalHome = ({ portal }: Props) => {
             </div>
             <div className="space-y-1.5">
               {previewTeachers.map(t => (
-                <Link to={`/teachers/${t.id}`} key={t.id} className="flex items-center gap-3 bg-white/[.03] hover:bg-white/[.08] rounded-xl px-3 py-2 transition">
+                <Link to={`/teachers/${t.id}`} key={t.id} className="portal-home-preview-item">
                   <div className={cn("w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold",
                     isIslamic ? "bg-primary/25 text-primary-glow" : "bg-secondary/25 text-blue-300")}>{t.initials}</div>
                   <div className="flex-1 min-w-0">
@@ -136,7 +135,7 @@ const PortalHome = ({ portal }: Props) => {
       </section>
 
       {/* GOLD STRIP */}
-      <div className="bg-accent px-6 py-3 flex items-center justify-between gap-4 flex-wrap">
+      <div className="portal-home-strip">
         <span className="text-xs font-bold text-forest">{c.goldStrip}</span>
         <Link to={isIslamic ? "/islamic/teachers" : "/school/teachers"}>
           <Button size="sm" className="rounded-full bg-forest text-white hover:bg-forest-deep">Book Free Trial</Button>
@@ -144,24 +143,19 @@ const PortalHome = ({ portal }: Props) => {
       </div>
 
       {/* SUBJECTS */}
-      <section className="bg-card py-14">
+      <section className="portal-home-subjects">
         <div className="container">
-          <div className={cn("text-[10px] font-bold uppercase tracking-widest mb-2",
-            isIslamic ? "text-primary-dark" : "text-secondary")}>{c.sectionTag}</div>
+          <div className={cn("text-[10px] font-bold uppercase tracking-widest mb-2", isIslamic ? "text-primary-dark" : "text-secondary")}>{c.sectionTag}</div>
           <h2 className="font-display font-extrabold text-3xl text-foreground mb-2">{c.sectionTitle}</h2>
           <p className="text-muted-foreground text-sm mb-8 max-w-xl">Hand-picked subject experts. Book a single session or a full programme.</p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {c.subjects.map(s => (
-              <div key={s.title} className={cn(
-                "group bg-card border border-border rounded-2xl p-5 transition-all hover:-translate-y-1 hover:shadow-card cursor-pointer relative overflow-hidden",
-              )}>
-                <div className={cn("absolute bottom-0 left-0 right-0 h-1 transform scale-x-0 group-hover:scale-x-100 origin-left transition-transform",
-                  isIslamic ? "bg-primary" : "bg-secondary")} />
+              <div key={s.title} className="portal-home-subject-card">
+                <div className={cn("portal-home-subject-fill", isIslamic ? "bg-primary" : "bg-secondary") } />
                 <div className="text-3xl mb-3">{s.icon}</div>
                 <h3 className="font-display font-bold text-foreground mb-1">{s.title}</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed mb-3">{s.desc}</p>
-                <span className={cn("text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full",
-                  isIslamic ? "bg-primary-light text-primary-dark" : "bg-secondary-bg text-secondary")}>
+                <span className={cn("text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full", isIslamic ? "bg-primary-light text-primary-dark" : "bg-secondary-bg text-secondary") }>
                   {s.badge}
                 </span>
               </div>
@@ -171,28 +165,20 @@ const PortalHome = ({ portal }: Props) => {
       </section>
 
       {/* FEATURED TEACHERS */}
-      <section className="container py-14">
+      <section className="portal-home-featured">
         <div className="flex items-end justify-between mb-6 flex-wrap gap-3">
           <div>
-            <div className={cn("text-[10px] font-bold uppercase tracking-widest mb-2",
-              isIslamic ? "text-primary-dark" : "text-secondary")}>Top rated</div>
+            <div className={cn("text-[10px] font-bold uppercase tracking-widest mb-2", isIslamic ? "text-primary-dark" : "text-secondary")}>Top rated</div>
             <h2 className="font-display font-extrabold text-3xl text-foreground">Featured teachers</h2>
           </div>
-          <Link to={isIslamic ? "/islamic/teachers" : "/school/teachers"} className={cn(
-            "text-sm font-semibold inline-flex items-center gap-1 hover:gap-2 transition-all",
-            isIslamic ? "text-primary-dark" : "text-secondary"
-          )}>Browse all <ArrowRight className="w-4 h-4"/></Link>
+          <Link to={isIslamic ? "/islamic/teachers" : "/school/teachers"} className={cn("portal-home-featured-link", isIslamic ? "text-primary-dark" : "text-secondary")}>Browse all <ArrowRight className="w-4 h-4"/></Link>
         </div>
         <div className="grid md:grid-cols-2 gap-4">
           {previewTeachers.map(t => (
             <Link key={t.id} to={`/teachers/${t.id}`} className="block">
-              <div className={cn(
-                "bg-card border border-border rounded-2xl p-5 transition-all hover:-translate-y-1 hover:shadow-card",
-                isIslamic ? "hover:border-primary/40" : "hover:border-secondary/40"
-              )}>
+              <div className={cn("bg-card border border-border rounded-2xl p-5 transition-all hover:-translate-y-1 hover:shadow-card", isIslamic ? "hover:border-primary/40" : "hover:border-secondary/40") }>
                 <div className="flex gap-4">
-                  <div className={cn("w-14 h-14 rounded-full flex items-center justify-center font-display font-extrabold",
-                    isIslamic ? "bg-primary-light text-primary-dark" : "bg-secondary-bg text-secondary")}>{t.initials}</div>
+                  <div className={cn("w-14 h-14 rounded-full flex items-center justify-center font-display font-extrabold", isIslamic ? "bg-primary-light text-primary-dark" : "bg-secondary-bg text-secondary")}>{t.initials}</div>
                   <div className="flex-1">
                     <div className="font-display font-bold">{t.name}</div>
                     <div className="text-xs text-muted-foreground mt-0.5">{t.tagline}</div>
@@ -209,7 +195,7 @@ const PortalHome = ({ portal }: Props) => {
         </div>
       </section>
 
-      <footer className="bg-forest-deep text-white/50 py-10">
+      <footer className="portal-home-footer">
         <div className="container text-center text-xs">
           © {new Date().getFullYear()} EduConnect Global · One account · Two portals
         </div>

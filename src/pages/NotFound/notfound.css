@@ -1,0 +1,3 @@
+.not-found-page { @apply flex min-h-screen items-center justify-center bg-muted; }
+.not-found-title { @apply mb-4 text-4xl font-bold; }
+.not-found-copy { @apply mb-4 text-xl text-muted-foreground; }

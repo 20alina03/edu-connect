@@ -1,0 +1,10 @@
+.teacher-profile-page { @apply min-h-screen bg-background; }
+.teacher-profile-header { @apply py-10; }
+.teacher-profile-header-inner { @apply container flex flex-col md:flex-row gap-6 items-start md:items-center; }
+.teacher-profile-avatar { @apply w-24 h-24 rounded-full flex items-center justify-center font-display font-extrabold text-3xl flex-shrink-0; }
+.teacher-profile-body { @apply container py-10 grid lg:grid-cols-[1fr_320px] gap-8; }
+.teacher-profile-chip { @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold; }
+.teacher-profile-section-title { @apply font-display font-bold text-xl mb-3; }
+.teacher-profile-review { @apply bg-card border border-border rounded-2xl p-4; }
+.teacher-profile-booking { @apply bg-card border border-border rounded-2xl p-5 shadow-card; }
+.teacher-profile-banner { @apply bg-accent-light border border-accent/30 rounded-2xl p-4 text-xs text-accent-dark; }

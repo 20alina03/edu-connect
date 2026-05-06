@@ -1,0 +1,26 @@
+/* Dashboard component styles (extracted from inline Tailwind classes) */
+.dashboard-root { @apply min-h-screen bg-background flex; }
+.dashboard-aside { @apply w-60 hidden lg:block py-6; }
+.dashboard-aside-inner { @apply px-5 pb-6; }
+.dashboard-brand { @apply font-display font-extrabold text-white text-lg leading-tight flex items-center gap-2; }
+.dashboard-nav { @apply space-y-1; }
+.nav-link { @apply flex items-center gap-3 px-5 py-2.5 text-sm font-medium border-l-[3px] transition; }
+.dashboard-main { @apply flex-1; }
+.dashboard-header { @apply bg-card border-b border-border px-6 py-4 flex items-center justify-between; }
+.header-small { @apply text-[10px] uppercase tracking-wider text-muted-foreground font-bold; }
+.header-h1 { @apply font-display font-bold text-xl; }
+.actions { @apply flex items-center gap-3; }
+.notify-btn { @apply relative w-9 h-9 rounded-full bg-muted flex items-center justify-center; }
+.notify-btn:hover { @apply bg-muted/80; }
+.avatar { @apply w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm; }
+.main-content { @apply p-6 space-y-6; }
+.stats-grid { @apply grid grid-cols-2 lg:grid-cols-4 gap-4; }
+.stat-card { @apply bg-card border border-border rounded-2xl p-4; }
+.stat-icon { @apply w-5 h-5 mb-2; }
+.upcoming-card { @apply bg-card border border-border rounded-2xl; }
+.upcoming-header { @apply px-5 py-4 border-b border-border flex items-center justify-between; }
+.upcoming-item { @apply p-4 flex items-center gap-4; }
+.avatar-small { @apply w-12 h-12 rounded-full flex items-center justify-center font-display font-extrabold flex-shrink-0; }
+.recommended-grid { @apply grid md:grid-cols-3 gap-4; }
+.recommended-tile { @apply bg-card border border-border rounded-2xl p-4 transition-all; }
+.recommended-tile:hover { @apply -translate-y-0.5 shadow-card; }

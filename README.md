@@ -1,3 +1,3 @@
-# Welcome to your Lovable project
+# EduConnect
 
-TODO: Document your project here
+Simple tutoring web app built with Vite, React, TypeScript, and Tailwind CSS.

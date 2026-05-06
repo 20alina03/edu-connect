@@ -1,13 +1,14 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { PortalNav } from "@/components/PortalNav";
-import { TeacherCard } from "@/components/TeacherCard";
+import { PortalNav } from "@/components/PortalNav/PortalNav";
+import { TeacherCard } from "@/components/TeacherCard/TeacherCard";
 import { teachers, Portal } from "@/data/teachers";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
+import "./teacherslist.css";
 
 const ISLAMIC_SUBJECTS = ["Quran", "Tajweed", "Hifz", "Noorani Qaida", "Arabic", "Islamic Studies"];
 const SCHOOL_SUBJECTS = ["Maths", "English", "Biology", "Chemistry", "Physics", "IELTS"];
@@ -44,12 +45,12 @@ const TeachersList = ({ portal }: { portal: Portal }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="teachers-list-page">
       <PortalNav portal={portal} />
 
-      <div className={cn("border-b border-border", isIslamic ? "bg-forest" : "bg-navy")}>
-        <div className="container py-5">
-          <div className="bg-white/[.06] border border-white/10 rounded-full flex items-center gap-2 px-4 py-2.5 max-w-2xl">
+      <div className={cn("teachers-list-search", isIslamic ? "bg-forest" : "bg-navy") }>
+        <div className="teachers-list-search-inner">
+          <div className="teachers-list-searchbar">
             <Search className="w-4 h-4 text-white/40"/>
             <input value={query} onChange={e => setQuery(e.target.value)}
               placeholder={isIslamic ? "Search Tajweed, Hifz, female teacher..." : "Search GCSE Maths, A-Level Biology..."}
@@ -58,13 +59,13 @@ const TeachersList = ({ portal }: { portal: Portal }) => {
         </div>
       </div>
 
-      <div className="container py-8 grid lg:grid-cols-[260px_1fr] gap-6">
+      <div className="teachers-list-content">
         {/* SIDEBAR */}
-        <aside className="bg-card border border-border rounded-2xl p-5 h-fit lg:sticky lg:top-4">
+        <aside className="teachers-list-sidebar">
           <h3 className="font-display font-bold mb-4">Filters</h3>
 
           <div className="mb-5">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Subject</div>
+            <div className="teachers-list-filter-title">Subject</div>
             <div className="space-y-2">
               {allSubjects.map(s => (
                 <label key={s} className="flex items-center gap-2 cursor-pointer text-sm">
@@ -76,19 +77,23 @@ const TeachersList = ({ portal }: { portal: Portal }) => {
           </div>
 
           <div className="mb-5">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Gender</div>
-            {["any", "male", "female"].map(g => (
+            <div className="teachers-list-filter-title">Gender</div>
+            {[
+              ["any", "Any"],
+              ["male", "Male"],
+              ["female", "Female"],
+            ].map(([g, label]) => (
               <label key={g} className="flex items-center gap-2 cursor-pointer text-sm capitalize py-0.5">
                 <input type="radio" name="g" checked={gender === g} onChange={() => setGender(g)}
                   className={isIslamic ? "accent-primary" : "accent-secondary"}/>
-                <span>{g === "male" ? (isIslamic ? "Male (Ustadh)" : "Male") : g === "female" ? (isIslamic ? "Female (Sister)" : "Female") : "Any"}</span>
+                <span>{g === "male" ? (isIslamic ? "Male (Ustadh)" : "Male") : g === "female" ? (isIslamic ? "Female (Sister)" : "Female") : label}</span>
               </label>
             ))}
           </div>
 
           <div className="mb-5">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Mode</div>
-            {[["any","Any"],["online","Online"],["home_visit","Home Visit"]].map(([v,l]) => (
+            <div className="teachers-list-filter-title">Mode</div>
+            {[ ["any","Any"], ["online","Online"], ["home_visit","Home Visit"] ].map(([v,l]) => (
               <label key={v} className="flex items-center gap-2 cursor-pointer text-sm py-0.5">
                 <input type="radio" name="m" checked={mode === v} onChange={() => setMode(v)}
                   className={isIslamic ? "accent-primary" : "accent-secondary"}/>
@@ -98,7 +103,7 @@ const TeachersList = ({ portal }: { portal: Portal }) => {
           </div>
 
           <div>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Max price · ${maxPrice}/hr</div>
+            <div className="teachers-list-filter-title">Max price · ${maxPrice}/hr</div>
             <Slider value={[maxPrice]} onValueChange={(v) => setMaxPrice(v[0])} min={10} max={isIslamic ? 60 : 100} step={5}/>
             <div className="flex justify-between text-[10px] text-muted-foreground mt-2">
               <span>$10</span><span>${isIslamic ? 60 : 100}</span>
@@ -107,11 +112,10 @@ const TeachersList = ({ portal }: { portal: Portal }) => {
         </aside>
 
         <div>
-          <div className="flex flex-wrap gap-2 mb-3 min-h-6">
+          <div className="teachers-list-chip-row">
             {activeChips.map(c => (
               <button key={c.label} onClick={c.clear}
-                className={cn("text-[10px] font-semibold px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 capitalize",
-                  isIslamic ? "bg-primary text-white" : "bg-secondary text-white")}>
+                className={cn("teachers-list-chip", isIslamic ? "bg-primary text-white" : "bg-secondary text-white") }>
                 {c.label} <X className="w-3 h-3"/>
               </button>
             ))}
@@ -121,7 +125,7 @@ const TeachersList = ({ portal }: { portal: Portal }) => {
             <h2 className="text-sm font-semibold text-muted-foreground">
               {filtered.length} {isIslamic ? "Quran teachers" : "school tutors"} found
             </h2>
-            <select className="text-xs border border-border rounded-lg px-3 py-1.5 bg-card">
+            <select className="teachers-list-sort">
               <option>Best Match</option>
               <option>Price: Low to High</option>
               <option>Top Rated</option>
@@ -130,10 +134,10 @@ const TeachersList = ({ portal }: { portal: Portal }) => {
 
           <div className="space-y-3">
             {filtered.length === 0 ? (
-              <div className="text-center py-16 text-muted-foreground text-sm">
+              <div className="teachers-list-empty">
                 No teachers match your filters. Try widening the price range or removing a subject.
               </div>
-            ) : filtered.map(t => <TeacherCard key={t.id} teacher={t}/>)}
+            ) : filtered.map(t => <TeacherCard key={t.id} teacher={t}/>) }
           </div>
         </div>
       </div>

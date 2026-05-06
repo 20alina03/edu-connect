@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { findTeacher } from "@/data/teachers";
-import { PortalNav } from "@/components/PortalNav";
+import { PortalNav } from "@/components/PortalNav/PortalNav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Check, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import "./book.css";
 
 const SLOTS = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"];
 const DURATIONS = [30, 45, 60, 90];
@@ -37,27 +38,27 @@ const Book = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="book-page">
       <PortalNav portal={teacher.portal}/>
 
-      <div className="container py-10 grid lg:grid-cols-[1fr_320px] gap-8">
+      <div className="book-body">
         <main>
           {/* STEPS */}
-          <div className="flex items-center mb-10">
+          <div className="book-steps">
             {["Schedule", "Details", "Confirm"].map((label, i) => {
               const num = i + 1;
               const done = step > num;
               const active = step === num;
               return (
-                <div key={label} className="flex-1 flex items-center">
+                <div key={label} className="book-step">
                   <div className="flex flex-col items-center flex-1">
-                    <div className={cn("w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm",
+                    <div className={cn("book-step-node",
                       done ? (isIslamic ? "bg-primary text-white" : "bg-secondary text-white") :
                       active ? (isIslamic ? "bg-forest text-white" : "bg-navy text-white") :
-                      "bg-muted text-muted-foreground")}>
+                      "bg-muted text-muted-foreground") }>
                       {done ? <Check className="w-4 h-4"/> : num}
                     </div>
-                    <span className="text-[10px] font-bold text-muted-foreground mt-1.5 uppercase tracking-wider">{label}</span>
+                    <span className="book-step-label">{label}</span>
                   </div>
                   {i < 2 && <div className={cn("h-0.5 flex-1 -mt-5", done ? (isIslamic ? "bg-primary" : "bg-secondary") : "bg-border")}/>}
                 </div>
@@ -66,7 +67,7 @@ const Book = () => {
           </div>
 
           {step === 1 && (
-            <div className="bg-card border border-border rounded-2xl p-6 space-y-6">
+            <div className="book-card space-y-6">
               <div>
                 <h2 className="font-display font-bold text-xl mb-1">Pick a date</h2>
                 <p className="text-sm text-muted-foreground mb-4">Next 14 days</p>
@@ -79,7 +80,7 @@ const Book = () => {
                         className={cn("p-2 rounded-lg text-center transition border",
                           weekend ? "bg-muted text-muted-foreground cursor-not-allowed border-transparent" :
                           sel ? (isIslamic ? "bg-primary text-white border-primary" : "bg-secondary text-white border-secondary") :
-                          "bg-card border-border hover:border-foreground/30")}>
+                          "bg-card border-border hover:border-foreground/30") }>
                         <div className="text-[9px] font-bold uppercase opacity-70">{d.toLocaleDateString(undefined, { weekday: "short" })}</div>
                         <div className="font-display font-bold text-lg">{d.getDate()}</div>
                       </button>
@@ -115,14 +116,14 @@ const Book = () => {
 
               <Button disabled={date === null || !time}
                 onClick={() => setStep(2)}
-                className={cn("w-full rounded-xl font-bold", isIslamic ? "bg-primary hover:bg-primary-dark" : "bg-secondary hover:bg-secondary/90")}>
+                className={cn("w-full rounded-xl font-bold", isIslamic ? "bg-primary hover:bg-primary-dark" : "bg-secondary hover:bg-secondary/90") }>
                 Continue
               </Button>
             </div>
           )}
 
           {step === 2 && (
-            <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
+            <div className="book-card space-y-4">
               <h2 className="font-display font-bold text-xl mb-2">Your details</h2>
               <div>
                 <Label className="text-xs">Full name</Label>
@@ -138,14 +139,14 @@ const Book = () => {
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setStep(1)}>Back</Button>
-                <Button className={cn("flex-1 rounded-xl font-bold", isIslamic ? "bg-primary hover:bg-primary-dark" : "bg-secondary hover:bg-secondary/90")}
+                <Button className={cn("flex-1 rounded-xl font-bold", isIslamic ? "bg-primary hover:bg-primary-dark" : "bg-secondary hover:bg-secondary/90") }
                   onClick={() => setStep(3)}>Continue</Button>
               </div>
             </div>
           )}
 
           {step === 3 && (
-            <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
+            <div className="book-card space-y-4">
               <h2 className="font-display font-bold text-xl mb-2">Confirm booking</h2>
               <div className="rounded-xl bg-muted p-4 space-y-2 text-sm">
                 <div className="flex justify-between"><span className="text-muted-foreground">Teacher</span><span className="font-semibold">{teacher.name}</span></div>
@@ -158,7 +159,7 @@ const Book = () => {
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setStep(2)}>Back</Button>
-                <Button className={cn("flex-1 rounded-xl font-bold", isIslamic ? "bg-primary hover:bg-primary-dark" : "bg-secondary hover:bg-secondary/90")}
+                <Button className={cn("flex-1 rounded-xl font-bold", isIslamic ? "bg-primary hover:bg-primary-dark" : "bg-secondary hover:bg-secondary/90") }
                   onClick={submit}>Confirm booking</Button>
               </div>
             </div>
@@ -166,10 +167,9 @@ const Book = () => {
         </main>
 
         <aside className="lg:sticky lg:top-4 h-fit space-y-3">
-          <div className="bg-card border border-border rounded-2xl p-5 shadow-card">
+          <div className="book-sidebar-card">
             <div className="flex items-center gap-3 mb-4">
-              <div className={cn("w-12 h-12 rounded-full flex items-center justify-center font-display font-extrabold",
-                isIslamic ? "bg-primary-light text-primary-dark" : "bg-secondary-bg text-secondary")}>{teacher.initials}</div>
+              <div className={cn("w-12 h-12 rounded-full flex items-center justify-center font-display font-extrabold", isIslamic ? "bg-primary-light text-primary-dark" : "bg-secondary-bg text-secondary")}>{teacher.initials}</div>
               <div>
                 <div className="font-display font-bold text-sm">{teacher.name}</div>
                 <div className="text-[11px] text-muted-foreground">{teacher.tagline.split("·")[0]}</div>

@@ -1,0 +1,7 @@
+.portal-nav { @apply h-14 px-6 flex items-center justify-between gap-3; }
+.portal-nav-brand { @apply font-display font-extrabold text-base text-white tracking-tight flex items-center gap-2; }
+.portal-nav-links { @apply hidden md:flex gap-5 list-none; }
+.portal-nav-link { @apply text-xs font-medium text-white/50 transition; }
+.portal-nav-actions { @apply flex gap-2 items-center; }
+.portal-nav-switcher { @apply hidden sm:flex border border-white/15 rounded-full overflow-hidden text-[10px] font-bold; }
+.portal-nav-switcher-link { @apply px-3 py-1.5 text-white/50; }

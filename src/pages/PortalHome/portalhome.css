@@ -1,0 +1,21 @@
+.portal-home-page { @apply min-h-screen bg-background; }
+.portal-home-hero { @apply relative overflow-hidden; }
+.portal-home-container { @apply container relative grid lg:grid-cols-2 gap-10 py-16 lg:py-20 items-center; }
+.portal-home-glow { @apply absolute -right-32 -top-32 w-[400px] h-[400px] rounded-full blur-3xl; }
+.portal-home-tag { @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold mb-5 border; }
+.portal-home-title { @apply font-display font-extrabold text-4xl md:text-5xl lg:text-6xl text-white leading-[1.05] tracking-tight mb-4; }
+.portal-home-copy { @apply text-white/55 text-sm md:text-base max-w-lg mb-7 leading-relaxed; }
+.portal-home-search { @apply bg-white/[.04] border border-white/10 rounded-2xl p-5 backdrop-blur-sm; }
+.portal-home-chip { @apply text-[10px] font-semibold px-2.5 py-1 rounded-full cursor-pointer border; }
+.portal-home-preview-item { @apply flex items-center gap-3 bg-white/[.03] rounded-xl px-3 py-2 transition; }
+.portal-home-preview-item:hover { @apply bg-white/[.08]; }
+.portal-home-strip { @apply bg-accent px-6 py-3 flex items-center justify-between gap-4 flex-wrap; }
+.portal-home-subjects { @apply bg-card py-14; }
+.portal-home-subject-card { @apply bg-card border border-border rounded-2xl p-5 transition-all cursor-pointer relative overflow-hidden; }
+.portal-home-subject-card:hover { @apply -translate-y-1 shadow-card; }
+.portal-home-subject-fill { @apply absolute bottom-0 left-0 right-0 h-1 transform scale-x-0 origin-left transition-transform; }
+.portal-home-subject-card:hover .portal-home-subject-fill { @apply scale-x-100; }
+.portal-home-featured { @apply container py-14; }
+.portal-home-featured-link { @apply text-sm font-semibold inline-flex items-center gap-1 transition-all; }
+.portal-home-featured-link:hover { @apply gap-2; }
+.portal-home-footer { @apply bg-forest-deep text-white/50 py-10; }
