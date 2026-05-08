@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { findTeacher } from "@/data/teachers";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { PortalNav } from "@/components/PortalNav/PortalNav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,9 +34,35 @@ const Book = () => {
     return d;
   });
 
-  const submit = () => {
-    toast.success("Booking confirmed!", { description: `Session with ${teacher.name} is booked.` });
-    setTimeout(() => navigate("/dashboard/student"), 1200);
+  const { user } = useAuth();
+  const submit = async () => {
+    if (!user) return navigate(`/login?redirect=/book/${id}`);
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id || "");
+    const startDate = date !== null ? new Date(days[date]) : new Date();
+    if (time) {
+      const [h, m] = time.split(":").map(Number);
+      startDate.setHours(h, m, 0, 0);
+    }
+    if (!isUuid) {
+      toast.success("Demo booking saved!", {
+        description: `This is a demo teacher profile. Browse real teachers to book a live session.`,
+      });
+      setTimeout(() => navigate("/dashboard/student"), 1200);
+      return;
+    }
+    const { error } = await supabase.from("bookings").insert({
+      student_id: user.id,
+      teacher_id: id!,
+      subject: teacher.subjects[0],
+      start_at: startDate.toISOString(),
+      duration_min: duration,
+      mode: teacher.mode === "both" ? "online" : (teacher.mode as any),
+      price_usd: total,
+      status: "pending",
+    });
+    if (error) return toast.error(error.message);
+    toast.success("Booking sent! Waiting for teacher confirmation.");
+    setTimeout(() => navigate("/bookings"), 1000);
   };
 
   return (
