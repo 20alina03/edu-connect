@@ -1,187 +1,162 @@
-import { Link, useParams } from "react-router-dom";
-import { Calendar, MessageSquare, BookOpen, Settings, Bell, GraduationCap, Users, DollarSign, Star, ChevronRight } from "lucide-react";
-import "./dashboard.css";
-import { teachers } from "@/data/teachers";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Calendar, BookOpen, GraduationCap, DollarSign, Star, ChevronRight, Users, Plus } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { teachers as mockTeachers } from "@/data/teachers";
 
-type Role = "student" | "teacher" | "parent";
-
-const ROLE_CONFIG: Record<Role, {
-  title: string;
-  bg: string;
-  accent: string;
-  menu: { icon: any; label: string; active?: boolean }[];
-}> = {
-  student: {
-    title: "Student",
-    bg: "bg-forest-deep",
-    accent: "text-primary-glow",
-    menu: [
-      { icon: Calendar, label: "My Sessions", active: true },
-      { icon: BookOpen, label: "Browse Teachers" },
-      { icon: MessageSquare, label: "Messages" },
-      { icon: Star, label: "Reviews" },
-      { icon: Settings, label: "Settings" },
-    ],
-  },
-  teacher: {
-    title: "Teacher",
-    bg: "bg-navy-deep",
-    accent: "text-blue-300",
-    menu: [
-      { icon: Calendar, label: "Schedule", active: true },
-      { icon: Users, label: "Students" },
-      { icon: DollarSign, label: "Earnings" },
-      { icon: MessageSquare, label: "Messages" },
-      { icon: Settings, label: "Profile" },
-    ],
-  },
-  parent: {
-    title: "Parent",
-    bg: "bg-[#1a1a2e]",
-    accent: "text-accent",
-    menu: [
-      { icon: Users, label: "My Children", active: true },
-      { icon: Calendar, label: "All Sessions" },
-      { icon: DollarSign, label: "Billing" },
-      { icon: MessageSquare, label: "Messages" },
-      { icon: Settings, label: "Family settings" },
-    ],
-  },
-};
+interface Booking {
+  id: string; subject: string; start_at: string; duration_min: number;
+  status: string; price_usd: number; teacher_id: string; student_id: string;
+}
 
 const Dashboard = () => {
-  const { role = "student" } = useParams<{ role: Role }>();
-  const cfg = ROLE_CONFIG[role as Role] || ROLE_CONFIG.student;
+  const { user, role } = useAuth();
+  const navigate = useNavigate();
+  const isTeacher = role === "teacher";
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [profileName, setProfileName] = useState("");
+  const [stats, setStats] = useState({ upcoming: 0, total: 0, completed: 0, earnings: 0 });
 
-  const upcomingSessions = teachers.slice(0, 3).map((t, i) => ({
-    teacher: t,
-    when: ["Today, 3:00 PM", "Tomorrow, 10:00 AM", "Fri, 4:30 PM"][i],
-    duration: [60, 45, 60][i],
-  }));
+  useEffect(() => {
+    if (!user) return;
+    const col = isTeacher ? "teacher_id" : "student_id";
+    supabase.from("profiles").select("full_name").eq("id", user.id).maybeSingle()
+      .then(({ data }) => setProfileName(data?.full_name ?? ""));
+
+    supabase.from("bookings").select("*").eq(col, user.id)
+      .order("start_at", { ascending: true })
+      .then(({ data }) => {
+        const all = data ?? [];
+        setBookings(all);
+        const now = new Date();
+        const upcoming = all.filter((b) => new Date(b.start_at) >= now && b.status !== "cancelled").length;
+        const completed = all.filter((b) => b.status === "completed").length;
+        const earnings = isTeacher ? all.filter((b) => b.status === "completed").reduce((s, b) => s + Number(b.price_usd), 0) : 0;
+        setStats({ upcoming, total: all.length, completed, earnings });
+      });
+  }, [user, isTeacher]);
+
+  const upcomingList = bookings.filter((b) => new Date(b.start_at) >= new Date() && b.status !== "cancelled").slice(0, 5);
 
   return (
-    <div className="dashboard-root">
-      {/* SIDEBAR */}
-      <aside className={cn("dashboard-aside", cfg.bg)}>
-        <div className="dashboard-aside-inner">
-          <div className="dashboard-brand">
-            <img src="/logo.svg" alt="EduConnect" className="h-10 w-auto object-contain" />
-            <div>
-              <div>
-                Edu<span className="text-primary">Connect</span>
-              </div>
-              <div className={cn("text-[10px] uppercase tracking-wider mt-1 font-medium", cfg.accent)}>{cfg.title} Portal</div>
-            </div>
+    <div className="min-h-screen bg-background">
+      <AppHeader />
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="mb-8">
+          <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
+            {isTeacher ? "Teacher" : "Student"} Dashboard
           </div>
+          <h1 className="text-3xl font-bold font-display">
+            Welcome back{profileName ? `, ${profileName.split(" ")[0]}` : ""} 👋
+          </h1>
         </div>
-        <nav className="dashboard-nav">
-          {cfg.menu.map(({ icon: Icon, label, active }) => (
-            <a key={label} href="#" className={cn(
-              "nav-link",
-              active
-                ? "text-white bg-white/[.06] border-l-current " + cfg.accent
-                : "text-white/40 border-l-transparent hover:text-white hover:bg-white/[.04]"
-            )}>
-              <Icon className="w-4 h-4"/> {label}
-            </a>
+
+        {/* STATS */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+          {(isTeacher
+            ? [
+                { label: "Upcoming", value: String(stats.upcoming), icon: Calendar, color: "text-primary" },
+                { label: "Pending requests", value: String(bookings.filter(b => b.status === "pending").length), icon: Users, color: "text-accent" },
+                { label: "Completed", value: String(stats.completed), icon: BookOpen, color: "text-secondary" },
+                { label: "Earned (USD)", value: `$${stats.earnings}`, icon: DollarSign, color: "text-primary" },
+              ]
+            : [
+                { label: "Upcoming", value: String(stats.upcoming), icon: Calendar, color: "text-primary" },
+                { label: "Total bookings", value: String(stats.total), icon: BookOpen, color: "text-secondary" },
+                { label: "Completed", value: String(stats.completed), icon: GraduationCap, color: "text-accent" },
+                { label: "Average rating", value: "—", icon: Star, color: "text-accent" },
+              ]
+          ).map((s) => (
+            <div key={s.label} className="bg-card border border-border rounded-xl p-4">
+              <s.icon className={`w-5 h-5 mb-2 ${s.color}`} />
+              <div className="text-2xl font-extrabold font-display">{s.value}</div>
+              <div className="text-xs text-muted-foreground">{s.label}</div>
+            </div>
           ))}
-        </nav>
-        <div className="px-5 mt-8 pt-6 border-t border-white/10">
-          <Link to="/" className="text-[11px] text-white/40 hover:text-white">← Back to portals</Link>
         </div>
-      </aside>
 
-      {/* MAIN */}
-      <div className="dashboard-main">
-        <header className="dashboard-header">
-          <div>
-            <div className="header-small">{cfg.title} dashboard</div>
-            <h1 className="header-h1">Welcome back 👋</h1>
-          </div>
-          <div className="actions">
-            <button className="notify-btn">
-              <Bell className="w-4 h-4"/>
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-destructive"/>
-            </button>
-            <div className="avatar">YO</div>
-          </div>
-        </header>
-
-        <main className="main-content">
-          {/* STATS */}
-          <div className="stats-grid">
-            {[
-              { label: "Upcoming sessions", value: "5", icon: Calendar, color: "text-primary" },
-              { label: "Hours learned", value: "47", icon: BookOpen, color: "text-secondary" },
-              { label: "Active teachers", value: "3", icon: GraduationCap, color: "text-accent" },
-              { label: "Avg rating given", value: "4.9", icon: Star, color: "text-accent-dark" },
-            ].map(s => (
-              <div key={s.label} className="stat-card">
-                <s.icon className={cn("stat-icon", s.color)}/>
-                <div className="font-display font-extrabold text-2xl">{s.value}</div>
-                <div className="text-xs text-muted-foreground">{s.label}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* UPCOMING */}
-          <div className="upcoming-card">
-            <div className="upcoming-header">
-              <h2 className="font-display font-bold">Upcoming sessions</h2>
-              <Link to="/" className="text-xs text-primary-dark font-semibold inline-flex items-center gap-1 hover:gap-2 transition-all">
-                View all <ChevronRight className="w-3 h-3"/>
-              </Link>
+        {/* TEACHER QUICK ACTIONS */}
+        {isTeacher && (
+          <div className="bg-primary/5 border border-primary/30 rounded-xl p-5 mb-8 flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <div className="font-semibold">Keep your profile sharp</div>
+              <div className="text-sm text-muted-foreground">Edit subjects, rate, availability and bio.</div>
             </div>
+            <Button onClick={() => navigate("/teacher/onboarding")}>Edit teaching profile</Button>
+          </div>
+        )}
+
+        {/* UPCOMING */}
+        <div className="bg-card border border-border rounded-2xl mb-8">
+          <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+            <h2 className="font-display font-bold">Upcoming sessions</h2>
+            <Link to="/bookings" className="text-xs text-primary font-semibold inline-flex items-center gap-1 hover:gap-2 transition-all">
+              View all <ChevronRight className="w-3 h-3" />
+            </Link>
+          </div>
+          {upcomingList.length === 0 ? (
+            <div className="p-8 text-center text-sm text-muted-foreground">
+              {isTeacher ? "No bookings yet — students will appear here." : (
+                <>
+                  No upcoming sessions.{" "}
+                  <Link to="/school/teachers" className="text-primary font-medium">Browse teachers →</Link>
+                </>
+              )}
+            </div>
+          ) : (
             <div className="divide-y divide-border">
-              {upcomingSessions.map(s => (
-                <div key={s.teacher.id} className="upcoming-item">
-                  <div className={cn("avatar-small",
-                    s.teacher.portal === "islamic" ? "bg-primary-light text-primary-dark" : "bg-secondary-bg text-secondary")}>
-                    {s.teacher.initials}
+              {upcomingList.map((b) => (
+                <div key={b.id} className="flex items-center gap-3 p-4">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold">
+                    {b.subject[0]}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-sm">{s.teacher.name}</div>
-                    <div className="text-xs text-muted-foreground">{s.teacher.subjects[0]} · {s.duration} minutes</div>
+                    <div className="font-semibold text-sm">{b.subject}</div>
+                    <div className="text-xs text-muted-foreground">{b.duration_min} min · {b.status}</div>
                   </div>
-                  <div className="text-right hidden sm:block">
-                    <div className="text-xs font-semibold">{s.when}</div>
-                    <div className="text-[10px] text-muted-foreground uppercase">UTC</div>
+                  <div className="text-xs text-right">
+                    <div className="font-semibold">{format(new Date(b.start_at), "PP")}</div>
+                    <div className="text-muted-foreground">{format(new Date(b.start_at), "p")}</div>
                   </div>
-                  <Button size="sm" className={cn("rounded-full",
-                    s.teacher.portal === "islamic" ? "bg-primary hover:bg-primary-dark" : "bg-secondary hover:bg-secondary/90")}>
-                    Join
-                  </Button>
                 </div>
               ))}
             </div>
-          </div>
+          )}
+        </div>
 
-          {/* RECOMMENDED */}
+        {/* RECOMMENDED — students only */}
+        {!isTeacher && (
           <div>
-            <h2 className="font-display font-bold mb-4">Recommended for you</h2>
-            <div className="recommended-grid">
-              {teachers.slice(0, 3).map(t => (
-                <Link key={t.id} to={`/teachers/${t.id}`} className="recommended-tile">
+            <h2 className="font-display font-bold mb-4">Recommended teachers</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {mockTeachers.slice(0, 3).map((t) => (
+                <Link key={t.id} to={`/teachers/${t.id}`}
+                  className="bg-card border border-border rounded-xl p-4 hover:shadow-lg hover:border-primary/30 transition">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className={cn("w-12 h-12 rounded-full flex items-center justify-center font-display font-extrabold",
-                      t.portal === "islamic" ? "bg-primary-light text-primary-dark" : "bg-secondary-bg text-secondary")}>{t.initials}</div>
+                    <div className="w-12 h-12 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center">
+                      {t.initials}
+                    </div>
                     <div>
-                      <div className="font-display font-bold text-sm">{t.name}</div>
-                      <div className="text-[11px] text-accent flex items-center gap-1"><Star className="w-3 h-3 fill-accent"/> {t.rating}</div>
+                      <div className="font-semibold text-sm">{t.name}</div>
+                      <div className="text-xs text-accent flex items-center gap-1">
+                        <Star className="w-3 h-3 fill-accent" /> {t.rating}
+                      </div>
                     </div>
                   </div>
                   <div className="text-xs text-muted-foreground line-clamp-2 mb-3">{t.bio}</div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-bold">${t.rate}/hr</span>
-                    <span className="text-xs text-primary-dark font-semibold">View →</span>
+                    <span className="text-xs text-primary font-semibold">View →</span>
                   </div>
                 </Link>
               ))}
             </div>
           </div>
-        </main>
+        )}
       </div>
     </div>
   );
