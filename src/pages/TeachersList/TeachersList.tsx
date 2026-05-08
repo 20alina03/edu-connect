@@ -1,13 +1,13 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { PortalNav } from "@/components/PortalNav/PortalNav";
 import { TeacherCard } from "@/components/TeacherCard/TeacherCard";
-import { teachers, Portal } from "@/data/teachers";
+import { teachers as mockTeachers, Portal, Teacher } from "@/data/teachers";
 import { Search, X } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 import "./teacherslist.css";
 
 const ISLAMIC_SUBJECTS = ["Quran", "Tajweed", "Hifz", "Noorani Qaida", "Arabic", "Islamic Studies"];
@@ -22,12 +22,48 @@ const TeachersList = ({ portal }: { portal: Portal }) => {
   const [gender, setGender] = useState<string>("any");
   const [mode, setMode] = useState<string>(params.get("mode") || "any");
   const [maxPrice, setMaxPrice] = useState<number>(isIslamic ? 60 : 100);
+  const [dbTeachers, setDbTeachers] = useState<Teacher[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("teacher_profiles")
+        .select("user_id, subjects, hourly_rate_usd, mode, bio, gender, city, rating, total_reviews, experience_years, profiles!teacher_profiles_user_id_fkey(full_name)")
+        .eq("is_active", true);
+      const portalSubjects = isIslamic ? ISLAMIC_SUBJECTS : SCHOOL_SUBJECTS;
+      const mapped: Teacher[] = (data ?? [])
+        .filter((t: any) => (t.subjects ?? []).some((s: string) => portalSubjects.includes(s)))
+        .map((t: any) => {
+          const name = t.profiles?.full_name || "Teacher";
+          return {
+            id: t.user_id,
+            name,
+            initials: name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase(),
+            portal,
+            tagline: `${(t.subjects ?? []).join(", ")} · ${t.experience_years ?? 0} yrs`,
+            subjects: t.subjects ?? [],
+            rate: Number(t.hourly_rate_usd) || 0,
+            rating: Number(t.rating) || 0,
+            reviews: t.total_reviews || 0,
+            gender: (t.gender as any) || "male",
+            mode: (t.mode as any) || "online",
+            city: t.city || undefined,
+            experience: t.experience_years || 0,
+            bio: t.bio || "",
+            badges: ["Verified"],
+          };
+        });
+      setDbTeachers(mapped);
+    })();
+  }, [isIslamic, portal]);
 
   const toggleSubject = (s: string) =>
     setSubjects(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
 
+  const all = useMemo(() => [...dbTeachers, ...mockTeachers], [dbTeachers]);
+
   const filtered = useMemo(() => {
-    return teachers.filter(t => {
+    return all.filter(t => {
       if (t.portal !== portal) return false;
       if (query && !`${t.name} ${t.subjects.join(" ")} ${t.tagline}`.toLowerCase().includes(query.toLowerCase())) return false;
       if (subjects.length && !subjects.some(s => t.subjects.includes(s))) return false;
@@ -36,7 +72,7 @@ const TeachersList = ({ portal }: { portal: Portal }) => {
       if (t.rate > maxPrice) return false;
       return true;
     });
-  }, [portal, query, subjects, gender, mode, maxPrice]);
+  }, [all, portal, query, subjects, gender, mode, maxPrice]);
 
   const activeChips = [
     ...subjects.map(s => ({ label: s, clear: () => toggleSubject(s) })),
