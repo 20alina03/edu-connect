@@ -132,9 +132,11 @@ const TeacherProfile = () => {
                 <Calendar className="w-4 h-4 mr-2"/> Book a session
               </Button>
             </Link>
-            <Button variant="outline" className="w-full rounded-xl mt-2">
-              <MessageCircle className="w-4 h-4 mr-2"/> Message teacher
-            </Button>
+            <Link to={`/messages/${teacher.id}`} className="block">
+              <Button variant="outline" className="w-full rounded-xl mt-2">
+                <MessageCircle className="w-4 h-4 mr-2"/> Message teacher
+              </Button>
+            </Link>
           </div>
           <div className="teacher-profile-banner">
             <strong>Trusted teacher</strong> — verified ID, certifications & background checked by EduConnect.
