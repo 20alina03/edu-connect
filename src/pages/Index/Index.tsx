@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { BookOpen, GraduationCap, Users, ArrowRight } from "lucide-react";
+import { BookOpen, GraduationCap, Users, ArrowRight, LogIn } from "lucide-react";
 import "./index.css";
 
 const Index = () => {
@@ -11,8 +11,18 @@ const Index = () => {
           Edu<span className="text-primary">Connect</span>{" "}
           <span className="text-accent">Global</span>
         </div>
-        <div className="index-tagline">
-          <span className="w-1.5 h-1.5 rounded-full bg-primary pulse-dot"/> Two portals · One account
+        <div className="flex items-center gap-4">
+          <div className="index-tagline">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary pulse-dot"/> Two portals · One account
+          </div>
+          <div className="flex items-center gap-2">
+            <Link to="/login" className="px-4 py-2 text-sm font-medium text-white/70 hover:text-white transition">
+              Sign In
+            </Link>
+            <Link to="/signup" className="px-4 py-2 text-sm font-semibold bg-primary hover:bg-primary-dark text-white rounded-lg transition">
+              Get Started
+            </Link>
+          </div>
         </div>
       </header>
 

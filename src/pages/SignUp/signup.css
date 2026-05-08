@@ -1,0 +1,94 @@
+.signup-page {
+  @apply min-h-screen bg-forest-deep flex flex-col items-center justify-center px-4 py-8 relative overflow-hidden;
+}
+
+.signup-container {
+  @apply w-full max-w-3xl relative z-10 px-6 sm:px-8;
+}
+
+.signup-header {
+  @apply mb-10 text-center;
+}
+
+.signup-brand {
+  @apply font-display font-extrabold text-xl text-white tracking-tight flex items-center justify-center gap-2 hover:text-primary/80 transition;
+}
+
+.signup-card {
+  @apply bg-white/[0.03] backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl;
+}
+
+.signup-title {
+  @apply font-display font-extrabold text-3xl text-white tracking-tight mb-2;
+}
+
+.signup-subtitle {
+  @apply text-white/50 text-sm;
+}
+
+.signup-form {
+  @apply space-y-5 mb-8;
+}
+
+.signup-label {
+  @apply text-white/70 text-sm font-medium;
+}
+
+.signup-input-group {
+  @apply flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.05] border border-white/10 focus-within:border-primary/50 focus-within:bg-white/[0.08] transition;
+}
+
+.signup-input {
+  @apply bg-transparent border-0 text-white placeholder-white/30 focus:ring-0 flex-1;
+}
+
+.signup-input::placeholder {
+  @apply text-white/30;
+}
+
+.signup-submit-btn {
+  @apply w-full h-12 bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2;
+}
+
+.signup-submit-btn:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+.signup-divider {
+  @apply flex items-center gap-3 my-8;
+}
+
+.signup-divider::before,
+.signup-divider::after {
+  @apply flex-1 h-px bg-white/10 content-[''];
+}
+
+.signup-divider span {
+  @apply text-white/40 text-xs font-medium;
+}
+
+.signup-google-btn {
+  @apply w-full h-12 bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 hover:border-white/20 rounded-xl text-white font-medium flex items-center justify-center gap-3 transition-all duration-300;
+}
+
+.signup-google-btn:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+.signup-footer {
+  @apply text-center text-white/50 text-sm mt-8;
+}
+
+@media (max-width: 640px) {
+  .signup-card {
+    @apply p-6;
+  }
+
+  .signup-title {
+    @apply text-2xl;
+  }
+
+  .signup-form {
+    @apply space-y-4;
+  }
+}
