@@ -30,7 +30,7 @@ const Bookings = () => {
 
   useEffect(() => { load(); }, [user, role]);
 
-  const updateStatus = async (id: string, status: string) => {
+  const updateStatus = async (id: string, status: "cancelled" | "completed" | "confirmed" | "pending") => {
     await supabase.from("bookings").update({ status }).eq("id", id);
     toast.success(`Booking ${status}`);
     load();
