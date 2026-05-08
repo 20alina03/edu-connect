@@ -28,13 +28,17 @@ const TeachersList = ({ portal }: { portal: Portal }) => {
     (async () => {
       const { data } = await supabase
         .from("teacher_profiles")
-        .select("user_id, subjects, hourly_rate_usd, mode, bio, gender, city, rating, total_reviews, experience_years, profiles!teacher_profiles_user_id_fkey(full_name)")
+        .select("user_id, subjects, hourly_rate_usd, mode, bio, gender, city, rating, total_reviews, experience_years")
         .eq("is_active", true);
+      const ids = (data ?? []).map((t: any) => t.user_id);
+      const { data: profs } = ids.length
+        ? await supabase.from("profiles").select("id, full_name").in("id", ids)
+        : { data: [] as any[] };
       const portalSubjects = isIslamic ? ISLAMIC_SUBJECTS : SCHOOL_SUBJECTS;
       const mapped: Teacher[] = (data ?? [])
         .filter((t: any) => (t.subjects ?? []).some((s: string) => portalSubjects.includes(s)))
         .map((t: any) => {
-          const name = t.profiles?.full_name || "Teacher";
+          const name = profs?.find((p: any) => p.id === t.user_id)?.full_name || "Teacher";
           return {
             id: t.user_id,
             name,
