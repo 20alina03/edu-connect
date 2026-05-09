@@ -1,17 +1,12 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, Star } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-
-interface Booking {
-  id: string; subject: string; start_at: string; duration_min: number;
-  mode: string; status: string; price_usd: number;
-  student_id: string; teacher_id: string;
-}
+import { bookingsApi, type Booking } from "@/lib/api/bookings";
+import { reviewsApi } from "@/lib/api/reviews";
 
 const Bookings = () => {
   const { user, role } = useAuth();
@@ -22,29 +17,31 @@ const Bookings = () => {
 
   const load = async () => {
     if (!user) return;
-    const col = role === "teacher" ? "teacher_id" : "student_id";
-    const { data } = await supabase.from("bookings").select("*").eq(col, user.id)
-      .order("start_at", { ascending: false });
-    setBookings(data ?? []);
+    try {
+      const { bookings } = await bookingsApi.list();
+      setBookings(bookings);
+    } catch (e: any) {
+      toast.error(e.message);
+    }
   };
 
   useEffect(() => { load(); }, [user, role]);
 
-  const updateStatus = async (id: string, status: "cancelled" | "completed" | "confirmed" | "pending") => {
-    await supabase.from("bookings").update({ status }).eq("id", id);
-    toast.success(`Booking ${status}`);
-    load();
+  const updateStatus = async (id: string, status: Booking["status"]) => {
+    try {
+      await bookingsApi.setStatus(id, status);
+      toast.success(`Booking ${status}`);
+      load();
+    } catch (e: any) { toast.error(e.message); }
   };
 
   const submitReview = async (b: Booking) => {
-    if (!user) return;
-    const { error } = await supabase.from("reviews").insert({
-      booking_id: b.id, student_id: user.id, teacher_id: b.teacher_id, rating, comment,
-    });
-    if (error) return toast.error(error.message);
-    toast.success("Review submitted!");
-    setReviewing(null);
-    setComment("");
+    try {
+      await reviewsApi.create({ booking_id: b.id, rating, comment });
+      toast.success("Review submitted!");
+      setReviewing(null);
+      setComment("");
+    } catch (e: any) { toast.error(e.message); }
   };
 
   return (

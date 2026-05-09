@@ -5,37 +5,32 @@ import { AppHeader } from "@/components/AppHeader";
 import { Bell, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
-
-interface N {
-  id: string; type: string; title: string; body: string | null;
-  read_at: string | null; created_at: string;
-}
+import { notificationsApi, type Notification } from "@/lib/api/notifications";
 
 const Notifications = () => {
   const { user } = useAuth();
-  const [items, setItems] = useState<N[]>([]);
+  const [items, setItems] = useState<Notification[]>([]);
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("notifications").select("*").eq("user_id", user.id)
-      .order("created_at", { ascending: false }).then(({ data }) => setItems(data ?? []));
+    notificationsApi.list().then(({ notifications }) => setItems(notifications)).catch(() => {});
 
+    // Realtime stays direct — RLS scopes to current user
     const ch = supabase.channel("notifs")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
-        (p) => setItems((cur) => [p.new as N, ...cur]))
+      .on("postgres_changes",
+        { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+        (p) => setItems((cur) => [p.new as Notification, ...cur]))
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [user]);
 
   const markRead = async (id: string) => {
-    await supabase.from("notifications").update({ read_at: new Date().toISOString() }).eq("id", id);
+    await notificationsApi.markRead(id);
     setItems((c) => c.map((i) => (i.id === id ? { ...i, read_at: new Date().toISOString() } : i)));
   };
 
   const markAllRead = async () => {
-    if (!user) return;
-    await supabase.from("notifications").update({ read_at: new Date().toISOString() })
-      .eq("user_id", user.id).is("read_at", null);
+    await notificationsApi.markAllRead();
     setItems((c) => c.map((i) => ({ ...i, read_at: i.read_at ?? new Date().toISOString() })));
   };
 

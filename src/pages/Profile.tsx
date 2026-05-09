@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { profileApi } from "@/lib/api/profile";
 
 const Profile = () => {
   const { user, role } = useAuth();
@@ -15,19 +15,22 @@ const Profile = () => {
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("profiles").select("*").eq("id", user.id).maybeSingle().then(({ data }) => {
-      setFullName(data?.full_name ?? "");
-      setPhone(data?.phone ?? "");
-    });
+    profileApi.get().then(({ profile }) => {
+      setFullName(profile?.full_name ?? "");
+      setPhone(profile?.phone ?? "");
+    }).catch(() => {});
   }, [user]);
 
   const save = async () => {
-    if (!user) return;
     setLoading(true);
-    const { error } = await supabase.from("profiles").update({ full_name: fullName, phone }).eq("id", user.id);
-    setLoading(false);
-    if (error) return toast.error(error.message);
-    toast.success("Profile updated");
+    try {
+      await profileApi.update({ full_name: fullName, phone });
+      toast.success("Profile updated");
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

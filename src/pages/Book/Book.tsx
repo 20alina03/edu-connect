@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { findTeacher } from "@/data/teachers";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { bookingsApi } from "@/lib/api/bookings";
 import { PortalNav } from "@/components/PortalNav/PortalNav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,17 +50,18 @@ const Book = () => {
       setTimeout(() => navigate("/dashboard/student"), 1200);
       return;
     }
-    const { error } = await supabase.from("bookings").insert({
-      student_id: user.id,
-      teacher_id: id!,
-      subject: teacher.subjects[0],
-      start_at: startDate.toISOString(),
-      duration_min: duration,
-      mode: teacher.mode === "both" ? "online" : (teacher.mode as any),
-      price_usd: total,
-      status: "pending",
-    });
-    if (error) return toast.error(error.message);
+    try {
+      await bookingsApi.create({
+        teacher_id: id!,
+        subject: teacher.subjects[0],
+        start_at: startDate.toISOString(),
+        duration_min: duration,
+        mode: teacher.mode === "both" ? "online" : (teacher.mode as any),
+        price_usd: total,
+      });
+    } catch (e: any) {
+      return toast.error(e.message);
+    }
     toast.success("Booking sent! Waiting for teacher confirmation.");
     setTimeout(() => navigate("/bookings"), 1000);
   };
