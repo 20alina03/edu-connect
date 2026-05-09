@@ -1,63 +1,133 @@
 ## Goal
-Wire up Lovable Cloud (Supabase) backend, add real auth with role selection (student/teacher), gate protected routes, build the remaining pages, and fix navigation flow.
+Replace direct Supabase calls in the frontend with a dedicated Node.js/Express backend (`/server` folder, outside `src`) that talks to **your own Supabase Postgres project**. Frontend communicates only via REST APIs. Provide step-by-step local-run instructions.
 
-## 1. Enable Lovable Cloud
-- Provision Supabase via `supabase--enable`.
-- Auth: Email/Password + Google.
+> Note: "Lovable Cloud" is just a managed Supabase project. Switching to your own Supabase project means you'll create one at supabase.com and use those credentials — the code patterns are identical, only the URL/keys change.
 
-## 2. Database schema (migrations)
-- `app_role` enum: `student | teacher | admin`
-- `profiles` (id=auth.users.id, full_name, avatar_url, phone, portal `islamic|school`, created_at) — auto-created via trigger on `auth.users` insert.
-- `user_roles` (id, user_id, role) + `has_role()` SECURITY DEFINER function.
-- `teacher_profiles` (per spec: subjects[], hourly_rate_usd, mode, bio, quran_level, gender, country, languages[], rating, total_reviews, is_verified).
-- `availability` (teacher_id, day_of_week, start_time, end_time).
-- `bookings` (id, student_id, teacher_id, subject, start_at, duration_min, mode, status `pending|confirmed|completed|cancelled`, notes, price_usd).
-- `reviews` (id, booking_id, student_id, teacher_id, rating, comment).
-- `messages` (id, sender_id, recipient_id, body, read_at).
-- `notifications` (id, user_id, type, title, body, data jsonb, read_at).
-- RLS on every table: users access only their own rows; teachers read their bookings; public read for `teacher_profiles` + `reviews`.
+---
 
-## 3. Auth + role selection
-- Replace mock `AuthContext` with real Supabase client (`src/integrations/supabase/client.ts` is auto-generated).
-- New `useAuth` hook using `onAuthStateChange` + `getSession`.
-- Login & Signup pages: add **role tabs** (Student / Teacher). On signup, write role to `user_roles` and create `teacher_profiles` row if teacher.
-- Add Google OAuth button (Lovable Cloud managed).
-- `/reset-password` page.
+## Architecture
 
-## 4. Route protection & flow
-- `<ProtectedRoute>` wrapper redirecting unauthenticated users to `/login?redirect=...`.
-- Gate: `/book/:id`, `/dashboard/*`, `/messages`, `/profile/edit`, `/teacher/onboarding`.
-- After login: redirect by role → `/dashboard/teacher` or `/dashboard/student`.
-- "Book" button on TeacherProfile: if logged out → `/login?redirect=/book/:id`.
+```text
+repo/
+├── src/                  ← React + Vite frontend (no direct DB calls)
+│   └── lib/api.ts        ← typed fetch wrapper → http://localhost:4000/api
+├── server/               ← Node.js + Express + TypeScript backend
+│   ├── src/
+│   │   ├── index.ts              app entry
+│   │   ├── config/env.ts         dotenv + zod validation
+│   │   ├── lib/supabase.ts       admin client (service-role key)
+│   │   ├── middleware/
+│   │   │   ├── auth.ts           verifies Supabase JWT from Authorization header
+│   │   │   ├── error.ts          centralized error handler
+│   │   │   └── validate.ts       zod request validation
+│   │   ├── modules/
+│   │   │   ├── auth/             signup, login, reset, me
+│   │   │   ├── teachers/         list, get, onboarding
+│   │   │   ├── bookings/         create, list, update status
+│   │   │   ├── reviews/          create, list by teacher
+│   │   │   ├── messages/         list threads, send
+│   │   │   ├── notifications/    list, mark read
+│   │   │   └── profile/          get, update
+│   │   └── routes.ts             mounts /api/*
+│   ├── .env.example
+│   ├── package.json
+│   └── tsconfig.json
+├── supabase/
+│   └── migrations/       ← keep existing schema; apply to your own Supabase
+└── src/.env              ← VITE_API_URL=http://localhost:4000/api
+```
 
-## 5. Remaining pages
-- `/dashboard/student` — upcoming bookings, past sessions, recommended teachers.
-- `/dashboard/teacher` — today's schedule, booking requests (accept/decline), earnings stub, profile completeness.
-- `/teacher/onboarding` — multi-step form to fill teacher_profiles + availability.
-- `/messages` and `/messages/:userId` — inbox + thread (realtime via Supabase channel).
-- `/notifications` — list with mark-as-read.
-- `/profile` (view) and `/profile/edit`.
-- `/bookings/:id` — booking detail + review form when status=completed.
-- `/reset-password`.
-- `/about`, `/how-it-works`, `/pricing`, `/contact` — static marketing pages.
-- `/404` already exists.
+### Layered structure (per module)
+- `*.routes.ts` — Express router
+- `*.controller.ts` — req/res handling, validation
+- `*.service.ts` — business logic (uses Supabase admin client)
+- `*.schema.ts` — Zod schemas
 
-## 6. Replace mock data
-- `TeachersList` + `TeacherProfile` query Supabase instead of `src/data/teachers.ts`.
-- Booking form inserts into `bookings`.
-- Reviews insert + aggregate teacher rating via trigger.
+---
 
-## 7. Navigation cleanup
-- Header shows Login/Signup when logged out; avatar menu (Dashboard, Profile, Logout) when logged in.
-- Remove direct deep-links to booking from public landing for guests (they get redirected to login).
+## Backend stack
+- **express**, **cors**, **helmet**, **morgan**, **compression**
+- **@supabase/supabase-js** (service-role for trusted ops, anon for token verify)
+- **zod** for validation
+- **dotenv** + **zod-based env validator**
+- **tsx** for dev, **typescript** for build
+- **pino** structured logging
 
-## Technical notes
-- Stack: existing React + Vite + Tailwind + shadcn. Add `@supabase/supabase-js` (auto by Cloud).
-- Roles MUST live in `user_roles` table — never on profiles (privilege-escalation safe).
-- All policies use `public.has_role(auth.uid(), 'role')`.
-- Realtime enabled on `messages` and `notifications`.
-- No payments, no video — per earlier decision.
+## Auth flow
+1. Frontend uses `@supabase/supabase-js` **only for auth** (signup/login/Google OAuth) → gets JWT.
+2. Every API call includes `Authorization: Bearer <jwt>`.
+3. Backend `auth` middleware calls `supabase.auth.getUser(token)` to validate, attaches `req.user`.
+4. All DB reads/writes done by the backend with the **service-role key** + explicit ownership checks (no reliance on RLS at the API layer; RLS still enabled as a safety net).
+
+## API endpoints (REST)
+```text
+POST   /api/auth/signup           { email, password, fullName, role }
+POST   /api/auth/login            { email, password }
+POST   /api/auth/reset            { email }
+GET    /api/auth/me               (auth)
+GET    /api/teachers              ?subject&mode&gender&min&max
+GET    /api/teachers/:id
+POST   /api/teachers/onboarding   (auth, teacher)
+GET    /api/bookings              (auth) — student or teacher view
+POST   /api/bookings              (auth, student)
+PATCH  /api/bookings/:id/status   (auth, teacher)
+POST   /api/reviews               (auth, student)
+GET    /api/messages              (auth)
+POST   /api/messages              (auth)
+PATCH  /api/messages/:id/read     (auth)
+GET    /api/notifications         (auth)
+PATCH  /api/notifications/:id/read(auth)
+GET    /api/profile               (auth)
+PATCH  /api/profile               (auth)
+```
+
+## Frontend changes
+- Add `src/lib/api.ts`: fetch wrapper that auto-injects Supabase JWT, handles JSON + errors.
+- Add typed clients per module: `src/lib/api/teachers.ts`, `bookings.ts`, etc.
+- Refactor pages to use these clients (replacing direct `supabase.from(...)` calls). Auth context keeps using supabase-js for sign-in/up.
+- New env: `VITE_API_URL`.
+
+## Realtime
+Keep using Supabase Realtime channels directly from the frontend for `messages` and `notifications` (it's auth-scoped via JWT and works fine alongside the REST backend).
+
+---
+
+## Local setup instructions (will be put in `README.md`)
+
+### 1. Create your Supabase project
+- Go to https://supabase.com → New project
+- Copy: Project URL, `anon` key, `service_role` key
+- SQL Editor → run the migration in `supabase/migrations/*.sql`
+- Authentication → Providers → enable Email + Google
+
+### 2. Backend
+```bash
+cd server
+cp .env.example .env   # fill SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY, PORT=4000
+npm install
+npm run dev            # http://localhost:4000
+```
+
+### 3. Frontend
+```bash
+# in repo root
+cp .env.example .env   # VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_API_URL=http://localhost:4000/api
+npm install
+npm run dev            # http://localhost:5173
+```
+
+---
+
+## Important caveats
+- **The Lovable preview cannot run the Express server** — it only runs the Vite frontend. The backend will work on your local machine (and any host like Railway/Render/Fly). In Lovable's preview, frontend pages that need the API will show errors until you run the server locally.
+- The existing Supabase migration SQL is reused as-is — you run it in your own Supabase SQL editor.
+- Service-role key must **never** be exposed to the frontend; it lives only in `server/.env`.
+
+---
 
 ## Out of scope
-- Stripe / Agora / SMS.
-- Admin moderation UI (table exists, page deferred).
+- Deploying the backend (instructions only).
+- Payments, video, admin UI.
+- Migrating off the existing Lovable Cloud Supabase instance — you'll point your local frontend at your new Supabase project via `.env`.
+
+Approve and I'll implement.
