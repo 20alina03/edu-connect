@@ -7,7 +7,7 @@ import { Search, X } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
+import { teachersApi } from "@/lib/api/teachers";
 import "./teacherslist.css";
 
 const ISLAMIC_SUBJECTS = ["Quran", "Tajweed", "Hifz", "Noorani Qaida", "Arabic", "Islamic Studies"];
@@ -25,24 +25,16 @@ const TeachersList = ({ portal }: { portal: Portal }) => {
   const [dbTeachers, setDbTeachers] = useState<Teacher[]>([]);
 
   useEffect(() => {
-    (async () => {
-      const { data } = await supabase
-        .from("teacher_profiles")
-        .select("user_id, subjects, hourly_rate_usd, mode, bio, gender, city, rating, total_reviews, experience_years")
-        .eq("is_active", true);
-      const ids = (data ?? []).map((t: any) => t.user_id);
-      const { data: profs } = ids.length
-        ? await supabase.from("profiles").select("id, full_name").in("id", ids)
-        : { data: [] as any[] };
+    teachersApi.list().then(({ teachers }) => {
       const portalSubjects = isIslamic ? ISLAMIC_SUBJECTS : SCHOOL_SUBJECTS;
-      const mapped: Teacher[] = (data ?? [])
-        .filter((t: any) => (t.subjects ?? []).some((s: string) => portalSubjects.includes(s)))
-        .map((t: any) => {
-          const name = profs?.find((p: any) => p.id === t.user_id)?.full_name || "Teacher";
+      const mapped: Teacher[] = teachers
+        .filter((t) => (t.subjects ?? []).some((s) => portalSubjects.includes(s)))
+        .map((t) => {
+          const name = t.profile?.full_name || "Teacher";
           return {
             id: t.user_id,
             name,
-            initials: name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase(),
+            initials: name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase(),
             portal,
             tagline: `${(t.subjects ?? []).join(", ")} · ${t.experience_years ?? 0} yrs`,
             subjects: t.subjects ?? [],
@@ -58,7 +50,7 @@ const TeachersList = ({ portal }: { portal: Portal }) => {
           };
         });
       setDbTeachers(mapped);
-    })();
+    }).catch(() => setDbTeachers([]));
   }, [isIslamic, portal]);
 
   const toggleSubject = (s: string) =>

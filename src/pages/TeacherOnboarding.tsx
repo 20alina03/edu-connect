@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { teachersApi } from "@/lib/api/teachers";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,21 +32,19 @@ const TeacherOnboarding = () => {
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("teacher_profiles").select("*").eq("user_id", user.id).maybeSingle()
-      .then(({ data }) => {
-        if (data) {
-          setBio(data.bio ?? "");
-          setSubjects(data.subjects ?? []);
-          setRate(Number(data.hourly_rate_usd) || 20);
-          setMode((data.mode as any) ?? "online");
-          setGender((data.gender as any) ?? "male");
-          setCountry(data.country ?? "");
-          setCity(data.city ?? "");
-          setExperience(data.experience_years ?? 1);
-          setQuranLevel(data.quran_level ?? "");
-        }
-        setLoading(false);
-      });
+    teachersApi.get(user.id).then(({ teacher: data }) => {
+      if (data) {
+        setBio(data.bio ?? "");
+        setSubjects(data.subjects ?? []);
+        setRate(Number(data.hourly_rate_usd) || 20);
+        setMode((data.mode as any) ?? "online");
+        setGender((data.gender as any) ?? "male");
+        setCountry(data.country ?? "");
+        setCity(data.city ?? "");
+        setExperience(data.experience_years ?? 1);
+        setQuranLevel(data.quran_level ?? "");
+      }
+    }).catch(() => {}).finally(() => setLoading(false));
   }, [user]);
 
   const toggle = (s: string) =>
@@ -56,15 +54,18 @@ const TeacherOnboarding = () => {
     if (!user) return;
     if (subjects.length === 0) return toast.error("Pick at least one subject");
     setSaving(true);
-    const { error } = await supabase.from("teacher_profiles").upsert({
-      user_id: user.id,
-      subjects, hourly_rate_usd: rate, mode, bio, gender, country, city,
-      experience_years: experience, quran_level: quranLevel || null, is_active: true,
-    }, { onConflict: "user_id" });
-    setSaving(false);
-    if (error) return toast.error(error.message);
-    toast.success("Profile saved!");
-    navigate("/dashboard/teacher");
+    try {
+      await teachersApi.onboarding({
+        subjects, hourly_rate_usd: rate, mode, bio, gender, country, city,
+        experience_years: experience, quran_level: quranLevel || undefined,
+      } as any);
+      toast.success("Profile saved!");
+      navigate("/dashboard/teacher");
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
