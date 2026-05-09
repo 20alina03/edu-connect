@@ -21,10 +21,7 @@ teachersRouter.get(
   validate({ query: ListQuery }),
   asyncHandler(async (req, res) => {
     const { subject, mode, gender, min, max } = req.query as z.infer<typeof ListQuery>;
-    let q = supabaseAdmin
-      .from("teacher_profiles")
-      .select("*, profile:profiles!teacher_profiles_user_id_fkey(full_name, avatar_url)")
-      .eq("is_active", true);
+    let q = supabaseAdmin.from("teacher_profiles").select("*").eq("is_active", true);
     if (subject) q = q.contains("subjects", [subject]);
     if (mode) q = q.eq("mode", mode);
     if (gender) q = q.eq("gender", gender);
@@ -32,7 +29,14 @@ teachersRouter.get(
     if (max !== undefined) q = q.lte("hourly_rate_usd", max);
     const { data, error } = await q.order("rating", { ascending: false }).limit(100);
     if (error) throw badRequest(error.message);
-    res.json({ teachers: data ?? [] });
+
+    const ids = (data ?? []).map((t) => t.user_id);
+    const { data: profs } = ids.length
+      ? await supabaseAdmin.from("profiles").select("id, full_name, avatar_url").in("id", ids)
+      : { data: [] as Array<{ id: string; full_name: string | null; avatar_url: string | null }> };
+    const profMap = new Map((profs ?? []).map((p) => [p.id, p]));
+    const teachers = (data ?? []).map((t) => ({ ...t, profile: profMap.get(t.user_id) ?? null }));
+    res.json({ teachers });
   }),
 );
 
@@ -41,12 +45,17 @@ teachersRouter.get(
   asyncHandler(async (req, res) => {
     const { data, error } = await supabaseAdmin
       .from("teacher_profiles")
-      .select("*, profile:profiles!teacher_profiles_user_id_fkey(full_name, avatar_url, phone)")
+      .select("*")
       .eq("user_id", req.params.id)
       .maybeSingle();
     if (error) throw badRequest(error.message);
     if (!data) throw notFound("Teacher not found");
-    res.json({ teacher: data });
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("id, full_name, avatar_url, phone")
+      .eq("id", req.params.id)
+      .maybeSingle();
+    res.json({ teacher: { ...data, profile: profile ?? null } });
   }),
 );
 
