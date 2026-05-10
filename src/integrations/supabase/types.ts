@@ -300,7 +300,29 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      teachers: {
+        Row: {
+          bio: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          experience_years: number | null
+          gender: Database["public"]["Enums"]["gender_type"] | null
+          hourly_rate_usd: number
+          id: string
+          is_active: boolean | null
+          is_verified: boolean | null
+          languages: string[] | null
+          mode: Database["public"]["Enums"]["teaching_mode"]
+          quran_level: string | null
+          rating: number | null
+          subjects: string[]
+          total_reviews: number | null
+          updated_at: string
+          user_id: string
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_user_role: {

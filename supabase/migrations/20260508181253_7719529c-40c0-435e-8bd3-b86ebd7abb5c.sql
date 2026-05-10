@@ -70,6 +70,28 @@ CREATE TABLE public.teacher_profiles (
 );
 ALTER TABLE public.teacher_profiles ENABLE ROW LEVEL SECURITY;
 
+CREATE OR REPLACE VIEW public.teachers AS
+SELECT
+  id,
+  user_id,
+  subjects,
+  hourly_rate_usd,
+  mode,
+  bio,
+  quran_level,
+  gender,
+  country,
+  city,
+  languages,
+  experience_years,
+  rating,
+  total_reviews,
+  is_verified,
+  is_active,
+  created_at,
+  updated_at
+FROM public.teacher_profiles;
+
 CREATE POLICY "Teacher profiles public" ON public.teacher_profiles FOR SELECT USING (true);
 CREATE POLICY "Teachers insert own" ON public.teacher_profiles FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Teachers update own" ON public.teacher_profiles FOR UPDATE USING (auth.uid() = user_id);

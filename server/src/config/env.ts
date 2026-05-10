@@ -7,7 +7,7 @@ const Schema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(20),
   PORT: z.coerce.number().default(4000),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
-  CORS_ORIGIN: z.string().default("http://localhost:5173,http://localhost:8080"),
+  CORS_ORIGIN: z.string().default("http://localhost:5173,http://localhost:8080,http://localhost:8003"),
 });
 
 const parsed = Schema.safeParse(process.env);
