@@ -4,6 +4,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import "./index.css";
 
 const Index = () => {
+  const { user, role } = useAuth();
+  const dashHref = role === "teacher" ? "/dashboard/teacher" : "/dashboard/student";
   return (
     <div className="index-page">
       <header className="index-header">
