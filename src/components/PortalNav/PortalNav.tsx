@@ -1,7 +1,12 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Portal } from "@/data/teachers";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { Bell, MessageSquare, LayoutDashboard, User as UserIcon, LogOut } from "lucide-react";
 import "./portalnav.css";
 
 interface Props { portal: Portal }
@@ -9,6 +14,9 @@ interface Props { portal: Portal }
 export const PortalNav = ({ portal }: Props) => {
   const isIslamic = portal === "islamic";
   const loc = useLocation();
+  const navigate = useNavigate();
+  const { user, role, signOut } = useAuth();
+  const dashHref = role === "teacher" ? "/dashboard/teacher" : "/dashboard/student";
   const links = isIslamic
     ? [["Quran", "/islamic/teachers?s=Quran"], ["Tajweed", "/islamic/teachers?s=Tajweed"], ["Arabic", "/islamic/teachers?s=Arabic"], ["Islamic Studies", "/islamic/teachers?s=Islamic+Studies"]]
     : [["Maths", "/school/teachers?s=Maths"], ["Sciences", "/school/teachers?s=Physics"], ["English", "/school/teachers?s=English"], ["Home Tuition", "/school/teachers?mode=home_visit"]];
