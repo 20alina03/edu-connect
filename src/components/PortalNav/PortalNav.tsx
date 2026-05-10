@@ -1,7 +1,12 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Portal } from "@/data/teachers";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { Bell, MessageSquare, LayoutDashboard, User as UserIcon, LogOut } from "lucide-react";
 import "./portalnav.css";
 
 interface Props { portal: Portal }
@@ -9,6 +14,9 @@ interface Props { portal: Portal }
 export const PortalNav = ({ portal }: Props) => {
   const isIslamic = portal === "islamic";
   const loc = useLocation();
+  const navigate = useNavigate();
+  const { user, role, signOut } = useAuth();
+  const dashHref = role === "teacher" ? "/dashboard/teacher" : "/dashboard/student";
   const links = isIslamic
     ? [["Quran", "/islamic/teachers?s=Quran"], ["Tajweed", "/islamic/teachers?s=Tajweed"], ["Arabic", "/islamic/teachers?s=Arabic"], ["Islamic Studies", "/islamic/teachers?s=Islamic+Studies"]]
     : [["Maths", "/school/teachers?s=Maths"], ["Sciences", "/school/teachers?s=Physics"], ["English", "/school/teachers?s=English"], ["Home Tuition", "/school/teachers?mode=home_visit"]];
@@ -37,12 +45,51 @@ export const PortalNav = ({ portal }: Props) => {
           <Link to="/islamic" className={cn("portal-nav-switcher-link", isIslamic ? "bg-primary text-white" : "hover:text-white")}>Islamic</Link>
           <Link to="/school" className={cn("portal-nav-switcher-link", !isIslamic ? "bg-secondary text-white" : "hover:text-white")}>School</Link>
         </div>
-        <Link to="/dashboard/student"><Button variant="ghost" size="sm" className="rounded-full text-white hover:text-white hover:bg-white/10">Sign In</Button></Link>
-        <Link to="/dashboard/teacher">
-          <Button size="sm" className={cn("rounded-full", isIslamic ? "bg-primary hover:bg-primary-dark" : "bg-secondary hover:bg-secondary/90") }>
-            Join Free
-          </Button>
-        </Link>
+        {user ? (
+          <>
+            <Button variant="ghost" size="icon" onClick={() => navigate("/notifications")} className="text-white hover:text-white hover:bg-white/10 rounded-full">
+              <Bell className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => navigate("/messages")} className="text-white hover:text-white hover:bg-white/10 rounded-full">
+              <MessageSquare className="w-4 h-4" />
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className={cn("w-9 h-9 rounded-full text-white font-semibold flex items-center justify-center",
+                  isIslamic ? "bg-primary" : "bg-secondary")}>
+                  {(user.email?.[0] || "U").toUpperCase()}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <div className="px-3 py-2 text-xs">
+                  <div className="font-medium truncate">{user.email}</div>
+                  <div className="text-muted-foreground capitalize">{role}</div>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate(dashHref)}>
+                  <LayoutDashboard className="w-4 h-4 mr-2" /> Dashboard
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/profile")}>
+                  <UserIcon className="w-4 h-4 mr-2" /> Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/bookings")}>My bookings</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={async () => { await signOut(); navigate("/"); }}>
+                  <LogOut className="w-4 h-4 mr-2" /> Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
+        ) : (
+          <>
+            <Link to="/login"><Button variant="ghost" size="sm" className="rounded-full text-white hover:text-white hover:bg-white/10">Sign In</Button></Link>
+            <Link to="/signup">
+              <Button size="sm" className={cn("rounded-full", isIslamic ? "bg-primary hover:bg-primary-dark" : "bg-secondary hover:bg-secondary/90") }>
+                Join Free
+              </Button>
+            </Link>
+          </>
+        )}
       </div>
     </nav>
   );
