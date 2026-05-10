@@ -39,7 +39,7 @@
 }
 
 .signup-input {
-  @apply bg-transparent border-0 text-white placeholder-white/30 focus:ring-0 flex-1;
+  @apply bg-transparent border-0 text-black placeholder-white/30 focus:ring-0 flex-1;
 }
 
 .signup-input::placeholder {
