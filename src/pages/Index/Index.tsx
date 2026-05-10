@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { BookOpen, GraduationCap, Users, ArrowRight, LogIn } from "lucide-react";
+import { BookOpen, GraduationCap, Users, ArrowRight, LayoutDashboard } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import "./index.css";
 
 const Index = () => {
