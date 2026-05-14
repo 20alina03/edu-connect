@@ -1,0 +1,9 @@
+.landing-navbar {
+  background-color: hsl(0 0% 100% / 0.95);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid hsl(160 84% 39% / 0.15);
+  box-shadow: 0 4px 20px hsl(160 84% 39% / 0.08);
+}

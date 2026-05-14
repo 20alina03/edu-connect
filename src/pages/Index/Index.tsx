@@ -51,7 +51,7 @@ const Index = () => {
         </div>
 
         <div className="index-portal-grid">
-          <Link to="/islamic" className="index-portal-card bg-gradient-to-br from-primary/15 to-primary/5 border border-primary/25 hover:border-primary">
+          <Link to="/islamiclandingpage" className="index-portal-card bg-gradient-to-br from-primary/15 to-primary/5 border border-primary/25 hover:border-primary">
             <div className="absolute -right-12 -top-12 w-40 h-40 rounded-full bg-primary/20 blur-2xl group-hover:bg-primary/30 transition" />
             <div className="relative">
               <div className="index-portal-icon bg-primary/20">
@@ -70,7 +70,7 @@ const Index = () => {
             </div>
           </Link>
 
-          <Link to="/school" className="index-portal-card bg-gradient-to-br from-secondary/15 to-secondary/5 border border-secondary/25 hover:border-secondary">
+          <Link to="/schooltutoringLandingPage" className="index-portal-card bg-gradient-to-br from-secondary/15 to-secondary/5 border border-secondary/25 hover:border-secondary">
             <div className="absolute -right-12 -top-12 w-40 h-40 rounded-full bg-secondary/20 blur-2xl group-hover:bg-secondary/30 transition" />
             <div className="relative">
               <div className="index-portal-icon bg-secondary/20">

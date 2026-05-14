@@ -26,6 +26,18 @@ import Pricing from "./pages/marketing/Pricing";
 import Contact from "./pages/marketing/Contact";
 import NotFound from "./pages/NotFound/NotFound";
 
+// Islamic Landing Pages
+import IslamicLandingPage from "./pages/IslamicLandingPage/IslamicLandingPage";
+import IslamicAbout from "./pages/IslamicLandingPage/About";
+import IslamicContact from "./pages/IslamicLandingPage/Contact";
+import IslamicTermsPrivacy from "./pages/IslamicLandingPage/TermsPrivacy";
+
+// School Tutoring Landing Pages
+import SchoolTutoringLandingPage from "./pages/SchoolTutoringLandingPage/SchoolTutoringLandingPage";
+import SchoolAbout from "./pages/SchoolTutoringLandingPage/About";
+import SchoolContact from "./pages/SchoolTutoringLandingPage/Contact";
+import SchoolTermsPrivacy from "./pages/SchoolTutoringLandingPage/TermsPrivacy";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -45,6 +57,20 @@ const App = () => (
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/contact" element={<Contact />} />
+
+            {/* Islamic Landing Pages */}
+            <Route path="/islamiclandingpage" element={<IslamicLandingPage />} />
+            <Route path="/islamiclandingpage/about" element={<IslamicAbout />} />
+            <Route path="/islamiclandingpage/contact" element={<IslamicContact />} />
+            <Route path="/islamiclandingpage/terms" element={<IslamicTermsPrivacy />} />
+
+            {/* School Tutoring Landing Pages */}
+            <Route path="/schooltutoringLandingPage" element={<SchoolTutoringLandingPage />} />
+            <Route path="/schooltutoringLandingPage/about" element={<SchoolAbout />} />
+            <Route path="/schooltutoringLandingPage/contact" element={<SchoolContact />} />
+            <Route path="/schooltutoringLandingPage/terms" element={<SchoolTermsPrivacy />} />
+
+            {/* Portal Routes */}
             <Route path="/islamic" element={<PortalHome portal="islamic" />} />
             <Route path="/school" element={<PortalHome portal="school" />} />
             <Route path="/islamic/teachers" element={<TeachersList portal="islamic" />} />

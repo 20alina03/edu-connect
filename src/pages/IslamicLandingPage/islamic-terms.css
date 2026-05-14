@@ -1,0 +1,185 @@
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes numberCountUp {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(16, 185, 129, 0.4);
+  }
+}
+
+/* Header animation */
+h1 {
+  animation: slideDown 0.8s ease-out;
+}
+
+/* Quick links stagger */
+.grid > a:nth-child(1) {
+  animation: slideInLeft 0.6s ease-out;
+}
+
+.grid > a:nth-child(2) {
+  animation: fadeIn 0.6s ease-out 0.1s backwards;
+}
+
+.grid > a:nth-child(3) {
+  animation: slideInRight 0.6s ease-out 0.2s backwards;
+}
+
+/* Section animations */
+section > .space-y-6 > div,
+section > .grid > div {
+  animation: slideInLeft 0.6s ease-out forwards;
+}
+
+section > .space-y-6 > div:nth-child(1),
+section > .grid > div:nth-child(1) {
+  animation-delay: 0s;
+}
+
+section > .space-y-6 > div:nth-child(2),
+section > .grid > div:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+section > .space-y-6 > div:nth-child(3),
+section > .grid > div:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+section > .space-y-6 > div:nth-child(4),
+section > .grid > div:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+section > .space-y-6 > div:nth-child(5) {
+  animation-delay: 0.4s;
+}
+
+/* Icon animations */
+.group:hover svg {
+  transform: scale(1.1) rotate(5deg);
+  transition: transform 0.3s ease-out;
+}
+
+/* Number badge animation */
+div[class*="w-10"][class*="h-10"] {
+  animation: numberCountUp 0.6s ease-out;
+}
+
+/* Smooth transitions */
+* {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* 3D perspective */
+.perspective {
+  perspective: 1000px;
+}
+
+.group:hover {
+  transform-style: preserve-3d;
+}
+
+/* Hover glow effect */
+.group:hover div[class*="border-2"] {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Enhanced shadows */
+.shadow-lg {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.hover\:shadow-lg:hover {
+  box-shadow: 0 15px 35px -5px rgba(16, 185, 129, 0.2);
+}
+
+/* Link animation */
+a:hover {
+  transform: translateY(-2px);
+}
+
+/* Grid items stagger on hover */
+.grid > a:hover,
+.grid > div:hover {
+  animation: none;
+}
+
+/* Backdrop blur support */
+@supports (backdrop-filter: blur(10px)) {
+  .border-2 {
+    backdrop-filter: blur(5px);
+  }
+}
+
+/* GDPR section special effects */
+#gdpr-compliance section::before {
+  animation: fadeIn 1s ease-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  h1 {
+    animation: slideDown 0.6s ease-out;
+  }
+
+  section > .space-y-6 > div,
+  section > .grid > div {
+    animation-delay: 0s !important;
+  }
+}
