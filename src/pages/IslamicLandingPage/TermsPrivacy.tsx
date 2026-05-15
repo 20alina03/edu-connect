@@ -4,13 +4,13 @@ import "../IslamicLandingPage/islamic-terms.css";
 
 const IslamicTermsPrivacy = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-emerald-50/30">
+    <div className="min-h-screen" style={{ background: 'linear-gradient(to bottom, hsl(153 56% 11% / 0.03) 0%, white 30%, hsl(153 56% 11% / 0.03) 100%)' }}>
       <LandingPageNavbar baseRoute="/islamiclandingpage" portalName="Islamic Learning" />
 
       <div className="max-w-5xl mx-auto px-4 py-20">
         {/* Hero Section */}
         <div className="text-center mb-20">
-          <h1 className="text-5xl md:text-6xl font-display font-bold mb-6 bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+          <h1 className="text-5xl md:text-6xl font-display font-bold mb-6" style={{ background: 'linear-gradient(to right, hsl(153 56% 11%), hsl(153 55% 9%))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
             Terms & Privacy
           </h1>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
@@ -21,17 +21,17 @@ const IslamicTermsPrivacy = () => {
         {/* Quick Links Navigation */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-20">
           {[
-            { icon: Shield, title: "Terms of Service", color: "from-emerald-400 to-emerald-600" },
-            { icon: Lock, title: "Privacy Policy", color: "from-teal-400 to-teal-600" },
-            { icon: Eye, title: "GDPR Compliance", color: "from-green-400 to-green-600" },
+            { icon: Shield, title: "Terms of Service", color: "hsl(153 56% 11%)" },
+            { icon: Lock, title: "Privacy Policy", color: "hsl(153 56% 15%)" },
+            { icon: Eye, title: "GDPR Compliance", color: "hsl(153 56% 20%)" },
           ].map((item, idx) => (
             <a
               key={idx}
               href={`#${item.title.toLowerCase().replace(" ", "-")}`}
               className="group perspective"
             >
-              <div className="relative bg-white border-2 border-emerald-100/60 rounded-2xl p-6 hover:border-emerald-400 transition-all duration-300 hover:shadow-lg cursor-pointer transform group-hover:-translate-y-2">
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+              <div className="relative bg-transparent rounded-2xl p-6 transition-all duration-300 hover:shadow-lg cursor-pointer" style={{ border: '2px solid hsl(153 56% 11% / 0.1)', transform: 'translate(0)' }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'hsl(153 56% 11% / 0.4)'; e.currentTarget.style.transform = 'translate(0, -8px)'; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'hsl(153 56% 11% / 0.1)'; e.currentTarget.style.transform = 'translate(0)'; }}>
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 shadow-lg" style={{ background: `linear-gradient(to bottom right, ${item.color}, ${item.color})` }}>
                   <item.icon className="w-6 h-6 text-white" />
                 </div>
                 <p className="font-semibold text-slate-800">{item.title}</p>
@@ -44,7 +44,7 @@ const IslamicTermsPrivacy = () => {
         <section id="terms-of-service" className="mb-20">
           <div className="mb-12">
             <h2 className="text-3xl font-display font-bold mb-4 flex items-center gap-3 text-slate-800">
-              <Shield className="w-8 h-8 text-emerald-600" />
+              <Shield className="w-8 h-8" style={{ color: 'hsl(153 56% 11%)' }} />
               Terms of Service
             </h2>
             <p className="text-slate-600 text-lg">Last updated: May 2026</p>
@@ -94,7 +94,7 @@ const IslamicTermsPrivacy = () => {
               },
             ].map((item) => (
               <div key={item.num} className="group perspective">
-                <div className="relative bg-white border-2 border-emerald-100/60 rounded-2xl p-6 hover:border-emerald-400 transition-all duration-300 hover:shadow-lg">
+                <div className="relative bg-transparent border-2 border-emerald-100/60 rounded-2xl p-6 hover:border-emerald-400 transition-all duration-300 hover:shadow-lg">
                   <div className="flex gap-4">
                     <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white font-bold shadow-lg">
                       {item.num}

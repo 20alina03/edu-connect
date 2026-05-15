@@ -64,29 +64,120 @@ const SchoolTutoringLandingPage = () => {
     },
   ];
 
+  const handleFeatureMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    target.style.borderColor = "hsl(213 70% 16% / 0.35)";
+    target.style.transform = "translateY(-4px) scale(1.02)";
+    target.style.boxShadow =
+      "0 20px 40px hsl(213 70% 16% / 0.15), 0 0 0 1px hsl(213 70% 16% / 0.08)";
+    const iconEl = target.querySelector(".feature-icon") as HTMLElement | null;
+    if (iconEl) iconEl.style.transform = "scale(1.15) translateY(-2px)";
+  };
+
+  const handleFeatureMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    target.style.borderColor = "hsl(213 70% 16% / 0.12)";
+    target.style.transform = "translateY(0) scale(1)";
+    target.style.boxShadow = "0 4px 16px hsl(213 70% 16% / 0.06)";
+    const iconEl = target.querySelector(".feature-icon") as HTMLElement | null;
+    if (iconEl) iconEl.style.transform = "scale(1) translateY(0)";
+  };
+
+  const handleWhyMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    target.style.borderColor = "hsl(213 70% 16% / 0.35)";
+    target.style.transform = "translateY(-3px)";
+    target.style.boxShadow = "0 16px 32px hsl(213 70% 16% / 0.12)";
+  };
+
+  const handleWhyMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    target.style.borderColor = "hsl(213 70% 16% / 0.12)";
+    target.style.transform = "translateY(0)";
+    target.style.boxShadow = "0 4px 16px hsl(213 70% 16% / 0.06)";
+  };
+
+  const handleTeacherMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    target.style.borderColor = "hsl(213 70% 16% / 0.4)";
+    target.style.boxShadow =
+      "0 24px 48px hsl(213 70% 16% / 0.18), 0 8px 16px hsl(213 70% 16% / 0.1)";
+    target.style.transform = "translateY(-6px)";
+  };
+
+  const handleTeacherMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    target.style.borderColor = "hsl(213 70% 16% / 0.12)";
+    target.style.boxShadow = "0 4px 16px hsl(213 70% 16% / 0.06)";
+    target.style.transform = "translateY(0)";
+  };
+
   return (
     <div className="school-landing-page">
       <LandingPageNavbar baseRoute="/schooltutoringLandingPage" portalName="School Tutoring" />
 
       {/* Hero Section */}
       <section className="hero-section">
+        {/* 3D Floating Background Elements */}
+        <div className="floating-orb orb-1" />
+        <div className="floating-orb orb-2" />
+        <div className="floating-orb orb-3" />
+        <div className="floating-orb orb-4" />
+        <div className="geometric-shape shape-1" />
+        <div className="geometric-shape shape-2" />
+        <div className="geometric-shape shape-3" />
+
         <div className="max-w-7xl mx-auto px-4 py-20 relative z-10">
           <div className="text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-blue-300/40 bg-blue-50/60 mb-6">
-              <GraduationCap className="w-4 h-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-700">School Tutoring Portal</span>
+            <div
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full"
+              style={{
+                border: "1px solid hsl(213 70% 16% / 0.2)",
+                backgroundColor: "hsl(213 70% 16% / 0.08)",
+              }}
+            >
+              <GraduationCap className="w-4 h-4" style={{ color: "hsl(213 70% 16%)" }} />
+              <span className="text-sm font-medium" style={{ color: "hsl(213 70% 16%)" }}>
+                School Tutoring Portal
+              </span>
             </div>
-            <h1 className="text-5xl md:text-6xl font-display font-extrabold mb-6 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-700 bg-clip-text text-transparent">
+            <h1
+              className="text-5xl md:text-6xl font-display font-extrabold mb-6 hero-title"
+              style={{
+                background:
+                  "linear-gradient(to right, hsl(213 70% 16%), hsl(213 70% 22%), hsl(213 70% 16%))",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
               Excel in School with
               <br />
               Expert Tutors
             </h1>
             <p className="text-lg text-slate-600 max-w-2xl mx-auto mb-8 leading-relaxed">
-              DBS-verified, degree-checked tutors for GCSE, A-Level, and primary subjects. Online tuition or home visits across the UK.
+              DBS-verified, degree-checked tutors for GCSE, A-Level, and primary subjects. Online
+              tuition or home visits across the UK.
             </p>
             <Link
               to="/signup"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold text-lg transition-all shadow-lg hover:shadow-blue-500/30 hover:shadow-2xl"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-xl text-white font-semibold text-lg transition-all shadow-lg cta-button"
+              style={{
+                background:
+                  "linear-gradient(135deg, hsl(213 70% 16%), hsl(213 70% 24%))",
+                boxShadow:
+                  "0 4px 15px hsl(213 70% 16% / 0.3), 0 1px 3px hsl(213 70% 16% / 0.2), inset 0 1px 0 rgba(255,255,255,0.1)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow =
+                  "0 8px 30px hsl(213 70% 16% / 0.45), 0 4px 12px hsl(213 70% 16% / 0.25), inset 0 1px 0 rgba(255,255,255,0.15)";
+                e.currentTarget.style.transform = "translateY(-2px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow =
+                  "0 4px 15px hsl(213 70% 16% / 0.3), 0 1px 3px hsl(213 70% 16% / 0.2), inset 0 1px 0 rgba(255,255,255,0.1)";
+                e.currentTarget.style.transform = "translateY(0)";
+              }}
             >
               Book a Free Trial Lesson
             </Link>
@@ -98,8 +189,29 @@ const SchoolTutoringLandingPage = () => {
               { number: "8,000+", label: "Active Students" },
               { number: "4.8★", label: "Average Rating" },
             ].map((stat) => (
-              <div key={stat.label} className="bg-white/80 backdrop-blur-sm border border-blue-200/60 rounded-2xl p-8 text-center hover:shadow-lg hover:border-blue-300 transition-all">
-                <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">{stat.number}</div>
+              <div
+                key={stat.label}
+                className="stat-card backdrop-blur-sm rounded-2xl p-8 text-center transition-all"
+                style={{
+                  border: "1px solid hsl(213 70% 16% / 0.12)",
+                  background:
+                    "linear-gradient(145deg, rgba(255,255,255,0.9), rgba(255,255,255,0.75))",
+                  boxShadow:
+                    "0 8px 32px hsl(213 70% 16% / 0.08), 0 2px 8px hsl(213 70% 16% / 0.05), inset 0 1px 0 rgba(255,255,255,0.8)",
+                }}
+              >
+                <div
+                  className="text-4xl font-bold"
+                  style={{
+                    background:
+                      "linear-gradient(to right, hsl(213 70% 16%), hsl(213 70% 24%))",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                  }}
+                >
+                  {stat.number}
+                </div>
                 <div className="text-sm text-slate-600 mt-3 font-medium">{stat.label}</div>
               </div>
             ))}
@@ -108,59 +220,49 @@ const SchoolTutoringLandingPage = () => {
       </section>
 
       {/* Features Section */}
-      <section className="features-section">
-        <div className="max-w-7xl mx-auto px-4 py-20">
-          <h2 className="text-4xl font-display font-bold text-center mb-4 text-slate-800">Academic Subjects & Levels</h2>
+      <section className="features-section relative overflow-hidden">
+        <div className="floating-orb orb-5" />
+        <div className="floating-orb orb-6" />
+        <div className="max-w-7xl mx-auto px-4 py-20 relative z-10">
+          <h2 className="text-4xl font-display font-bold text-center mb-4 text-slate-800">
+            Academic Subjects & Levels
+          </h2>
           <p className="text-center text-slate-600 mb-16 max-w-2xl mx-auto">
             Comprehensive tutoring across all school subjects and exam levels
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              {
-                icon: Ruler,
-                title: "Maths",
-                description: "Primary, GCSE, A-Level, Further Maths",
-              },
-              {
-                icon: Flask,
-                title: "Sciences",
-                description: "Biology, Chemistry, Physics - all levels",
-              },
-              {
-                icon: FileText,
-                title: "English",
-                description: "Language, Literature, IELTS, essays",
-              },
-              {
-                icon: Globe,
-                title: "Languages",
-                description: "Spanish, French, German, Mandarin",
-              },
-              {
-                icon: BookOpen,
-                title: "History",
-                description: "GCSE & A-Level History with exam experts",
-              },
-              {
-                icon: MapPin,
-                title: "Geography",
-                description: "Physical & Human Geography tutoring",
-              },
-              {
-                icon: Briefcase,
-                title: "Business",
-                description: "Economics & Business Studies",
-              },
-              {
-                icon: Palette,
-                title: "Creative Subjects",
-                description: "Art, Music, Media & Design Technology",
-              },
+              { icon: Ruler,    title: "Maths",             description: "Primary, GCSE, A-Level, Further Maths" },
+              { icon: Flask,    title: "Sciences",           description: "Biology, Chemistry, Physics - all levels" },
+              { icon: FileText, title: "English",            description: "Language, Literature, IELTS, essays" },
+              { icon: Globe,    title: "Languages",          description: "Spanish, French, German, Mandarin" },
+              { icon: BookOpen, title: "History",            description: "GCSE & A-Level History with exam experts" },
+              { icon: MapPin,   title: "Geography",          description: "Physical & Human Geography tutoring" },
+              { icon: Briefcase,title: "Business",           description: "Economics & Business Studies" },
+              { icon: Palette,  title: "Creative Subjects",  description: "Art, Music, Media & Design Technology" },
             ].map((feature) => (
-              <div key={feature.title} className="bg-white rounded-2xl p-6 border-2 border-blue-100/60 hover:border-blue-300 transition-all group cursor-pointer">
-                <div className="mb-4 group-hover:scale-110 transition-transform">
-                  <feature.icon size={40} className="text-blue-600" weight="duotone" />
+              <div
+                key={feature.title}
+                className="feature-card rounded-2xl p-6 cursor-pointer"
+                style={{
+                  border: "2px solid hsl(213 70% 16% / 0.12)",
+                  background: "transparent",
+                  transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                  boxShadow: "0 4px 16px hsl(213 70% 16% / 0.06)",
+                }}
+                onMouseEnter={handleFeatureMouseEnter}
+                onMouseLeave={handleFeatureMouseLeave}
+              >
+                <div
+                  className="feature-icon mb-4"
+                  style={{ transition: "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)" }}
+                >
+                  <feature.icon
+                    size={40}
+                    style={{ color: "hsl(213 70% 16%)" }}
+                    weight="duotone"
+                  />
                 </div>
                 <h3 className="font-semibold text-lg text-slate-800 mb-2">{feature.title}</h3>
                 <p className="text-sm text-slate-600">{feature.description}</p>
@@ -171,37 +273,66 @@ const SchoolTutoringLandingPage = () => {
       </section>
 
       {/* Why Choose Us Section */}
-      <section className="why-section">
-        <div className="max-w-7xl mx-auto px-4 py-20">
-          <h2 className="text-4xl font-display font-bold text-center mb-16 text-slate-800">Why Choose EduConnect School Tutoring?</h2>
+      <section className="why-section relative overflow-hidden">
+        <div className="floating-orb orb-7" />
+        <div className="geometric-shape shape-4" />
+        <div className="max-w-7xl mx-auto px-4 py-20 relative z-10">
+          <h2 className="text-4xl font-display font-bold text-center mb-16 text-slate-800">
+            Why Choose EduConnect School Tutoring?
+          </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {[
               {
                 icon: Medal,
                 title: "DBS Verified Tutors",
-                description: "All tutors undergo comprehensive DBS (Disclosure & Barring Service) checks for safety",
+                description:
+                  "All tutors undergo comprehensive DBS (Disclosure & Barring Service) checks for safety",
               },
               {
                 icon: CheckCircle,
                 title: "Degree Verified",
-                description: "Tutors' qualifications are verified before they can join our platform",
+                description:
+                  "Tutors' qualifications are verified before they can join our platform",
               },
               {
                 icon: Users,
                 title: "Flexible Learning",
-                description: "Online tuition or in-home sessions - choose what works best for your family",
+                description:
+                  "Online tuition or in-home sessions - choose what works best for your family",
               },
               {
                 icon: GraduationCap,
                 title: "Exam Specialists",
-                description: "Many tutors specialize in GCSE & A-Level exam preparation and revision",
+                description:
+                  "Many tutors specialize in GCSE & A-Level exam preparation and revision",
               },
             ].map((feature) => (
-              <div key={feature.title} className="flex gap-4 bg-white/80 backdrop-blur-sm border-2 border-blue-100/60 hover:border-blue-300 rounded-2xl p-6 transition-all">
-                <feature.icon size={28} weight="duotone" className="text-blue-600 flex-shrink-0 mt-1" />
+              <div
+                key={feature.title}
+                className="why-card flex gap-4 rounded-2xl p-6"
+                style={{
+                  background: "white",
+                  border: "1px solid hsl(213 70% 16% / 0.1)",
+                  transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                  boxShadow: "0 4px 16px hsl(213 70% 16% / 0.06)",
+                }}
+                onMouseEnter={handleWhyMouseEnter}
+                onMouseLeave={handleWhyMouseLeave}
+              >
+                <feature.icon
+                  size={28}
+                  weight="duotone"
+                  style={{
+                    color: "hsl(213 70% 16%)",
+                    flexShrink: 0,
+                    marginTop: "0.25rem",
+                  }}
+                />
                 <div>
-                  <h3 className="font-semibold text-lg text-slate-800 mb-2">{feature.title}</h3>
+                  <h3 className="font-semibold text-lg text-slate-800 mb-2">
+                    {feature.title}
+                  </h3>
                   <p className="text-slate-600">{feature.description}</p>
                 </div>
               </div>
@@ -211,70 +342,179 @@ const SchoolTutoringLandingPage = () => {
       </section>
 
       {/* Top Teachers Section */}
-      <section className="teachers-section">
-        <div className="max-w-7xl mx-auto px-4 py-20">
-          <h2 className="text-4xl font-display font-bold text-center mb-4 text-slate-800">Top Rated Tutors</h2>
-          <p className="text-center text-slate-600 mb-16 max-w-2xl mx-auto">
-            Our most highly-rated and most-booked tutors across all subjects
-          </p>
+<section className="teachers-section relative overflow-hidden">
+  <div className="floating-orb orb-8" />
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {teachers.map((teacher) => (
-              <div key={teacher.id} className="bg-white rounded-2xl p-6 border-2 border-blue-100/60 hover:border-blue-300 transition-all group overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
-                <div className="relative">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="text-5xl">{teacher.image}</div>
-                    {teacher.verified && <CheckCircle size={20} weight="fill" className="text-blue-600" />}
-                  </div>
-                  <div className="mb-3">
-                    <h3 className="font-semibold text-lg text-slate-800">{teacher.name}</h3>
-                    <p className="text-sm text-slate-600">{teacher.specialty}</p>
-                  </div>
-                  <div className="inline-block px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold mb-4">
-                    {teacher.badge}
-                  </div>
-                  <div className="flex items-center gap-2 mt-4 mb-4">
-                    <div className="flex items-center gap-1">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                      ))}
-                    </div>
-                    <span className="text-sm font-semibold text-slate-800">{teacher.rating}</span>
-                    <span className="text-sm text-slate-600">({teacher.reviews})</span>
-                  </div>
-                  <button className="w-full px-4 py-2 rounded-lg border-2 border-blue-600 text-blue-600 hover:bg-blue-50 transition font-medium text-sm">
-                    View Profile
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+  <div className="max-w-5xl mx-auto px-6 py-20 relative z-10">
+    <h2 className="text-4xl font-display font-bold text-center mb-4 text-slate-800">
+      Top Rated Tutors
+    </h2>
 
-          <div className="text-center mt-12">
-            <Link
-              to="/school/teachers"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-blue-600 text-blue-700 hover:bg-blue-50 transition font-medium"
+    <p className="text-center text-slate-600 mb-16 max-w-2xl mx-auto">
+      Our most highly-rated and most-booked tutors across all subjects
+    </p>
+
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 place-items-center">
+      {teachers.map((teacher) => (
+        <div
+          key={teacher.id}
+          className="teacher-card bg-white rounded-2xl p-5 overflow-hidden relative w-full max-w-[300px]"
+          style={{
+            border: "2px solid hsl(213 70% 16% / 0.12)",
+            transition: "all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)",
+            boxShadow: "0 4px 16px hsl(213 70% 16% / 0.06)",
+          }}
+          onMouseEnter={handleTeacherMouseEnter}
+          onMouseLeave={handleTeacherMouseLeave}
+        >
+          {/* Background Glow */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                "linear-gradient(135deg, hsl(213 70% 16% / 0.04), transparent 60%)",
+            }}
+          />
+
+          <div className="relative">
+            {/* Top Row */}
+            <div className="flex items-start justify-between mb-4">
+              <div className="text-5xl">{teacher.image}</div>
+
+              {teacher.verified && (
+                <CheckCircle
+                  size={20}
+                  weight="fill"
+                  style={{ color: "hsl(213 70% 16%)" }}
+                />
+              )}
+            </div>
+
+            {/* Tutor Info */}
+            <div className="mb-4">
+              <h3 className="font-semibold text-xl text-slate-800 mb-1">
+                {teacher.name}
+              </h3>
+
+              <p className="text-sm text-slate-600 leading-relaxed">
+                {teacher.specialty}
+              </p>
+            </div>
+
+            {/* Badge */}
+            <div
+              className="teacher-badge inline-flex items-center px-4 py-1 rounded-full text-xs font-semibold mb-5"
+              style={{
+                backgroundColor: "hsl(213 70% 16% / 0.1)",
+                color: "hsl(213 70% 16%)",
+                transform: "none",
+              }}
             >
-              Browse All Tutors
-            </Link>
+              {teacher.badge}
+            </div>
+
+            {/* Ratings */}
+            <div className="flex items-center gap-2 mb-6">
+              <div className="flex items-center gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className="w-4 h-4 fill-amber-400 text-amber-400"
+                  />
+                ))}
+              </div>
+
+              <span className="text-sm font-semibold text-slate-800">
+                {teacher.rating}
+              </span>
+
+              <span className="text-sm text-slate-600">
+                ({teacher.reviews})
+              </span>
+            </div>
+
+            {/* Button */}
+            <button
+              className="mx-auto flex justify-center items-center w-[85%] px-4 py-3 rounded-xl font-medium text-sm"
+              style={{
+                border: "2px solid hsl(213 70% 16%)",
+                color: "hsl(213 70% 16%)",
+                backgroundColor: "transparent",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "hsl(213 70% 16%)";
+                e.currentTarget.style.color = "white";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.color = "hsl(213 70% 16%)";
+              }}
+            >
+              View Profile
+            </button>
           </div>
         </div>
-      </section>
+      ))}
+    </div>
+
+    {/* Browse Button */}
+    <div className="text-center mt-14">
+      <Link
+        to="/school/teachers"
+        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium"
+        style={{
+          border: "2px solid hsl(213 70% 16%)",
+          color: "hsl(213 70% 16%)",
+          backgroundColor: "transparent",
+          transition: "all 0.2s ease",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = "hsl(213 70% 16%)";
+          e.currentTarget.style.color = "white";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = "transparent";
+          e.currentTarget.style.color = "hsl(213 70% 16%)";
+        }}
+      >
+        Browse All Tutors
+      </Link>
+    </div>
+  </div>
+</section>
 
       {/* Reviews Section */}
       <section className="reviews-section">
         <div className="max-w-7xl mx-auto px-4 py-20">
-          <h2 className="text-4xl font-display font-bold text-center mb-4 text-slate-800">Student Success Stories</h2>
+          <h2 className="text-4xl font-display font-bold text-center mb-4 text-slate-800">
+            Student Success Stories
+          </h2>
           <p className="text-center text-slate-600 mb-16 max-w-2xl mx-auto">
             See how our tutoring has helped students achieve their academic goals
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {reviews.map((review, idx) => (
-              <div key={idx} className="bg-white rounded-2xl p-6 border-2 border-blue-100/60 hover:border-blue-300 transition-all">
+              <div
+                key={idx}
+                className="rounded-2xl p-6 transition-all"
+                style={{
+                  background: "white",
+                  border: "2px solid hsl(213 70% 16% / 0.08)",
+                  boxShadow:
+                    "0 4px 20px hsl(213 70% 16% / 0.06), inset 0 1px 0 rgba(255,255,255,0.8)",
+                }}
+              >
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold text-sm">
+                  <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, hsl(213 70% 16%), hsl(213 70% 28%))",
+                      boxShadow: "0 4px 12px hsl(213 70% 16% / 0.3)",
+                    }}
+                  >
                     {review.name[0]}
                   </div>
                   <div>
@@ -295,28 +535,57 @@ const SchoolTutoringLandingPage = () => {
       </section>
 
       {/* How It Works Section */}
-      <section className="bg-gradient-to-r from-blue-500/10 to-blue-400/5 border-t border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 py-20">
-          <h2 className="text-4xl font-display font-bold text-center mb-12">How It Works</h2>
+      <section className="how-section relative overflow-hidden">
+        <div className="floating-orb orb-how-1" />
+        <div className="max-w-7xl mx-auto px-4 py-20 relative z-10">
+          <h2 className="text-4xl font-display font-bold text-center mb-12 text-slate-800">
+            How It Works
+          </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {[
-              { step: 1, title: "Sign Up", desc: "Create your account in minutes" },
-              { step: 2, title: "Browse", desc: "Find the perfect tutor for your needs" },
-              { step: 3, title: "Book", desc: "Schedule your first lesson" },
-              { step: 4, title: "Learn", desc: "Start achieving your goals" },
+              { step: 1, title: "Sign Up",  desc: "Create your account in minutes" },
+              { step: 2, title: "Browse",   desc: "Find the perfect tutor for your needs" },
+              { step: 3, title: "Book",     desc: "Schedule your first lesson" },
+              { step: 4, title: "Learn",    desc: "Start achieving your goals" },
             ].map((item) => (
               <div key={item.step} className="relative">
-                <div className="bg-card border border-border rounded-lg p-6 text-center h-full">
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-400/20 text-blue-400 font-bold mb-4">
+                <div
+                  className="how-step-card rounded-xl p-6 text-center h-full"
+                  style={{
+                    border: "2px solid hsl(213 70% 16% / 0.1)",
+                    background: "transparent",
+                    transition: "all 0.3s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = "hsl(213 70% 16% / 0.3)";
+                    e.currentTarget.style.transform = "translateY(-4px)";
+                    e.currentTarget.style.boxShadow =
+                      "0 16px 32px hsl(213 70% 16% / 0.1)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "hsl(213 70% 16% / 0.1)";
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "none";
+                  }}
+                >
+                  <div
+                    className="inline-flex items-center justify-center w-12 h-12 rounded-full font-bold mb-4"
+                    style={{
+                      backgroundColor: "hsl(213 70% 16% / 0.12)",
+                      color: "hsl(213 70% 16%)",
+                    }}
+                  >
                     {item.step}
                   </div>
-                  <h3 className="font-semibold mb-2">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground">{item.desc}</p>
+                  <h3 className="font-semibold mb-2 text-slate-800">{item.title}</h3>
+                  <p className="text-sm text-slate-600">{item.desc}</p>
                 </div>
                 {item.step < 4 && (
-                  <div className="hidden md:block absolute top-1/2 -right-2 transform -translate-y-1/2">
-                    <div className="text-blue-400/30 text-2xl">→</div>
+                  <div className="hidden md:block absolute top-1/2 -right-2 transform -translate-y-1/2 z-10">
+                    <div className="text-2xl" style={{ color: "hsl(213 70% 16% / 0.25)" }}>
+                      →
+                    </div>
                   </div>
                 )}
               </div>
@@ -326,17 +595,34 @@ const SchoolTutoringLandingPage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="cta-section">
-        <div className="max-w-4xl mx-auto px-4 py-20 text-center">
-          <h2 className="text-4xl font-display font-bold mb-4">
-            Get Expert Tutoring Today
-          </h2>
+      <section className="cta-section relative overflow-hidden">
+        <div className="floating-orb orb-cta-1" />
+        <div className="floating-orb orb-cta-2" />
+        <div className="max-w-4xl mx-auto px-4 py-20 text-center relative z-10">
+          <h2 className="text-4xl font-display font-bold mb-4">Get Expert Tutoring Today</h2>
           <p className="text-lg mb-8 text-white/90">
             Start with a free trial lesson and see the difference expert tutoring makes
           </p>
           <Link
             to="/signup"
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-white text-blue-700 hover:bg-blue-50 font-semibold text-lg transition-all shadow-lg hover:shadow-2xl"
+            className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-lg transition-all shadow-lg"
+            style={{
+              backgroundColor: "white",
+              color: "hsl(213 70% 16%)",
+              boxShadow:
+                "0 8px 24px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.9)",
+              transition: "all 0.25s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow =
+                "0 16px 36px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.9)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow =
+                "0 8px 24px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.9)";
+            }}
           >
             Book Your Free Trial
           </Link>

@@ -4,20 +4,20 @@ import "../IslamicLandingPage/islamic-about.css";
 
 const IslamicAbout = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-emerald-50/30">
+    <div className="min-h-screen" style={{ background: 'linear-gradient(to bottom, hsl(153 56% 11% / 0.03) 0%, white 30%, hsl(153 56% 11% / 0.03) 100%)' }}>
       <LandingPageNavbar baseRoute="/islamiclandingpage" portalName="Islamic Learning" />
 
       <div className="max-w-5xl mx-auto px-4 py-20">
         {/* Hero Section */}
         <div className="text-center mb-20">
-          <h1 className="text-5xl md:text-6xl font-display font-bold mb-6 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 bg-clip-text text-transparent animate-fade-in">
+          <h1 className="text-5xl md:text-6xl font-display font-bold mb-6 animate-fade-in" style={{ background: 'linear-gradient(to right, hsl(153 56% 11%), hsl(153 55% 9%), hsl(153 56% 11%))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
             About Us
           </h1>
           <p className="text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed mb-8">
             EduConnect Islamic is a platform dedicated to making authentic Islamic education accessible to learners worldwide.
             We believe that learning the Quran and Islamic studies should be guided by qualified, verified teachers.
           </p>
-          <div className="w-24 h-1 bg-gradient-to-r from-emerald-400 to-teal-400 mx-auto rounded-full"></div>
+          <div className="w-24 h-1 mx-auto rounded-full" style={{ background: 'linear-gradient(to right, hsl(153 56% 11%), hsl(153 56% 20%))' }}></div>
         </div>
 
         {/* What is EduConnect Islamic Section */}
@@ -25,10 +25,10 @@ const IslamicAbout = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Mission Card */}
             <div className="group perspective">
-              <div className="relative bg-gradient-to-br from-white to-emerald-50/40 border-2 border-emerald-100/60 rounded-3xl p-8 hover:border-emerald-300 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-200/50 transform group-hover:-translate-y-2">
+              <div className="relative bg-gradient-to-br from-transparent to-transparent border-2 border-emerald-100/60 rounded-3xl p-8 hover:border-emerald-300 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-200/50 transform group-hover:-translate-y-2">
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <div className="relative">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center mb-4 shadow-lg">
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 shadow-lg" style={{ background: 'linear-gradient(to bottom right, hsl(153 56% 11%), hsl(153 56% 20%))' }}>
                     <Sparkle className="w-7 h-7 text-white" />
                   </div>
                   <h2 className="text-2xl font-display font-bold mb-4 text-slate-800">Our Mission</h2>
@@ -44,7 +44,7 @@ const IslamicAbout = () => {
                       "Confident practice of Islam",
                     ].map((point, idx) => (
                       <li key={idx} className="flex gap-3 text-slate-600">
-                        <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'hsl(153 56% 11%)' }} />
                         <span className="text-sm">{point}</span>
                       </li>
                     ))}
@@ -55,10 +55,10 @@ const IslamicAbout = () => {
 
             {/* Values Card */}
             <div className="group perspective">
-              <div className="relative bg-gradient-to-br from-white to-teal-50/40 border-2 border-teal-100/60 rounded-3xl p-8 hover:border-teal-300 transition-all duration-300 hover:shadow-2xl hover:shadow-teal-200/50 transform group-hover:-translate-y-2">
+              <div className="relative bg-gradient-to-br from-transparent to-transparent border-2 border-teal-100/60 rounded-3xl p-8 hover:border-teal-300 transition-all duration-300 hover:shadow-2xl hover:shadow-teal-200/50 transform group-hover:-translate-y-2">
                 <div className="absolute inset-0 bg-gradient-to-br from-teal-400/10 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <div className="relative">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center mb-4 shadow-lg">
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 shadow-lg" style={{ background: 'linear-gradient(to bottom right, hsl(153 56% 11%), hsl(153 56% 20%))' }}>
                     <Heart className="w-7 h-7 text-white" />
                   </div>
                   <h2 className="text-2xl font-display font-bold mb-4 text-slate-800">Islamic Foundation & Values</h2>
@@ -74,7 +74,7 @@ const IslamicAbout = () => {
                       "الأمة - Community support",
                     ].map((point, idx) => (
                       <li key={idx} className="flex gap-3 text-slate-600">
-                    <CheckCircle className="w-5 h-5 text-teal-500 flex-shrink-0 mt-0.5" />
+                    <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'hsl(153 56% 11%)' }} />
                         <span className="text-sm">{point}</span>
                       </li>
                     ))}
@@ -100,7 +100,7 @@ const IslamicAbout = () => {
               { icon: Users, title: "Student-Centered", desc: "Personalized teaching approach", color: "from-cyan-400 to-cyan-600" },
             ].map((item, idx) => (
               <div key={idx} className="group perspective h-full">
-                <div className="relative bg-white border-2 border-slate-100/60 rounded-2xl p-6 hover:border-slate-300 transition-all duration-300 hover:shadow-xl transform group-hover:scale-105 h-full">
+                <div className="relative bg-transparent border-2 border-slate-100/60 rounded-2xl p-6 hover:border-slate-300 transition-all duration-300 hover:shadow-xl transform group-hover:scale-105 h-full">
                   <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                     <item.icon className="w-6 h-6 text-white" />
                   </div>
@@ -205,7 +205,7 @@ const IslamicAbout = () => {
                 <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-200/60 rounded-2xl p-6 text-center hover:border-emerald-400 transition-all duration-300 hover:shadow-lg transform group-hover:scale-105">
                   <div className="absolute inset-0 bg-gradient-to-br from-emerald-300/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <div className="relative">
-                    <div className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-2">
+                    <div className="text-4xl font-bold" style={{ background: 'linear-gradient(to right, hsl(153 56% 11%), hsl(153 55% 9%))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
                       {stat.number}
                     </div>
                     <p className="text-sm text-slate-600">{stat.label}</p>

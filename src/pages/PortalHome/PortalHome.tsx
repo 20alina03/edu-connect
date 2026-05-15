@@ -5,6 +5,7 @@ import { PortalNav } from "@/components/PortalNav/PortalNav";
 import { teachers, Portal } from "@/data/teachers";
 import { cn } from "@/lib/utils";
 import "./portalhome.css";
+import { Book, BookOpen, MusicNotes, Globe, Ruler, Flask, FileText, MapPin } from "@phosphor-icons/react";
 
 interface Props {
   portal: Portal;
@@ -24,10 +25,10 @@ const ISLAMIC = {
   sectionTag: "Islamic subjects",
   sectionTitle: "Everything Islamic, One Platform",
   subjects: [
-    { icon: "📖", title: "Quran Reading", desc: "Noorani Qaida to fluent recitation", badge: "Beginner" },
-    { icon: "🎵", title: "Tajweed Rules", desc: "Makharij, sifaat — all levels", badge: "Popular" },
-    { icon: "📚", title: "Hifz Program", desc: "Memorization + revision tracking", badge: "Premium" },
-    { icon: "🌍", title: "Arabic Language", desc: "Classical & modern Arabic", badge: "All levels" },
+    { icon: <BookOpen size={36} weight="duotone" />, title: "Quran Reading", desc: "Noorani Qaida to fluent recitation", badge: "Beginner" },
+    { icon: <MusicNotes size={36} weight="duotone" />, title: "Tajweed Rules", desc: "Makharij, sifaat — all levels", badge: "Popular" },
+    { icon: <Book size={36} weight="duotone" />, title: "Hifz Program", desc: "Memorization + revision tracking", badge: "Premium" },
+    { icon: <Globe size={36} weight="duotone" />, title: "Arabic Language", desc: "Classical & modern Arabic", badge: "All levels" },
   ],
 };
 
@@ -45,10 +46,10 @@ const SCHOOL = {
   sectionTag: "School subjects",
   sectionTitle: "Every Subject, Every Level",
   subjects: [
-    { icon: "📐", title: "Maths", desc: "Primary, GCSE, A-Level, Further Maths", badge: "Most booked" },
-    { icon: "🔬", title: "Sciences", desc: "Biology, Chemistry, Physics", badge: "Popular" },
-    { icon: "📝", title: "English", desc: "Language, Literature, IELTS, essays", badge: "All levels" },
-    { icon: "🏠", title: "Home Tuition", desc: "Verified tutor visits your home — GPS matched", badge: "In-person" },
+    { icon: <Ruler size={36} weight="duotone" />, title: "Maths", desc: "Primary, GCSE, A-Level, Further Maths", badge: "Most booked" },
+    { icon: <Flask size={36} weight="duotone" />, title: "Sciences", desc: "Biology, Chemistry, Physics", badge: "Popular" },
+    { icon: <FileText size={36} weight="duotone" />, title: "English", desc: "Language, Literature, IELTS, essays", badge: "All levels" },
+    { icon: <MapPin size={36} weight="duotone" />, title: "Home Tuition", desc: "Verified tutor visits your home — GPS matched", badge: "In-person" },
   ],
 };
 

@@ -4,20 +4,20 @@ import "../SchoolTutoringLandingPage/school-about.css";
 
 const SchoolAbout = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50/30">
+    <div className="min-h-screen" style={{ background: 'linear-gradient(to bottom, hsl(213 70% 16% / 0.03) 0%, white 30%, hsl(213 70% 16% / 0.03) 100%)' }}>
       <LandingPageNavbar baseRoute="/schooltutoringLandingPage" portalName="School Tutoring" />
 
       <div className="max-w-5xl mx-auto px-4 py-20">
         {/* Hero Section */}
         <div className="text-center mb-20">
-          <h1 className="text-5xl md:text-6xl font-display font-bold mb-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 bg-clip-text text-transparent animate-fade-in">
+          <h1 className="text-5xl md:text-6xl font-display font-bold mb-6 animate-fade-in" style={{ background: 'linear-gradient(to right, hsl(213 70% 16%), hsl(213 70% 20%), hsl(213 70% 16%))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
             About Us
           </h1>
           <p className="text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed mb-8">
             EduConnect School Tutoring is dedicated to transforming academic outcomes through personalized, expert tuition.
             We connect students with qualified, verified tutors who are passionate about their success.
           </p>
-          <div className="w-24 h-1 bg-gradient-to-r from-blue-400 to-indigo-400 mx-auto rounded-full"></div>
+          <div className="w-24 h-1 mx-auto rounded-full" style={{ background: 'linear-gradient(to right, hsl(213 70% 16%), hsl(213 70% 26%))' }}></div>
         </div>
 
         {/* What is EduConnect School Section */}
@@ -25,10 +25,10 @@ const SchoolAbout = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Mission Card */}
             <div className="group perspective">
-              <div className="relative bg-gradient-to-br from-white to-blue-50/40 border-2 border-blue-100/60 rounded-3xl p-8 hover:border-blue-300 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-200/50 transform group-hover:-translate-y-2">
+              <div className="relative bg-gradient-to-br from-transparent to-transparent border-2 border-blue-100/60 rounded-3xl p-8 hover:border-blue-300 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-200/50 transform group-hover:-translate-y-2">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-400/10 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <div className="relative">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center mb-4 shadow-lg">
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 shadow-lg" style={{ background: 'linear-gradient(to bottom right, hsl(213 70% 16%), hsl(213 70% 26%))' }}>
                     <Target className="w-7 h-7 text-white" />
                   </div>
                   <h2 className="text-2xl font-display font-bold mb-4 text-slate-800">Our Mission</h2>
@@ -44,7 +44,7 @@ const SchoolAbout = () => {
                       "Personalized learning plans",
                     ].map((point, idx) => (
                       <li key={idx} className="flex gap-3 text-slate-600">
-                    <CheckCircle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                    <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'hsl(213 70% 16%)' }} />
                         <span className="text-sm">{point}</span>
                       </li>
                     ))}
@@ -55,10 +55,10 @@ const SchoolAbout = () => {
 
             {/* Commitment Card */}
             <div className="group perspective">
-              <div className="relative bg-gradient-to-br from-white to-indigo-50/40 border-2 border-indigo-100/60 rounded-3xl p-8 hover:border-indigo-300 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-200/50 transform group-hover:-translate-y-2">
+              <div className="relative bg-gradient-to-br from-transparent to-transparent border-2 border-indigo-100/60 rounded-3xl p-8 hover:border-indigo-300 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-200/50 transform group-hover:-translate-y-2">
                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-400/10 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <div className="relative">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center mb-4 shadow-lg">
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 shadow-lg" style={{ background: 'linear-gradient(to bottom right, hsl(213 70% 16%), hsl(213 70% 26%))' }}>
                     <Lock className="w-7 h-7 text-white" />
                   </div>
                   <h2 className="text-2xl font-display font-bold mb-4 text-slate-800">Our Commitment to Excellence</h2>
@@ -74,7 +74,7 @@ const SchoolAbout = () => {
                       "Success - Proven grade improvement",
                     ].map((point, idx) => (
                       <li key={idx} className="flex gap-3 text-slate-600">
-                        <CheckCircle className="w-5 h-5 text-indigo-500 flex-shrink-0 mt-0.5" />
+                        <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'hsl(213 70% 16%)' }} />
                         <span className="text-sm">{point}</span>
                       </li>
                     ))}
@@ -205,7 +205,7 @@ const SchoolAbout = () => {
                 <div className="relative bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200/60 rounded-2xl p-6 text-center hover:border-blue-400 transition-all duration-300 hover:shadow-lg transform group-hover:scale-105">
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-300/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <div className="relative">
-                    <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+                    <div className="text-4xl font-bold" style={{ background: 'linear-gradient(to right, hsl(213 70% 16%), hsl(213 70% 20%))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
                       {stat.number}
                     </div>
                     <p className="text-sm text-slate-600">{stat.label}</p>
