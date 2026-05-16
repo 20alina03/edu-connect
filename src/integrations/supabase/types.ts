@@ -222,6 +222,7 @@ export type Database = {
           created_at: string
           experience_years: number | null
           gender: Database["public"]["Enums"]["gender_type"] | null
+          education: string[]
           hourly_rate_usd: number
           id: string
           is_active: boolean | null
@@ -242,6 +243,7 @@ export type Database = {
           created_at?: string
           experience_years?: number | null
           gender?: Database["public"]["Enums"]["gender_type"] | null
+          education?: string[]
           hourly_rate_usd?: number
           id?: string
           is_active?: boolean | null
@@ -262,6 +264,7 @@ export type Database = {
           created_at?: string
           experience_years?: number | null
           gender?: Database["public"]["Enums"]["gender_type"] | null
+          education?: string[]
           hourly_rate_usd?: number
           id?: string
           is_active?: boolean | null

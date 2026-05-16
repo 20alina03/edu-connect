@@ -1,0 +1,158 @@
+/* ── TeacherDashboard.css ─────────────────────────────────────── */
+
+/* ── Hero banner ── */
+.td-hero {
+  @apply relative overflow-hidden rounded-3xl border border-border p-5 sm:p-7 lg:p-10;
+  background: linear-gradient(135deg, hsl(var(--primary)/0.08) 0%, hsl(var(--card)) 50%, hsl(var(--secondary)/0.06) 100%);
+}
+.td-hero-blob-tr {
+  @apply absolute -right-12 -top-12 h-52 w-52 rounded-full blur-3xl pointer-events-none;
+  background: hsl(var(--primary)/0.12);
+}
+.td-hero-blob-bl {
+  @apply absolute -left-14 -bottom-8 h-44 w-44 rounded-full blur-3xl pointer-events-none;
+  background: hsl(var(--secondary)/0.10);
+}
+.td-hero-portal-tag {
+  @apply inline-flex items-center gap-2 rounded-full border border-primary/25 bg-background/70 px-3 py-1 text-xs font-bold text-primary tracking-wide;
+}
+
+/* ── Stat pill (hero row) ── */
+.td-stat-pill {
+  @apply inline-flex items-center gap-1.5 rounded-full bg-background/70 border border-border px-3 py-1.5 text-xs sm:text-sm text-muted-foreground;
+}
+
+/* ── Profile completion card ── */
+.td-completion-card {
+  @apply w-full max-w-sm rounded-2xl border border-border bg-background/80 p-4 shadow-sm backdrop-blur-sm;
+}
+
+/* ── KPI stat cards ── */
+.td-kpi-grid {
+  @apply grid gap-3 sm:gap-4 grid-cols-2 xl:grid-cols-4;
+}
+.td-kpi-card {
+  @apply rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-sm space-y-2 transition-shadow hover:shadow-md;
+}
+.td-kpi-label {
+  @apply text-[11px] uppercase tracking-widest text-muted-foreground font-semibold;
+}
+.td-kpi-value {
+  @apply text-2xl sm:text-3xl font-extrabold font-display;
+}
+.td-kpi-icon {
+  @apply h-8 w-8 rounded-xl flex items-center justify-center flex-shrink-0;
+}
+
+/* ── Section card ── */
+.td-card {
+  @apply rounded-3xl border border-border bg-card p-4 sm:p-6 shadow-sm space-y-5;
+}
+.td-card-header {
+  @apply flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between;
+}
+.td-card-title {
+  @apply text-lg sm:text-xl font-bold font-display;
+}
+.td-card-sub {
+  @apply text-xs sm:text-sm text-muted-foreground mt-0.5;
+}
+
+/* ── Booking item ── */
+.td-booking-item {
+  @apply rounded-2xl border border-border bg-background/60 p-4 space-y-3 transition-colors hover:bg-muted/40;
+}
+.td-booking-subject {
+  @apply font-semibold text-sm sm:text-base;
+}
+
+/* ── Status badges ── */
+.td-badge {
+  @apply rounded-full px-2.5 py-0.5 text-[11px] font-bold capitalize tracking-wide;
+}
+.td-badge-pending  { @apply bg-amber-500/10 text-amber-600 dark:text-amber-400; }
+.td-badge-confirmed { @apply bg-primary/10 text-primary; }
+.td-badge-completed { @apply bg-green-500/10 text-green-600 dark:text-green-400; }
+.td-badge-cancelled { @apply bg-red-500/10 text-red-600 dark:text-red-400; }
+.td-badge-missed    { @apply bg-gray-400/15 text-gray-600 dark:text-gray-400; }
+
+/* ── Session history row ── */
+.td-history-row {
+  @apply flex items-start gap-3 p-3 rounded-xl border border-border bg-background/50 hover:bg-muted/40 transition-colors;
+}
+.td-history-dot {
+  @apply mt-1 h-2.5 w-2.5 rounded-full flex-shrink-0;
+}
+.td-history-dot-attended  { @apply bg-green-500; }
+.td-history-dot-missed    { @apply bg-red-400; }
+.td-history-dot-cancelled { @apply bg-gray-400; }
+
+/* ── Reason chip ── */
+.td-reason-chip {
+  @apply inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border;
+}
+.td-reason-chip-student  { @apply bg-orange-50 border-orange-200 text-orange-700 dark:bg-orange-950/30 dark:border-orange-800 dark:text-orange-400; }
+.td-reason-chip-teacher  { @apply bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-950/30 dark:border-blue-800 dark:text-blue-400; }
+.td-reason-chip-other    { @apply bg-gray-100 border-gray-300 text-gray-600 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400; }
+
+/* ── Session history stat bar ── */
+.td-hist-stat-bar {
+  @apply h-2 rounded-full overflow-hidden bg-muted flex;
+}
+.td-hist-stat-bar-fill {
+  @apply h-full rounded-full transition-all duration-700;
+}
+
+/* ── Student card ── */
+.td-student-card {
+  @apply flex items-center justify-between gap-3 rounded-2xl border border-border bg-background/60 p-3 sm:p-4 hover:bg-muted/40 transition-colors;
+}
+.td-student-avatar {
+  @apply h-10 w-10 rounded-xl flex-shrink-0 flex items-center justify-center text-sm font-bold;
+}
+
+/* ── All bookings table ── */
+.td-table {
+  @apply w-full text-sm;
+}
+.td-table th {
+  @apply text-left py-2.5 px-3 text-xs uppercase tracking-wider text-muted-foreground font-semibold border-b border-border bg-muted/30;
+}
+.td-table td {
+  @apply py-3 px-3 border-b border-border/60 align-middle text-xs sm:text-sm;
+}
+.td-table tr:hover td {
+  @apply bg-muted/30;
+}
+.td-table tr:last-child td {
+  @apply border-b-0;
+}
+
+/* ── Filter pill (booking type) ── */
+.td-filter-pill {
+  @apply text-xs font-semibold px-3 py-1.5 rounded-full border transition-all cursor-pointer select-none;
+}
+.td-filter-pill-active   { @apply bg-primary text-white border-primary; }
+.td-filter-pill-inactive { @apply bg-background text-muted-foreground border-border hover:border-primary/50; }
+
+/* ── Form section ── */
+.td-form-section {
+  @apply rounded-3xl border border-border bg-card p-4 sm:p-6 shadow-sm space-y-5;
+}
+
+/* ── Availability slot row ── */
+.td-avail-slot {
+  @apply grid gap-3 rounded-2xl border border-border bg-background/60 p-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end;
+}
+
+/* ── Dashed empty state ── */
+.td-empty {
+  @apply rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground flex flex-col items-center gap-2;
+}
+
+/* ── Pagination ── */
+.td-page-btn {
+  @apply w-7 h-7 text-xs font-semibold rounded-lg border transition-all;
+}
+.td-page-btn-active   { @apply bg-primary text-white border-primary; }
+.td-page-btn-inactive { @apply border-border hover:border-primary/50 text-muted-foreground; }

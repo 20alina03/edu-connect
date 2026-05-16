@@ -1,17 +1,134 @@
+/* ============================================================
+   SCHOOL TUTORING LANDING PAGE — Animated Background CSS
+   Themes: Math symbols (∑ π ∫ √ ∞ ±), Science atom ⚛,
+           ABC letters, graduation cap 🎓, pencil ✏, ruler,
+           notebook ruled lines, grade bubbles (A+)
+   Colors: opacity 0.22–0.38 on light, 0.14–0.22 on dark bg
+   Sizes: LARGE (8–12rem), MEDIUM (4–6rem), SMALL (2–3rem)
+   ============================================================ */
+
+/* ---- Keyframes ---- */
+
 @keyframes float3DSchoolTop {
   0%, 100% { transform: translateY(0px) translateX(0px) rotateZ(0deg); }
-  50% { transform: translateY(-35px) translateX(20px) rotateZ(180deg); }
+  50%       { transform: translateY(-35px) translateX(20px) rotateZ(180deg); }
 }
-
 @keyframes float3DSchoolBottom {
   0%, 100% { transform: translateY(0px) translateX(0px) rotateZ(0deg); }
-  50% { transform: translateY(25px) translateX(-25px) rotateZ(180deg); }
+  50%       { transform: translateY(25px) translateX(-25px) rotateZ(180deg); }
 }
+
+/* Gentle bob — stays visible the whole time */
+@keyframes gentleBob {
+  0%, 100% { transform: translateY(0px) rotate(-2deg) scale(1); }
+  50%       { transform: translateY(-22px) rotate(2deg) scale(1.05); }
+}
+@keyframes gentleBobReverse {
+  0%, 100% { transform: translateY(0px) rotate(3deg) scale(1); }
+  50%       { transform: translateY(-20px) rotate(-3deg) scale(1.06); }
+}
+@keyframes gentleBobSlow {
+  0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
+  50%       { transform: translateY(-28px) rotate(5deg) scale(1.04); }
+}
+
+/* Atom spin — continuous */
+@keyframes spinContinuous {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes spinSlow {
+  0%   { transform: rotate(0deg) scale(1); }
+  50%  { transform: rotate(180deg) scale(1.08); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+/* Drift up — fades in and out */
+@keyframes driftUp {
+  0%   { opacity: 0; transform: translateY(0) translateX(0); }
+  15%  { opacity: 1; }
+  50%  { opacity: 0.85; transform: translateY(-55px) translateX(16px); }
+  85%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-110px) translateX(-10px); }
+}
+@keyframes driftUpLeft {
+  0%   { opacity: 0; transform: translateY(0) translateX(0); }
+  15%  { opacity: 1; }
+  50%  { opacity: 0.80; transform: translateY(-48px) translateX(-20px); }
+  85%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-95px) translateX(12px); }
+}
+
+/* Breathe — pulsing in place */
+@keyframes breathe {
+  0%, 100% { opacity: 0.22; transform: scale(1); }
+  50%       { opacity: 0.38; transform: scale(1.12); }
+}
+@keyframes breatheSlow {
+  0%, 100% { opacity: 0.16; transform: scale(1); }
+  50%       { opacity: 0.28; transform: scale(1.08); }
+}
+
+/* Notebook grid pulse */
+@keyframes gridPulse {
+  0%, 100% { opacity: 0.12; }
+  50%       { opacity: 0.22; }
+}
+
+/* Dot lattice pulse */
+@keyframes latticePulse {
+  0%, 100% { opacity: 0.14; }
+  50%       { opacity: 0.26; }
+}
+
+
+/* ============================================================
+   PAGE BASE
+   ============================================================ */
 
 .school-landing-page {
   min-height: 100vh;
   background: linear-gradient(135deg, hsl(152 60% 97%) 0%, hsl(213 94% 87%) 100%);
+  position: relative;
 }
+
+/* Global faint notebook ruled-line background */
+.school-landing-page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 38px,
+      hsl(213 70% 16% / 0.06) 38px,
+      hsl(213 70% 16% / 0.06) 39px
+    );
+  animation: gridPulse 9s ease-in-out infinite;
+}
+
+
+/* ── "School Tutoring Portal" badge — completely static ── */
+.school-landing-page .hero-section .rounded-full,
+.hero-section .rounded-full {
+  transform: none !important;
+  transition: none !important;
+  animation: none !important;
+}
+.school-landing-page .hero-section .rounded-full:hover,
+.hero-section .rounded-full:hover {
+  transform: none !important;
+}
+
+
+/* ============================================================
+   HERO SECTION
+   Particles: ∑ (large), π (medium), A+ (large), ⚛ (medium),
+              ✏ (small), √ (medium), ∫ (small drift)
+   ============================================================ */
 
 .hero-section {
   background: linear-gradient(135deg, hsl(213 70% 16% / 0.12) 0%, hsl(213 100% 97% / 0.6) 100%);
@@ -23,33 +140,171 @@
 .hero-section::before {
   content: '';
   position: absolute;
-  top: -50%;
-  right: -20%;
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, hsl(213 70% 16% / 0.1) 0%, transparent 70%);
+  top: -50%; right: -20%;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, hsl(213 70% 16% / 0.10) 0%, transparent 70%);
   border-radius: 50%;
   pointer-events: none;
   animation: float3DSchoolTop 8s ease-in-out infinite;
 }
-
 .hero-section::after {
   content: '';
   position: absolute;
-  bottom: -30%;
-  left: -10%;
-  width: 400px;
-  height: 400px;
+  bottom: -30%; left: -10%;
+  width: 400px; height: 400px;
   background: radial-gradient(circle, hsl(213 70% 16% / 0.08) 0%, transparent 70%);
   border-radius: 50%;
   pointer-events: none;
   animation: float3DSchoolBottom 10s ease-in-out infinite;
 }
 
+/* orb-1 → LARGE "∑" Sigma — 10rem */
+.hero-section .floating-orb.orb-1 {
+  position: absolute;
+  top: 5%; left: 4%;
+  background: none; width: auto; height: auto;
+  font-size: 10rem;
+  font-weight: 700;
+  font-style: italic;
+  color: hsl(213 70% 16% / 0.30);
+  animation: gentleBob 7s ease-in-out infinite;
+  line-height: 1;
+}
+.hero-section .floating-orb.orb-1::after { content: '∑'; }
+
+/* orb-2 → MEDIUM "π" Pi — 5rem */
+.hero-section .floating-orb.orb-2 {
+  position: absolute;
+  top: 55%; left: 2%;
+  background: none; width: auto; height: auto;
+  font-size: 5rem;
+  font-style: italic;
+  color: hsl(213 70% 16% / 0.26);
+  animation: gentleBobReverse 9s ease-in-out infinite;
+  animation-delay: 1.5s;
+  line-height: 1;
+}
+.hero-section .floating-orb.orb-2::after { content: 'π'; }
+
+/* orb-3 → LARGE "A+" grade bubble — 6rem */
+.hero-section .floating-orb.orb-3 {
+  position: absolute;
+  top: 10%; right: 4%;
+  background: none; width: auto; height: auto;
+  font-size: 6rem;
+  font-weight: 900;
+  color: hsl(213 70% 16% / 0.28);
+  animation: gentleBobSlow 11s ease-in-out infinite;
+  animation-delay: 3s;
+  line-height: 1;
+}
+.hero-section .floating-orb.orb-3::after { content: 'A+'; }
+
+/* orb-4 → MEDIUM atom "⚛" — 5rem spinning */
+.hero-section .floating-orb.orb-4 {
+  position: absolute;
+  top: 62%; right: 5%;
+  background: none; width: auto; height: auto;
+  font-size: 5rem;
+  color: hsl(213 70% 16% / 0.26);
+  animation: spinContinuous 14s linear infinite;
+  animation-delay: 1s;
+  line-height: 1;
+}
+.hero-section .floating-orb.orb-4::after { content: '⚛'; }
+
+/* shape-1 → SMALL pencil "✏" — 3rem floating */
+.hero-section .geometric-shape.shape-1 {
+  position: absolute;
+  top: 38%; left: 16%;
+  background: none; width: auto; height: auto;
+  font-size: 3rem;
+  color: hsl(213 70% 16% / 0.30);
+  animation: gentleBob 10s ease-in-out infinite;
+  animation-delay: 2.5s;
+  line-height: 1;
+}
+.hero-section .geometric-shape.shape-1::after { content: '✏'; }
+
+/* shape-2 → LARGE "√" Root — 8rem */
+.hero-section .geometric-shape.shape-2 {
+  position: absolute;
+  bottom: 14%; left: 35%;
+  background: none; width: auto; height: auto;
+  font-size: 8rem;
+  color: hsl(213 70% 16% / 0.22);
+  animation: gentleBobReverse 12s ease-in-out infinite;
+  animation-delay: 0.5s;
+  line-height: 1;
+}
+.hero-section .geometric-shape.shape-2::after { content: '√'; }
+
+/* shape-3 → SMALL "∫" Integral drifting — 2.5rem */
+.hero-section .geometric-shape.shape-3 {
+  position: absolute;
+  top: 4%; left: 46%;
+  background: none; width: auto; height: auto;
+  font-size: 2.5rem;
+  font-style: italic;
+  color: hsl(213 70% 16% / 0.28);
+  animation: driftUp 10s ease-in-out infinite;
+  animation-delay: 5s;
+  line-height: 1;
+}
+.hero-section .geometric-shape.shape-3::after { content: '∫'; }
+
+
+/* ============================================================
+   FEATURES SECTION
+   Particles: "E=mc²" large, "ABC" faint, spinning ⚛ medium
+   ============================================================ */
+
 .features-section {
   background: hsl(152 60% 97%);
   border-bottom: 1px solid hsl(224 76% 48% / 0.1);
   border-top: 1px solid hsl(224 76% 48% / 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* orb-5 → LARGE "E=mc²" — 3.5rem (visually large due to formula width) */
+.features-section .floating-orb.orb-5 {
+  position: absolute;
+  top: 5%; right: 2%;
+  background: none; width: auto; height: auto;
+  font-size: 3.5rem;
+  font-style: italic;
+  font-weight: 700;
+  color: hsl(213 70% 16% / 0.26);
+  animation: gentleBob 10s ease-in-out infinite;
+  animation-delay: 1s;
+  line-height: 1;
+}
+.features-section .floating-orb.orb-5::after { content: 'E=mc²'; }
+
+/* orb-6 → MEDIUM spinning atom ⚛ — 5rem */
+.features-section .floating-orb.orb-6 {
+  position: absolute;
+  bottom: 5%; left: 2%;
+  background: none; width: auto; height: auto;
+  font-size: 5rem;
+  color: hsl(213 70% 16% / 0.28);
+  animation: spinContinuous 16s linear infinite;
+  line-height: 1;
+}
+.features-section .floating-orb.orb-6::after { content: '⚛'; }
+
+/* LARGE faint "ABC" bottom-right */
+.features-section::after {
+  content: 'ABC';
+  position: absolute;
+  bottom: 0%; right: 4%;
+  font-size: 10rem;
+  font-weight: 900;
+  color: hsl(213 70% 16% / 0.10);
+  pointer-events: none;
+  animation: breathe 9s ease-in-out infinite;
+  line-height: 1;
 }
 
 .features-section > div > div {
@@ -57,64 +312,233 @@
   background: transparent;
   border: none;
 }
-
 .features-section > div > div:hover {
   transform: translateY(-8px);
   box-shadow: 0 12px 32px hsl(224 76% 48% / 0.15);
   border-color: hsl(224 76% 48% / 0.5);
 }
 
+
+/* ============================================================
+   WHY SECTION
+   Particles: graduation cap large, dot lattice, ∞ medium
+   ============================================================ */
+
 .why-section {
   background: linear-gradient(135deg, hsl(224 76% 48% / 0.05) 0%, hsl(213 94% 87% / 0.05) 100%);
   border-top: 1px solid hsl(224 76% 48% / 0.15);
   border-bottom: 1px solid hsl(224 76% 48% / 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+/* orb-7 → LARGE "∞" infinity symbol — 11rem */
+.why-section .floating-orb.orb-7 {
+  position: absolute;
+  top: 8%; left: 1%;
+  background: none; width: auto; height: auto;
+  font-size: 11rem;
+  color: hsl(213 70% 16% / 0.20);
+  animation: gentleBobReverse 13s ease-in-out infinite;
+  animation-delay: 2s;
+  line-height: 1;
+}
+.why-section .floating-orb.orb-7::after { content: '∞'; }
+
+/* shape-4 → MEDIUM graduation cap floating — "🎓" rendered via Unicode alt */
+.why-section .geometric-shape.shape-4 {
+  position: absolute;
+  top: 4%; right: 3%;
+  background: none; width: auto; height: auto;
+  font-size: 5rem;
+  color: hsl(213 70% 16% / 0.30);
+  animation: gentleBob 10s ease-in-out infinite;
+  animation-delay: 3.5s;
+  line-height: 1;
+}
+.why-section .geometric-shape.shape-4::after { content: '⊕'; } /* Circled + = academic medal alt */
+
+/* Dot lattice */
+.why-section::before {
+  content: '';
+  position: absolute; inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, hsl(213 70% 16% / 0.16) 1.5px, transparent 1.5px);
+  background-size: 50px 50px;
+  animation: latticePulse 10s ease-in-out infinite;
+}
+
+/* SMALL "±" bottom-center spinning — 3.5rem */
+.why-section::after {
+  content: '±';
+  position: absolute;
+  bottom: 4%; left: 50%;
+  transform: translateX(-50%);
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: hsl(213 70% 16% / 0.30);
+  pointer-events: none;
+  animation: gentleBobSlow 8s ease-in-out infinite;
 }
 
 .why-section > div > div {
-  background: transparent;
-  border: none;
+  background: transparent; border: none;
   transition: all 0.3s ease;
 }
-
 .why-section > div > div:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 24px hsl(224 76% 48% / 0.1);
   border-color: hsl(224 76% 48% / 0.4);
 }
 
+
+/* ============================================================
+   TEACHERS SECTION
+   Particles: ✒ pen large, spinning ⚛, dot matrix
+   ============================================================ */
+
 .teachers-section {
   background: hsl(152 60% 97%);
   border-bottom: 1px solid hsl(224 76% 48% / 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* orb-8 → LARGE "∑" Sigma top-right — 9rem */
+.teachers-section .floating-orb.orb-8 {
+  position: absolute;
+  top: 2%; right: 2%;
+  background: none; width: auto; height: auto;
+  font-size: 9rem;
+  font-weight: 700;
+  font-style: italic;
+  color: hsl(213 70% 16% / 0.22);
+  animation: gentleBob 14s ease-in-out infinite;
+  animation-delay: 0.5s;
+  line-height: 1;
+}
+.teachers-section .floating-orb.orb-8::after { content: '∑'; }
+
+/* LARGE pen ✒ bottom-left — 7rem */
+.teachers-section::before {
+  content: '✒';
+  position: absolute;
+  bottom: 3%; left: 2%;
+  font-size: 7rem;
+  color: hsl(213 70% 16% / 0.24);
+  pointer-events: none;
+  animation: gentleBobSlow 12s ease-in-out infinite;
+  animation-delay: 3s;
+}
+
+/* Dot lattice */
+.teachers-section::after {
+  content: '';
+  position: absolute; inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, hsl(213 70% 16% / 0.12) 1.5px, transparent 1.5px);
+  background-size: 65px 65px;
+  animation: latticePulse 12s ease-in-out infinite;
 }
 
 .teachers-section > div > div > div {
   transition: all 0.3s ease;
-  background: transparent;
-  border: none;
+  background: transparent; border: none;
 }
-
 .teachers-section > div > div > div:hover {
   transform: translateY(-8px);
   box-shadow: 0 20px 40px hsl(224 76% 48% / 0.2);
   border-color: hsl(224 76% 48% / 0.6);
 }
 
+
+/* ============================================================
+   REVIEWS SECTION
+   Particles: "100%" large, star cluster, "A*" medium
+   ============================================================ */
+
 .reviews-section {
   background: linear-gradient(135deg, hsl(224 76% 48% / 0.08) 0%, hsl(213 94% 87% / 0.06) 100%);
   border-top: 1px solid hsl(224 76% 48% / 0.15);
   border-bottom: 1px solid hsl(224 76% 48% / 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+/* LARGE "100%" top-left — 5rem */
+.reviews-section::before {
+  content: '100%';
+  position: absolute;
+  top: 2%; left: 2%;
+  font-size: 5rem;
+  font-weight: 900;
+  color: hsl(213 70% 16% / 0.24);
+  pointer-events: none;
+  animation: gentleBobSlow 11s ease-in-out infinite;
+  animation-delay: 2s;
+  line-height: 1;
+}
+
+/* MEDIUM "A*" grade drifting top-right — 5rem */
+.reviews-section::after {
+  content: 'A*';
+  position: absolute;
+  top: 3%; right: 2%;
+  font-size: 5rem;
+  font-weight: 900;
+  color: hsl(213 70% 16% / 0.26);
+  pointer-events: none;
+  animation: driftUpLeft 9s ease-in-out infinite;
+  animation-delay: 1.5s;
+  line-height: 1;
 }
 
 .reviews-section > div > div > div {
-  background: transparent;
-  border: none;
+  background: transparent; border: none;
   transition: all 0.3s ease;
 }
-
 .reviews-section > div > div > div:hover {
   border-color: hsl(224 76% 48% / 0.4);
   box-shadow: 0 8px 24px hsl(224 76% 48% / 0.1);
 }
+
+
+/* ============================================================
+   HOW IT WORKS SECTION
+   ============================================================ */
+
+.how-section {
+  position: relative;
+  overflow: hidden;
+  background: hsl(213 94% 97%);
+}
+
+/* MEDIUM spinning atom top-right */
+.how-section .floating-orb.orb-how-1 {
+  position: absolute;
+  top: 8%; right: 4%;
+  background: none; width: auto; height: auto;
+  font-size: 5rem;
+  color: hsl(213 70% 16% / 0.26);
+  animation: spinContinuous 18s linear infinite;
+  line-height: 1;
+}
+.how-section .floating-orb.orb-how-1::after { content: '⚛'; }
+
+/* Dot lattice */
+.how-section::before {
+  content: '';
+  position: absolute; inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, hsl(213 70% 16% / 0.10) 1px, transparent 1px);
+  background-size: 42px 42px;
+  animation: latticePulse 9s ease-in-out infinite;
+}
+
+
+/* ============================================================
+   CTA SECTION — Dark navy
+   ============================================================ */
 
 .cta-section {
   background: linear-gradient(135deg, hsl(213 70% 16%) 0%, hsl(213 70% 20%) 100%);
@@ -127,15 +551,53 @@
 .cta-section::before {
   content: '';
   position: absolute;
-  top: -50%;
-  right: -20%;
-  width: 500px;
-  height: 500px;
+  top: -50%; right: -20%;
+  width: 500px; height: 500px;
   background: radial-gradient(circle, hsl(213 70% 16% / 0.3) 0%, transparent 70%);
   border-radius: 50%;
   pointer-events: none;
   animation: float3DSchoolTop 12s ease-in-out infinite;
 }
+
+/* Math symbols row — visible on dark bg */
+.cta-section::after {
+  content: 'π  ∑  ∫  √  ∞';
+  position: absolute;
+  bottom: 6%; left: 50%;
+  transform: translateX(-50%);
+  font-size: 2rem;
+  font-style: italic;
+  letter-spacing: 2.5rem;
+  color: hsl(0 0% 100% / 0.16);
+  pointer-events: none;
+  animation: gentleBobSlow 12s ease-in-out infinite;
+  white-space: nowrap;
+}
+
+/* orb-cta-1 → LARGE "A+" — 8rem */
+.cta-section .floating-orb.orb-cta-1 {
+  position: absolute;
+  top: 10%; left: 3%;
+  background: none; width: auto; height: auto;
+  font-size: 8rem;
+  font-weight: 900;
+  color: hsl(0 0% 100% / 0.16);
+  animation: gentleBobReverse 14s ease-in-out infinite;
+  line-height: 1;
+}
+.cta-section .floating-orb.orb-cta-1::after { content: 'A+'; }
+
+/* orb-cta-2 → MEDIUM spinning ⚛ — 5rem */
+.cta-section .floating-orb.orb-cta-2 {
+  position: absolute;
+  bottom: 6%; right: 4%;
+  background: none; width: auto; height: auto;
+  font-size: 5rem;
+  color: hsl(0 0% 100% / 0.20);
+  animation: spinContinuous 12s linear infinite;
+  line-height: 1;
+}
+.cta-section .floating-orb.orb-cta-2::after { content: '⚛'; }
 
 .cta-section h2,
 .cta-section p {
@@ -144,8 +606,52 @@
   z-index: 1;
 }
 
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+
 footer {
   background: hsl(213 70% 16%);
   color: hsl(0 0% 100% / 0.6);
   border-top: 1px solid hsl(213 70% 16% / 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+footer::before {
+  content: '∑  π  ∫  √  ∞  ±';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.5rem;
+  font-style: italic;
+  letter-spacing: 2rem;
+  color: hsl(0 0% 100% / 0.12);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-section .floating-orb.orb-1  { font-size: 5rem !important; }
+  .hero-section .floating-orb.orb-2  { font-size: 3rem !important; }
+  .hero-section .floating-orb.orb-3  { font-size: 3.5rem !important; }
+  .hero-section .floating-orb.orb-4  { font-size: 3rem !important; }
+  .hero-section .geometric-shape.shape-2 { font-size: 4rem !important; }
+  .features-section .floating-orb.orb-5 { font-size: 2rem !important; }
+  .why-section .floating-orb.orb-7   { font-size: 6rem !important; }
+  .teachers-section .floating-orb.orb-8 { font-size: 5rem !important; }
+  .school-landing-page::before { display: none; }
 }

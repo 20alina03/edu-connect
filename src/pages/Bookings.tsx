@@ -47,37 +47,37 @@ const Bookings = () => {
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold font-display mb-6">My Bookings</h1>
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
+        <h1 className="text-2xl sm:text-3xl font-bold font-display mb-4 sm:mb-6">My Bookings</h1>
         {bookings.length === 0 ? (
-          <div className="text-center py-16 text-muted-foreground">No bookings yet.</div>
+          <div className="text-center py-12 sm:py-16 text-muted-foreground text-sm">No bookings yet.</div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {bookings.map((b) => (
-              <div key={b.id} className="bg-card border border-border rounded-xl p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
+              <div key={b.id} className="bg-card border border-border rounded-lg sm:rounded-xl p-3 sm:p-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
                   <div>
-                    <div className="font-semibold">{b.subject}</div>
-                    <div className="text-xs text-muted-foreground flex items-center gap-3 mt-1">
-                      <span className="flex items-center gap-1"><Calendar className="w-3 h-3"/> {format(new Date(b.start_at), "PP p")}</span>
+                    <div className="font-semibold text-sm sm:text-base">{b.subject}</div>
+                    <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-2 sm:gap-3 mt-1">
+                      <span className="flex items-center gap-1"><Calendar className="w-3 h-3"/> {format(new Date(b.start_at), "PPp")}</span>
                       <span className="flex items-center gap-1"><Clock className="w-3 h-3"/> {b.duration_min} min</span>
                       <span className="capitalize">{b.mode.replace("_"," ")}</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-xs px-2 py-1 rounded-full capitalize font-medium ${
+                  <div className="flex items-center gap-2 justify-between sm:justify-end">
+                    <span className={`text-xs px-2 py-1 rounded-full capitalize font-medium whitespace-nowrap ${
                       b.status === "confirmed" ? "bg-primary/10 text-primary" :
                       b.status === "pending" ? "bg-accent/20 text-accent-foreground" :
                       b.status === "completed" ? "bg-muted text-muted-foreground" :
                       "bg-destructive/10 text-destructive"
                     }`}>{b.status}</span>
-                    <span className="font-semibold">${b.price_usd}</span>
+                    <span className="font-semibold text-sm">${b.price_usd}</span>
                   </div>
                 </div>
 
                 {role === "teacher" && b.status === "pending" && (
-                  <div className="flex gap-2 mt-3">
-                    <Button size="sm" onClick={() => updateStatus(b.id, "confirmed")}>Accept</Button>
+                  <div className="flex flex-col sm:flex-row gap-2 mt-3">
+                    <Button size="sm" onClick={() => updateStatus(b.id, "confirmed")} className="flex-1 sm:flex-none">Accept</Button>
                     <Button size="sm" variant="outline" onClick={() => updateStatus(b.id, "cancelled")}>Decline</Button>
                   </div>
                 )}

@@ -1,155 +1,607 @@
-@keyframes float3DIslamicTop {
-  0%, 100% { transform: translateY(0px) translateX(0px) rotateZ(0deg); }
-  50% { transform: translateY(-30px) translateX(15px) rotateZ(180deg); }
+/* ============================================================
+   ISLAMIC LANDING PAGE CSS
+   ALL section rules are scoped under .islamic-landing-page
+   to beat school-landing.css which uses bare .hero-section etc.
+   Specificity: .islamic-landing-page .hero-section beats .hero-section
+   ============================================================ */
+
+/* ---- Keyframes ---- */
+@keyframes islamicFloat {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  50%       { transform: translateY(-30px) translateX(15px); }
+}
+@keyframes islamicFloatDown {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  50%       { transform: translateY(20px) translateX(-20px); }
+}
+@keyframes islamicBob {
+  0%, 100% { transform: translateY(0px) rotate(-2deg) scale(1); }
+  50%       { transform: translateY(-24px) rotate(2deg) scale(1.05); }
+}
+@keyframes islamicBobReverse {
+  0%, 100% { transform: translateY(0px) rotate(3deg) scale(1); }
+  50%       { transform: translateY(-20px) rotate(-3deg) scale(1.06); }
+}
+@keyframes islamicBobSlow {
+  0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
+  50%       { transform: translateY(-30px) rotate(5deg) scale(1.04); }
+}
+@keyframes islamicSpin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes islamicDriftUp {
+  0%   { opacity: 0; transform: translateY(0) translateX(0); }
+  15%  { opacity: 1; }
+  50%  { opacity: 0.85; transform: translateY(-55px) translateX(18px); }
+  85%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-110px) translateX(-8px); }
+}
+@keyframes islamicDriftLeft {
+  0%   { opacity: 0; transform: translateY(0) translateX(0); }
+  15%  { opacity: 1; }
+  50%  { opacity: 0.80; transform: translateY(-48px) translateX(-22px); }
+  85%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-95px) translateX(10px); }
+}
+@keyframes islamicBreathe {
+  0%, 100% { opacity: 0.22; transform: scale(1); }
+  50%       { opacity: 0.38; transform: scale(1.12); }
+}
+@keyframes islamicBreatheSlow {
+  0%, 100% { opacity: 0.18; transform: scale(1); }
+  50%       { opacity: 0.30; transform: scale(1.08); }
+}
+@keyframes islamicLatticePulse {
+  0%, 100% { opacity: 0.14; }
+  50%       { opacity: 0.26; }
+}
+@keyframes islamicGlow {
+  0%, 100% { opacity: 0.20; }
+  50%       { opacity: 0.36; }
+}
+@keyframes islamicVerseFloat {
+  0%, 100% { transform: translateX(0px) translateY(0px); opacity: 0.18; }
+  33%       { transform: translateX(12px) translateY(-18px); opacity: 0.28; }
+  66%       { transform: translateX(-8px) translateY(-10px); opacity: 0.22; }
 }
 
-@keyframes float3DIslamicBottom {
-  0%, 100% { transform: translateY(0px) translateX(0px) rotateZ(0deg); }
-  50% { transform: translateY(20px) translateX(-20px) rotateZ(180deg); }
-}
 
-@keyframes rotateIslamicShape {
-  0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
-  100% { transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg); }
-}
+/* ============================================================
+   PAGE BASE — responsive
+   ============================================================ */
 
 .islamic-landing-page {
   min-height: 100vh;
   background: linear-gradient(135deg, hsl(152 60% 97%) 0%, hsl(153 80% 84%) 100%);
+  position: relative;
 }
 
-.hero-section {
+/* Islamic star-lattice removed */
+.islamic-landing-page .islamic-star-lattice {
+  display: none;
+}
+
+
+/* ============================================================
+   OVERRIDE SCHOOL CSS — Silence all school ::after content
+   inside the islamic page. School uses bare .hero-section etc.
+   We use .islamic-landing-page .hero-section = higher specificity.
+   ============================================================ */
+
+/* Silence school's floating-orb & geometric-shape ::after text */
+.islamic-landing-page .hero-section .floating-orb::after,
+.islamic-landing-page .hero-section .geometric-shape::after,
+.islamic-landing-page .features-section .floating-orb::after,
+.islamic-landing-page .why-section .floating-orb::after,
+.islamic-landing-page .why-section .geometric-shape::after,
+.islamic-landing-page .teachers-section .floating-orb::after,
+.islamic-landing-page .cta-section .floating-orb::after {
+  content: '' !important;
+  display: none !important;
+}
+
+/* Silence school's section-level pseudo-elements */
+.islamic-landing-page .features-section::after,
+.islamic-landing-page .why-section::after,
+.islamic-landing-page .teachers-section::before,
+.islamic-landing-page .reviews-section::before,
+.islamic-landing-page .reviews-section::after,
+.islamic-landing-page .cta-section::after,
+.islamic-landing-page footer::before {
+  content: '' !important;  /* will be re-declared below with higher specificity */
+}
+
+
+/* ============================================================
+   HERO SECTION — scoped
+   ============================================================ */
+
+.islamic-landing-page .hero-section {
   background: linear-gradient(135deg, hsl(156 72% 67% / 0.15) 0%, hsl(160 84% 39% / 0.08) 100%);
   border-bottom: 1px solid hsl(160 84% 39% / 0.2);
   position: relative;
   overflow: hidden;
 }
 
-.hero-section::before {
+/* ── "Islamic Learning Portal" badge — completely static ── */
+.islamic-landing-page .hero-section .rounded-full {
+  transform: none !important;
+  transition: none !important;
+  animation: none !important;
+}
+.islamic-landing-page .hero-section .rounded-full:hover {
+  transform: none !important;
+}
+
+/* Radial glow blobs — no text, safe */
+.islamic-landing-page .hero-section::before {
   content: '';
   position: absolute;
-  top: -50%;
-  right: -20%;
-  width: 600px;
-  height: 600px;
+  top: -50%; right: -20%;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, hsl(153 56% 11% / 0.10) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  animation: islamicFloat 8s ease-in-out infinite;
+}
+.islamic-landing-page .hero-section::after {
+  content: '';
+  position: absolute;
+  bottom: -30%; left: -10%;
+  width: 400px; height: 400px;
   background: radial-gradient(circle, hsl(153 56% 11% / 0.08) 0%, transparent 70%);
   border-radius: 50%;
   pointer-events: none;
-  animation: float3DIslamicTop 8s ease-in-out infinite;
+  z-index: 0;
+  animation: islamicFloatDown 10s ease-in-out infinite;
+  display: block !important;
 }
 
-.hero-section::after {
-  content: '';
+/* ── Islamic symbols rendered as <div class="isl-sym"> in TSX ── */
+.islamic-landing-page .isl-sym {
   position: absolute;
-  bottom: -30%;
-  left: -10%;
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, hsl(153 56% 11% / 0.06) 0%, transparent 70%);
-  border-radius: 50%;
   pointer-events: none;
-  animation: float3DIslamicBottom 10s ease-in-out infinite;
+  user-select: none;
+  line-height: 1;
+  font-family: 'Amiri', 'Scheherazade New', 'Noto Naskh Arabic', serif;
+  color: hsl(153 56% 11% / 0.12);
+  z-index: 0;
+  white-space: nowrap;
 }
 
-.features-section {
+/* ─ Hero symbol positions & styles ─ */
+
+/* ﷽ Bismillah — top left, reduced size, pushed further left */
+.islamic-landing-page .isl-hero-bismillah {
+  top: 4%; left: 0%;
+  font-size: clamp(2rem, 6vw, 5rem);
+  color: hsl(153 56% 11% / 0.07);
+  animation: islamicBob 7s ease-in-out infinite;
+}
+
+/* مَدٌّ Madd — lower left, well below Bismillah zone */
+.islamic-landing-page .isl-hero-madd {
+  top: 68%; left: 2%;
+  font-size: clamp(2rem, 6.5vw, 5.5rem);
+  color: hsl(153 56% 11% / 0.12);
+  animation: islamicBobReverse 9s ease-in-out infinite;
+  animation-delay: 1.5s;
+}
+
+/* ٱقۡرَأۡ Iqra — top right, clear of Allah below */
+.islamic-landing-page .isl-hero-iqra {
+  top: 6%; right: 3%;
+  font-size: clamp(2.5rem, 7vw, 6.5rem);
+  color: hsl(153 56% 11% / 0.12);
+  animation: islamicBobSlow 11s ease-in-out infinite;
+  animation-delay: 3s;
+}
+
+/* ﷲ Allah — bottom right, well below Iqra (Iqra ends ~top:25%, Allah starts top:72%) */
+.islamic-landing-page .isl-hero-allah {
+  top: 72%; right: 4%;
+  font-size: clamp(3rem, 9vw, 8rem);
+  color: hsl(153 56% 11% / 0.11);
+  animation: islamicBob 8s ease-in-out infinite;
+  animation-delay: 2s;
+}
+
+/* غُنَّة Ghunnah — center, horizontally between left and right columns */
+.islamic-landing-page .isl-hero-ghunnah {
+  top: 42%; left: 38%;
+  font-size: clamp(1.5rem, 4vw, 3.2rem);
+  color: hsl(153 56% 11% / 0.07);
+  animation: islamicGlow 12s ease-in-out infinite;
+}
+
+/* رَحِيم Raheem — bottom center-left, clear of Ghunnah above and Madd on left */
+.islamic-landing-page .isl-hero-raheem {
+  bottom: 4%; left: 28%;
+  font-size: clamp(2.5rem, 7.5vw, 7rem);
+  color: hsl(153 56% 11% / 0.10);
+  animation: islamicBobReverse 12s ease-in-out infinite;
+  animation-delay: 0.5s;
+}
+
+/* نُور Noor — top center, drifting, clear of Bismillah left and Iqra right */
+.islamic-landing-page .isl-hero-noor {
+  top: 4%; left: 44%;
+  font-size: clamp(1.5rem, 4vw, 3rem);
+  color: hsl(153 56% 11% / 0.07);
+  animation: islamicDriftUp 10s ease-in-out infinite;
+  animation-delay: 5s;
+}
+
+
+/* ============================================================
+   FEATURES SECTION — scoped
+   ============================================================ */
+
+.islamic-landing-page .features-section {
   background: hsl(152 60% 97%);
   border-bottom: 1px solid hsl(160 84% 39% / 0.1);
   border-top: 1px solid hsl(160 84% 39% / 0.1);
+  position: relative;
+  overflow: hidden;
 }
 
-.features-section > div > div {
+/* ﷽ bottom-right watermark — higher specificity beats school 'ABC' */
+.islamic-landing-page .features-section::after {
+  content: '﷽' !important;
+  position: absolute;
+  bottom: 2%; right: 3%;
+  font-family: 'Amiri', 'Scheherazade New', serif;
+  font-size: 4rem;
+  color: hsl(153 56% 11% / 0.07);
+  pointer-events: none;
+  z-index: 0;
+  animation: islamicBreathe 9s ease-in-out infinite;
+  white-space: nowrap;
+  display: block !important;
+}
+
+/* تَجۡوِيد Tajweed — top right, EXTRA LARGE */
+.islamic-landing-page .isl-feat-tajweed {
+  top: 4%; right: 1%;
+  font-size: clamp(3rem, 10vw, 9rem);
+  color: hsl(153 56% 11% / 0.09);
+  animation: islamicBob 9s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+/* حِفۡظ Hifz — bottom left, LARGE */
+.islamic-landing-page .isl-feat-hifz {
+  bottom: 5%; left: 2%;
+  font-size: clamp(2rem, 7vw, 6rem);
+  color: hsl(153 56% 11% / 0.10);
+  animation: islamicBobSlow 14s ease-in-out infinite;
+}
+
+.islamic-landing-page .features-section > div > div {
   transition: all 0.3s ease;
   background: transparent;
   border: 1px solid hsl(160 84% 39% / 0.15);
 }
-
-.features-section > div > div:hover {
+.islamic-landing-page .features-section > div > div:hover {
   transform: translateY(-8px);
   box-shadow: 0 12px 32px hsl(160 84% 39% / 0.15);
   border-color: hsl(160 84% 39% / 0.5);
 }
 
-.why-section {
+
+/* ============================================================
+   WHY SECTION — scoped
+   ============================================================ */
+
+.islamic-landing-page .why-section {
   background: linear-gradient(135deg, hsl(160 84% 39% / 0.05) 0%, hsl(156 72% 67% / 0.05) 100%);
   border-top: 1px solid hsl(160 84% 39% / 0.15);
   border-bottom: 1px solid hsl(160 84% 39% / 0.15);
+  position: relative;
+  overflow: hidden;
 }
 
-.why-section > div > div {
-  transition: all 0.3s ease;
+/* Dot lattice */
+.islamic-landing-page .why-section::before {
+  content: '';
+  position: absolute; inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, hsl(153 56% 11% / 0.08) 1.5px, transparent 1.5px);
+  background-size: 55px 55px;
+  animation: islamicLatticePulse 10s ease-in-out infinite;
+  display: block !important;
 }
 
-.why-section > div > div:hover {
+/* صِرَاطَ ٱلۡمُسۡتَقِيمَ bottom — beats school '±' */
+.islamic-landing-page .why-section::after {
+  content: 'صِرَاطَ ٱلۡمُسۡتَقِيمَ' !important;
+  position: absolute;
+  bottom: 4%; left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Amiri', 'Scheherazade New', serif;
+  font-size: 2rem;
+  color: hsl(153 56% 11% / 0.10);
+  pointer-events: none;
+  z-index: 0;
+  animation: islamicVerseFloat 14s ease-in-out infinite;
+  white-space: nowrap;
+  display: block !important;
+}
+
+/* إِجَازَة Ijazah — top left, EXTRA LARGE */
+.islamic-landing-page .isl-why-ijazah {
+  top: 8%; left: 0%;
+  font-size: clamp(3.5rem, 11vw, 10rem);
+  color: hsl(153 56% 11% / 0.08);
+  animation: islamicBobSlow 13s ease-in-out infinite;
+  animation-delay: 2s;
+}
+
+/* عِلۡم Ilm — top right, LARGE */
+.islamic-landing-page .isl-why-ilm {
+  top: 5%; right: 3%;
+  font-size: clamp(2rem, 7vw, 6rem);
+  color: hsl(153 56% 11% / 0.11);
+  animation: islamicBob 10s ease-in-out infinite;
+  animation-delay: 3.5s;
+}
+
+.islamic-landing-page .why-section > div > div { transition: all 0.3s ease; }
+.islamic-landing-page .why-section > div > div:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 24px hsl(160 84% 39% / 0.1);
   border-color: hsl(160 84% 39% / 0.4);
 }
 
-.teachers-section {
-  
+
+/* ============================================================
+   TEACHERS SECTION — scoped
+   ============================================================ */
+
+.islamic-landing-page .teachers-section {
   background: hsl(152 60% 97%);
   border-bottom: 1px solid hsl(160 84% 39% / 0.1);
+  position: relative;
+  overflow: hidden;
 }
 
-.teachers-section > div > div > div {
+/* أُسۡتَاذ bottom left — LARGE */
+.islamic-landing-page .teachers-section::before {
+  content: 'أُسۡتَاذ' !important;
+  position: absolute;
+  bottom: 3%; left: 2%;
+  font-family: 'Amiri', 'Scheherazade New', serif;
+  font-size: 8rem;
+  color: hsl(153 56% 11% / 0.09);
+  pointer-events: none;
+  z-index: 0;
+  animation: islamicBobSlow 16s ease-in-out infinite;
+  display: block !important;
+}
+
+/* Dot lattice */
+.islamic-landing-page .teachers-section::after {
+  content: '' !important;
+  position: absolute; inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, hsl(153 56% 11% / 0.12) 1.5px, transparent 1.5px);
+  background-size: 70px 70px;
+  animation: islamicLatticePulse 12s ease-in-out infinite;
+  display: block !important;
+}
+
+/* مُعَلِّم Mu'allim — top right, EXTRA LARGE */
+.islamic-landing-page .isl-teach-mualim {
+  top: 2%; right: 2%;
+  font-size: clamp(3rem, 10vw, 9rem);
+  color: hsl(153 56% 11% / 0.09);
+  animation: islamicBob 14s ease-in-out infinite;
+  animation-delay: 0.5s;
+}
+
+.islamic-landing-page .teachers-section > div > div > div {
   transition: all 0.3s ease;
   background: transparent;
   border: 1px solid hsl(160 84% 39% / 0.15);
 }
-
-.teachers-section > div > div > div:hover {
+.islamic-landing-page .teachers-section > div > div > div:hover {
   transform: translateY(-8px);
   box-shadow: 0 20px 40px hsl(160 84% 39% / 0.2);
   border-color: hsl(160 84% 39% / 0.6);
 }
 
-.reviews-section {
+
+/* ============================================================
+   REVIEWS SECTION — scoped
+   ============================================================ */
+
+.islamic-landing-page .reviews-section {
   background: linear-gradient(135deg, hsl(160 84% 39% / 0.08) 0%, hsl(156 72% 67% / 0.06) 100%);
   border-top: 1px solid hsl(160 84% 39% / 0.15);
   border-bottom: 1px solid hsl(160 84% 39% / 0.15);
-}
-
-.reviews-section > div > div > div {
-  background: transparent;
-  border: none;
-  transition: all 0.3s ease;
-}
-
-.reviews-section > div > div > div:hover {
-  border-color: hsl(160 84% 39% / 0.4);
-  box-shadow: 0 8px 24px hsl(160 84% 39% / 0.1);
-}
-
-.cta-section {
-  background: linear-gradient(135deg, hsl(153 56% 11%) 0%, hsl(153 56% 15%) 100%);
-  border-top: 1px solid hsl(153 56% 11% / 0.3);
-  border-bottom: 1px solid hsl(153 56% 11% / 0.3);
   position: relative;
   overflow: hidden;
 }
 
-.cta-section::before {
-  content: '';
+/* ٱلۡحَمۡدُ لِلَّهِ — beats school '100%' */
+.islamic-landing-page .reviews-section::before {
+  content: 'ٱلۡحَمۡدُ لِلَّهِ' !important;
   position: absolute;
-  top: -50%;
-  right: -20%;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, hsl(153 56% 11% / 0.3) 0%, transparent 70%);
-  border-radius: 50%;
+  top: 3%; left: 1%;
+  font-family: 'Amiri', 'Scheherazade New', serif;
+  font-size: 3.5rem;
+  color: hsl(153 56% 11% / 0.10);
   pointer-events: none;
-  animation: float3DIslamicTop 12s ease-in-out infinite;
+  z-index: 0;
+  animation: islamicGlow 11s ease-in-out infinite;
+  animation-delay: 2s;
+  white-space: nowrap;
+  display: block !important;
 }
 
-.cta-section h2,
-.cta-section p {
+/* مَاشَآءَ ٱللَّهُ — beats school 'A*' */
+.islamic-landing-page .reviews-section::after {
+  content: 'مَاشَآءَ ٱللَّهُ' !important;
+  position: absolute;
+  top: 3%; right: 1%;
+  font-family: 'Amiri', 'Scheherazade New', serif;
+  font-size: 3rem;
+  color: hsl(153 56% 11% / 0.11);
+  pointer-events: none;
+  z-index: 0;
+  animation: islamicDriftLeft 9s ease-in-out infinite;
+  animation-delay: 1.5s;
+  white-space: nowrap;
+  display: block !important;
+}
+
+.islamic-landing-page .reviews-section > div > div > div {
+  background: transparent; border: none;
+  transition: all 0.3s ease;
+}
+.islamic-landing-page .reviews-section > div > div > div:hover {
+  border-color: hsl(160 84% 39% / 0.4);
+  box-shadow: 0 8px 24px hsl(160 84% 39% / 0.1);
+}
+
+
+/* ============================================================
+   CTA SECTION — Dark green, scoped
+   ============================================================ */
+
+.islamic-landing-page .cta-section {
+  background: linear-gradient(135deg, hsl(153 56% 11%) 0%, hsl(153 56% 16%) 50%, hsl(153 56% 11%) 100%);
+  border-top: 2px solid hsl(153 56% 8%);
+  border-bottom: 2px solid hsl(153 56% 8%);
+  position: relative;
+  overflow: hidden;
+}
+
+.islamic-landing-page .cta-section::before {
+  content: '';
+  position: absolute;
+  top: -50%; right: -20%;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, hsl(153 56% 22% / 0.4) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  animation: islamicFloat 12s ease-in-out infinite;
+  display: block !important;
+}
+
+/* ﷽ bottom-center — beats school 'π ∑ ∫ √ ∞' */
+.islamic-landing-page .cta-section::after {
+  content: '﷽' !important;
+  position: absolute;
+  bottom: 6%; left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Amiri', 'Scheherazade New', serif;
+  font-size: 3.5rem;
+  color: hsl(0 0% 100% / 0.12);
+  pointer-events: none;
+  z-index: 0;
+  animation: islamicBobSlow 11s ease-in-out infinite;
+  white-space: nowrap;
+  display: block !important;
+}
+
+/* رَبُّنَا — left, EXTRA LARGE */
+.islamic-landing-page .isl-cta-rabbuna {
+  top: 12%; left: 3%;
+  font-size: 8rem;
+  color: hsl(0 0% 100% / 0.07);
+  animation: islamicBobReverse 14s ease-in-out infinite;
+}
+
+/* بَارَكَ ٱللَّهُ — right, LARGE */
+.islamic-landing-page .isl-cta-barakallah {
+  bottom: 18%; right: 3%;
+  font-size: 5rem;
+  color: hsl(0 0% 100% / 0.14);
+  animation: islamicBob 11s ease-in-out infinite;
+  animation-delay: 2s;
+}
+
+.islamic-landing-page .cta-section h2,
+.islamic-landing-page .cta-section p {
   color: hsl(0 0% 100%);
   position: relative;
   z-index: 1;
 }
 
-footer {
+
+/* ============================================================
+   FOOTER — Dark green, scoped
+   ============================================================ */
+
+.islamic-landing-page footer {
   background: hsl(153 56% 11%);
-  color: hsl(0 0% 100% / 0.6);
-  border-top: 1px solid hsl(153 56% 11% / 0.2);
+  color: hsl(0 0% 100% / 0.75);
+  border-top: 1px solid hsl(153 56% 8%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Beats school '∑ π ∫ √ ∞ ±' */
+.islamic-landing-page footer::before {
+  content: '﷽  ﷲ  ﷽  ﷲ  ﷽' !important;
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Amiri', 'Scheherazade New', serif;
+  font-size: 1.4rem;
+  letter-spacing: 1.5rem;
+  color: hsl(0 0% 100% / 0.10);
+  pointer-events: none;
+  white-space: nowrap;
+  display: block !important;
+}
+
+.islamic-landing-page footer p {
+  color: hsl(0 0% 100% / 0.75) !important;
+  position: relative;
+  z-index: 1;
+}
+
+
+/* ============================================================
+   STAT CARD
+   ============================================================ */
+
+.islamic-landing-page .stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px hsl(153 56% 11% / 0.14) !important;
+}
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .islamic-landing-page *, .islamic-landing-page *::before, .islamic-landing-page *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .islamic-landing-page .isl-hero-bismillah { font-size: 3rem !important; }
+  .islamic-landing-page .isl-hero-allah     { font-size: 6rem !important; }
+  .islamic-landing-page .isl-hero-raheem    { font-size: 4rem !important; }
+  .islamic-landing-page .isl-hero-iqra      { font-size: 3.5rem !important; }
+  .islamic-landing-page .isl-hero-madd      { font-size: 3rem !important; }
+  .islamic-landing-page .isl-feat-tajweed   { font-size: 5rem !important; }
+  .islamic-landing-page .isl-feat-hifz      { font-size: 3.5rem !important; }
+  .islamic-landing-page .isl-why-ijazah     { font-size: 5rem !important; }
+  .islamic-landing-page .isl-why-ilm        { font-size: 3.5rem !important; }
+  .islamic-landing-page .isl-teach-mualim   { font-size: 5rem !important; }
+  .islamic-landing-page .isl-cta-rabbuna    { font-size: 4rem !important; }
+  .islamic-landing-page .isl-cta-barakallah { font-size: 2.5rem !important; }
+  .islamic-landing-page .isl-hero-ghunnah,
+  .islamic-landing-page .isl-hero-noor      { font-size: 2.2rem !important; }
+  .islamic-landing-page .teachers-section::before { font-size: 4.5rem !important; }
 }

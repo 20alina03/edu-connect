@@ -18,15 +18,22 @@ export const AppHeader = () => {
           Edu<span className="text-primary">Connect</span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-6 text-sm">
-          <Link to="/islamic" className="hover:text-primary transition">Islamic</Link>
-          <Link to="/school" className="hover:text-primary transition">School</Link>
-          <Link to="/how-it-works" className="hover:text-primary transition">How it works</Link>
-          <Link to="/pricing" className="hover:text-primary transition">Pricing</Link>
-        </nav>
+        {role !== "teacher" && (
+          <nav className="hidden md:flex items-center gap-6 text-sm">
+            <Link to="/islamic" className="hover:text-primary transition">Islamic</Link>
+            <Link to="/school" className="hover:text-primary transition">School</Link>
+            <Link to="/how-it-works" className="hover:text-primary transition">How it works</Link>
+            <Link to="/pricing" className="hover:text-primary transition">Pricing</Link>
+          </nav>
+        )}
 
         {user ? (
           <div className="flex items-center gap-2">
+            {role === "student" && (
+              <Button variant="ghost" size="sm" onClick={() => navigate("/reports")} className="text-xs sm:text-sm">
+                Reports
+              </Button>
+            )}
             <Button variant="ghost" size="icon" onClick={() => navigate("/notifications")}>
               <Bell className="w-5 h-5" />
             </Button>

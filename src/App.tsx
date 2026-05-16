@@ -1,9 +1,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 import Index from "./pages/Index/Index";
@@ -15,11 +15,13 @@ import TeachersList from "./pages/TeachersList/TeachersList";
 import TeacherProfile from "./pages/TeacherProfile/TeacherProfile";
 import Book from "./pages/Book/Book";
 import Dashboard from "./pages/Dashboard/dashboard";
+import TeacherDashboard from "./pages/TeacherDashboard/TeacherDashboard";
 import TeacherOnboarding from "./pages/TeacherOnboarding";
 import Messages from "./pages/Messages";
 import Notifications from "./pages/Notifications";
 import Profile from "./pages/Profile";
 import Bookings from "./pages/Bookings";
+import StudentReports from "./pages/StudentReports/StudentReports";
 import About from "./pages/marketing/About";
 import HowItWorks from "./pages/marketing/HowItWorks";
 import Pricing from "./pages/marketing/Pricing";
@@ -39,6 +41,20 @@ import SchoolContact from "./pages/SchoolTutoringLandingPage/Contact";
 import SchoolTermsPrivacy from "./pages/SchoolTutoringLandingPage/TermsPrivacy";
 
 const queryClient = new QueryClient();
+
+const DashboardRedirect = () => {
+  const { role, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
+
+  return <Navigate to={role === "teacher" ? "/dashboard/teacher" : "/dashboard/student"} replace />;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -79,15 +95,16 @@ const App = () => (
 
             {/* Protected */}
             <Route path="/book/:id" element={<ProtectedRoute><Book /></ProtectedRoute>} />
-            <Route path="/dashboard/student" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/dashboard/teacher" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/dashboard/:role" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/dashboard/student" element={<ProtectedRoute requireRole="student"><Dashboard /></ProtectedRoute>} />
+            <Route path="/dashboard/teacher" element={<ProtectedRoute requireRole="teacher"><TeacherDashboard /></ProtectedRoute>} />
+            <Route path="/dashboard/:role" element={<ProtectedRoute><DashboardRedirect /></ProtectedRoute>} />
             <Route path="/teacher/onboarding" element={<ProtectedRoute requireRole="teacher"><TeacherOnboarding /></ProtectedRoute>} />
             <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/messages/:userId" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/bookings" element={<ProtectedRoute><Bookings /></ProtectedRoute>} />
+            <Route path="/reports" element={<ProtectedRoute requireRole="student"><StudentReports /></ProtectedRoute>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

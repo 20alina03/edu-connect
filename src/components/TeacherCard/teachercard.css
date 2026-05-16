@@ -1,17 +1,13 @@
-.teacher-card { @apply bg-card border border-border rounded-2xl p-5 flex gap-4 transition-all; }
-.teacher-card:hover { @apply -translate-y-0.5 shadow-card; }
-.teacher-card-islamic:hover { @apply border-primary/40; }
-.teacher-card-school:hover { @apply border-secondary/40; }
-.teacher-card-avatar { @apply w-14 h-14 rounded-full flex items-center justify-center font-display font-extrabold text-base flex-shrink-0; }
-.teacher-card-avatar-islamic { @apply bg-primary-light text-primary-dark; }
-.teacher-card-avatar-school { @apply bg-secondary-bg text-secondary; }
-.teacher-card-title { @apply font-display font-bold text-foreground; }
-.teacher-card-title:hover { @apply underline; }
-.teacher-card-featured { @apply text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-accent-light text-accent-dark; }
-.teacher-card-tagline { @apply text-xs text-muted-foreground mt-0.5 mb-2; }
-.teacher-card-pills { @apply flex flex-wrap gap-1.5; }
-.teacher-card-pill { @apply text-[10px] font-semibold px-2 py-0.5 rounded-full; }
-.teacher-card-meta { @apply text-[10px] font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground inline-flex items-center gap-1; }
-.teacher-card-side { @apply text-right flex flex-col items-end justify-between flex-shrink-0; }
-.teacher-card-price { @apply font-display font-extrabold text-lg text-foreground; }
-.teacher-card-rating { @apply flex items-center gap-1 justify-end text-accent text-[11px]; }
+/* TeacherCard – tokens only, all layout lives in TeacherCard.tsx */
+
+.tc-avatar-islamic { @apply bg-primary-light text-primary-dark; }
+.tc-avatar-school  { @apply bg-secondary-bg text-secondary; }
+
+.tc-pill-islamic { @apply bg-primary-light text-primary-dark; }
+.tc-pill-school  { @apply bg-secondary-bg text-secondary; }
+
+.tc-btn-islamic { @apply bg-primary hover:bg-primary-dark; }
+.tc-btn-school  { @apply bg-secondary hover:bg-secondary/90; }
+
+.tc-card-islamic:hover { @apply border-primary/40; }
+.tc-card-school:hover  { @apply border-secondary/40; }

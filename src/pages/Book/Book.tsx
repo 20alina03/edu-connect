@@ -96,22 +96,22 @@ const Book = () => {
           </div>
 
           {step === 1 && (
-            <div className="book-card space-y-6">
+            <div className="book-card space-y-4 sm:space-y-6">
               <div>
-                <h2 className="font-display font-bold text-xl mb-1">Pick a date</h2>
-                <p className="text-sm text-muted-foreground mb-4">Next 14 days</p>
-                <div className="grid grid-cols-7 gap-2">
+                <h2 className="font-display font-bold text-lg sm:text-xl mb-1">Pick a date</h2>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">Next 14 days</p>
+                <div className="grid grid-cols-7 gap-1 sm:gap-2">
                   {days.map((d, i) => {
                     const sel = date === i;
                     const weekend = d.getDay() === 0 || d.getDay() === 6;
                     return (
                       <button key={i} disabled={weekend} onClick={() => setDate(i)}
-                        className={cn("p-2 rounded-lg text-center transition border",
+                        className={cn("p-1.5 sm:p-2 rounded-lg text-center transition border text-xs sm:text-sm",
                           weekend ? "bg-muted text-muted-foreground cursor-not-allowed border-transparent" :
                           sel ? (isIslamic ? "bg-primary text-white border-primary" : "bg-secondary text-white border-secondary") :
                           "bg-card border-border hover:border-foreground/30") }>
-                        <div className="text-[9px] font-bold uppercase opacity-70">{d.toLocaleDateString(undefined, { weekday: "short" })}</div>
-                        <div className="font-display font-bold text-lg">{d.getDate()}</div>
+                        <div className="text-[8px] sm:text-[9px] font-bold uppercase opacity-70">{d.toLocaleDateString(undefined, { weekday: "short" })}</div>
+                        <div className="font-display font-bold text-base sm:text-lg">{d.getDate()}</div>
                       </button>
                     );
                   })}
@@ -119,12 +119,12 @@ const Book = () => {
               </div>
 
               <div>
-                <h2 className="font-display font-bold text-xl mb-1">Pick a time</h2>
-                <p className="text-sm text-muted-foreground mb-4">UTC · auto-converts to your timezone</p>
-                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                <h2 className="font-display font-bold text-lg sm:text-xl mb-1">Pick a time</h2>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">UTC · auto-converts to your timezone</p>
+                <div className="grid grid-cols-4 sm:grid-cols-5 gap-1 sm:gap-2">
                   {SLOTS.map(s => (
                     <button key={s} onClick={() => setTime(s)}
-                      className={cn("py-2.5 rounded-lg text-sm font-semibold border transition",
+                      className={cn("py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold border transition",
                         time === s ? (isIslamic ? "bg-primary text-white border-primary" : "bg-secondary text-white border-secondary") :
                         "border-border hover:border-foreground/30")}>{s}</button>
                   ))}
@@ -132,11 +132,11 @@ const Book = () => {
               </div>
 
               <div>
-                <h2 className="font-display font-bold text-xl mb-1">Duration</h2>
-                <div className="grid grid-cols-4 gap-2 mt-3">
+                <h2 className="font-display font-bold text-lg sm:text-xl mb-1">Duration</h2>
+                <div className="grid grid-cols-4 gap-1 sm:gap-2 mt-3">
                   {DURATIONS.map(d => (
                     <button key={d} onClick={() => setDuration(d)}
-                      className={cn("py-2.5 rounded-lg text-sm font-semibold border transition",
+                      className={cn("py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold border transition",
                         duration === d ? (isIslamic ? "bg-primary text-white border-primary" : "bg-secondary text-white border-secondary") :
                         "border-border hover:border-foreground/30")}>{d} min</button>
                   ))}
@@ -145,50 +145,50 @@ const Book = () => {
 
               <Button disabled={date === null || !time}
                 onClick={() => setStep(2)}
-                className={cn("w-full rounded-xl font-bold", isIslamic ? "bg-primary hover:bg-primary-dark" : "bg-secondary hover:bg-secondary/90") }>
+                className={cn("w-full rounded-xl font-bold text-sm", isIslamic ? "bg-primary hover:bg-primary-dark" : "bg-secondary hover:bg-secondary/90") }>
                 Continue
               </Button>
             </div>
           )}
 
           {step === 2 && (
-            <div className="book-card space-y-4">
-              <h2 className="font-display font-bold text-xl mb-2">Your details</h2>
+            <div className="book-card space-y-3 sm:space-y-4">
+              <h2 className="font-display font-bold text-lg sm:text-xl mb-2">Your details</h2>
               <div>
                 <Label className="text-xs">Full name</Label>
-                <Input placeholder="Aisha Khan" className="mt-1"/>
+                <Input placeholder="Aisha Khan" className="mt-1 text-sm" />
               </div>
               <div>
                 <Label className="text-xs">Email</Label>
-                <Input type="email" placeholder="you@email.com" className="mt-1"/>
+                <Input type="email" placeholder="you@email.com" className="mt-1 text-sm" />
               </div>
               <div>
                 <Label className="text-xs">Notes for the teacher (optional)</Label>
                 <textarea className="w-full mt-1 border border-border rounded-lg px-3 py-2 text-sm min-h-24 bg-card" placeholder="Tell the teacher what you'd like to focus on..."/>
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setStep(1)}>Back</Button>
-                <Button className={cn("flex-1 rounded-xl font-bold", isIslamic ? "bg-primary hover:bg-primary-dark" : "bg-secondary hover:bg-secondary/90") }
+              <div className="flex gap-2 flex-col sm:flex-row">
+                <Button variant="outline" className="w-full sm:flex-1 rounded-xl text-sm" onClick={() => setStep(1)}>Back</Button>
+                <Button className={cn("w-full sm:flex-1 rounded-xl font-bold text-sm", isIslamic ? "bg-primary hover:bg-primary-dark" : "bg-secondary hover:bg-secondary/90") }
                   onClick={() => setStep(3)}>Continue</Button>
               </div>
             </div>
           )}
 
           {step === 3 && (
-            <div className="book-card space-y-4">
-              <h2 className="font-display font-bold text-xl mb-2">Confirm booking</h2>
-              <div className="rounded-xl bg-muted p-4 space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-muted-foreground">Teacher</span><span className="font-semibold">{teacher.name}</span></div>
+            <div className="book-card space-y-3 sm:space-y-4">
+              <h2 className="font-display font-bold text-lg sm:text-xl mb-2">Confirm booking</h2>
+              <div className="rounded-lg sm:rounded-xl bg-muted p-3 sm:p-4 space-y-2 text-xs sm:text-sm">
+                <div className="flex justify-between"><span className="text-muted-foreground">Teacher</span><span className="font-semibold truncate ml-2">{teacher.name}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Date</span><span className="font-semibold">{date !== null ? days[date].toDateString() : "—"}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Time</span><span className="font-semibold">{time}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Duration</span><span className="font-semibold">{duration} minutes</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Duration</span><span className="font-semibold">{duration} min</span></div>
               </div>
-              <div className="bg-accent-light text-accent-dark text-xs p-3 rounded-xl">
+              <div className="bg-accent-light text-accent-dark text-xs p-2.5 sm:p-3 rounded-lg sm:rounded-xl">
                 💳 Payment integration is disabled in this demo — booking will be saved without charge.
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setStep(2)}>Back</Button>
-                <Button className={cn("flex-1 rounded-xl font-bold", isIslamic ? "bg-primary hover:bg-primary-dark" : "bg-secondary hover:bg-secondary/90") }
+              <div className="flex gap-2 flex-col sm:flex-row">
+                <Button variant="outline" className="w-full sm:flex-1 rounded-xl text-sm" onClick={() => setStep(2)}>Back</Button>
+                <Button className={cn("w-full sm:flex-1 rounded-xl font-bold text-sm", isIslamic ? "bg-primary hover:bg-primary-dark" : "bg-secondary hover:bg-secondary/90") }
                   onClick={submit}>Confirm booking</Button>
               </div>
             </div>

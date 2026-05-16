@@ -11,7 +11,7 @@ interface AuthCtx {
   loading: boolean;
   signUp: (email: string, password: string, fullName: string, role: AppRole) => Promise<{ error: string | null }>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signInWithGoogle: () => Promise<void>;
+  signInWithGoogle: (role?: AppRole) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: string | null }>;
 }
@@ -24,15 +24,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [role, setRole] = useState<AppRole | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const applyPendingGoogleRole = async (uid: string, pendingRole: AppRole | null) => {
+    if (!pendingRole) return null;
+
+    const { error: roleError } = await supabase.from("user_roles").insert({ user_id: uid, role: pendingRole });
+    if (roleError && roleError.code !== "23505") {
+      return null;
+    }
+
+    if (pendingRole === "teacher") {
+      await supabase.from("teacher_profiles").insert({ user_id: uid }).select().maybeSingle();
+    }
+
+    localStorage.removeItem("educonnect.pendingRole");
+    return pendingRole;
+  };
+
   const fetchRole = async (uid: string) => {
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", uid)
-      .order("role", { ascending: true })
-      .limit(1)
-      .maybeSingle();
-    setRole((data?.role as AppRole) ?? "student");
+    const { data } = await supabase.from("user_roles").select("role").eq("user_id", uid);
+    const roles = (data ?? []).map((entry) => entry.role as AppRole);
+    const orderedRole = roles.find((value) => value === "admin") ?? roles.find((value) => value === "teacher") ?? roles.find((value) => value === "student") ?? null;
+
+    if (orderedRole) {
+      setRole(orderedRole);
+      localStorage.removeItem("educonnect.pendingRole");
+      return;
+    }
+
+    const pendingRole = (localStorage.getItem("educonnect.pendingRole") as AppRole | null) ?? null;
+    const createdRole = await applyPendingGoogleRole(uid, pendingRole);
+    setRole(createdRole ?? "student");
   };
 
   useEffect(() => {
@@ -71,7 +92,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return { error: error?.message ?? null };
   };
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = async (role: AppRole = "student") => {
+    localStorage.setItem("educonnect.pendingRole", role);
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/` },

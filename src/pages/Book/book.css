@@ -1,8 +1,30 @@
 .book-page { @apply min-h-screen bg-background; }
-.book-body { @apply container py-10 grid lg:grid-cols-[1fr_320px] gap-8; }
-.book-steps { @apply flex items-center mb-10; }
+
+.book-body { @apply max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-10 grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 sm:gap-8; }
+
+.book-steps { @apply flex items-center mb-6 sm:mb-10; }
+
 .book-step { @apply flex-1 flex items-center; }
-.book-step-node { @apply w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm; }
-.book-step-label { @apply text-[10px] font-bold text-muted-foreground mt-1.5 uppercase tracking-wider; }
-.book-card { @apply bg-card border border-border rounded-2xl p-6 space-y-6; }
-.book-sidebar-card { @apply bg-card border border-border rounded-2xl p-5 shadow-card; }
+
+.book-step-node { @apply w-8 sm:w-9 h-8 sm:h-9 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0; }
+
+.book-step-label { @apply text-[9px] sm:text-[10px] font-bold text-muted-foreground mt-1.5 uppercase tracking-wider; }
+
+.book-card { @apply bg-card border border-border rounded-lg sm:rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-6; }
+
+.book-sidebar-card { @apply bg-card border border-border rounded-lg sm:rounded-2xl p-3 sm:p-5 shadow-card; }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .book-body {
+    @apply px-3 py-6 gap-4;
+  }
+
+  .book-card {
+    @apply rounded-lg p-4 space-y-4;
+  }
+
+  .book-sidebar-card {
+    @apply rounded-lg p-3;
+  }
+}

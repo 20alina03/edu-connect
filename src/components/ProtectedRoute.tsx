@@ -23,6 +23,14 @@ export const ProtectedRoute = ({
     return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`} replace />;
   }
 
+  if (role === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
+
   if (requireRole && role !== requireRole && role !== "admin") {
     return <Navigate to={role === "teacher" ? "/dashboard/teacher" : "/dashboard/student"} replace />;
   }

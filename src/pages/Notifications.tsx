@@ -37,32 +37,32 @@ const Notifications = () => {
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
-      <div className="max-w-3xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold font-display">Notifications</h1>
+      <div className="max-w-3xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold font-display">Notifications</h1>
           {items.some((i) => !i.read_at) && (
-            <Button variant="ghost" size="sm" onClick={markAllRead}>Mark all read</Button>
+            <Button variant="ghost" size="sm" onClick={markAllRead} className="text-xs sm:text-sm">Mark all read</Button>
           )}
         </div>
         {items.length === 0 ? (
-          <div className="text-center py-16 text-muted-foreground">
-            <Bell className="w-10 h-10 mx-auto mb-3 opacity-30" />
-            No notifications yet
+          <div className="text-center py-12 sm:py-16 text-muted-foreground">
+            <Bell className="w-10 sm:w-12 h-10 sm:h-12 mx-auto mb-2 sm:mb-3 opacity-30" />
+            <p className="text-sm">No notifications yet</p>
           </div>
         ) : (
           <div className="space-y-2">
             {items.map((n) => (
-              <div key={n.id} className={`p-4 rounded-xl border ${n.read_at ? "bg-card border-border" : "bg-primary/5 border-primary/30"}`}>
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="font-medium">{n.title}</div>
-                    {n.body && <div className="text-sm text-muted-foreground mt-1">{n.body}</div>}
-                    <div className="text-xs text-muted-foreground mt-2">
+              <div key={n.id} className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border transition ${n.read_at ? "bg-card border-border" : "bg-primary/5 border-primary/30"}`}>
+                <div className="flex items-start justify-between gap-2 sm:gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm sm:text-base">{n.title}</div>
+                    {n.body && <div className="text-xs sm:text-sm text-muted-foreground mt-1">{n.body}</div>}
+                    <div className="text-[11px] sm:text-xs text-muted-foreground mt-2">
                       {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
                     </div>
                   </div>
                   {!n.read_at && (
-                    <button onClick={() => markRead(n.id)} className="text-primary text-xs flex items-center gap-1">
+                    <button onClick={() => markRead(n.id)} className="text-primary text-xs flex items-center gap-1 whitespace-nowrap flex-shrink-0 hover:opacity-70">
                       <Check className="w-3 h-3" /> mark
                     </button>
                   )}

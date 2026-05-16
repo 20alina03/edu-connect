@@ -36,11 +36,11 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold font-display mb-2">Your profile</h1>
-        <p className="text-muted-foreground mb-8 capitalize">Role: {role}</p>
+      <div className="max-w-2xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
+        <h1 className="text-2xl sm:text-3xl font-bold font-display mb-1 sm:mb-2">Your profile</h1>
+        <p className="text-muted-foreground mb-6 sm:mb-8 capitalize text-sm sm:text-base">Role: {role}</p>
 
-        <div className="space-y-4 bg-card border border-border rounded-xl p-6">
+        <div className="space-y-3 sm:space-y-4 bg-card border border-border rounded-lg sm:rounded-xl p-4 sm:p-6">
           <div>
             <Label>Email</Label>
             <Input value={user?.email ?? ""} disabled />
@@ -53,7 +53,7 @@ const Profile = () => {
             <Label>Phone</Label>
             <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
           </div>
-          <Button onClick={save} disabled={loading}>{loading ? "Saving..." : "Save changes"}</Button>
+          <Button onClick={save} disabled={loading} className="w-full sm:w-auto">{loading ? "Saving..." : "Save changes"}</Button>
         </div>
       </div>
     </div>

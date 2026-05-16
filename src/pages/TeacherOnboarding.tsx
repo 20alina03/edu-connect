@@ -73,16 +73,16 @@ const TeacherOnboarding = () => {
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
-      <div className="max-w-3xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold font-display mb-2">Set up your teaching profile</h1>
-        <p className="text-muted-foreground mb-8">Students can find and book you once this is filled out.</p>
+      <div className="max-w-3xl mx-auto px-3 sm:px-4 lg:px-6 py-6 sm:py-8 lg:py-10">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold font-display mb-1 sm:mb-2">Set up your teaching profile</h1>
+        <p className="text-xs sm:text-sm lg:text-base text-muted-foreground mb-6 sm:mb-8">Students can find and book you once this is filled out.</p>
 
-        <div className="space-y-6 bg-card border border-border rounded-2xl p-6">
+        <div className="space-y-5 sm:space-y-6 lg:space-y-7 bg-card border border-border rounded-lg sm:rounded-2xl p-4 sm:p-6 lg:p-8">
           <div>
             <Label>Subjects you teach</Label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 mt-3">
               {SUBJECTS.map((s) => (
-                <label key={s} className="flex items-center gap-2 text-sm cursor-pointer">
+                <label key={s} className="flex items-center gap-2 text-xs sm:text-sm cursor-pointer">
                   <Checkbox checked={subjects.includes(s)} onCheckedChange={() => toggle(s)} />
                   {s}
                 </label>
@@ -90,19 +90,19 @@ const TeacherOnboarding = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <Label>Hourly rate (USD)</Label>
-              <Input type="number" value={rate} onChange={(e) => setRate(Number(e.target.value))} min={5} />
+              <Input type="number" value={rate} onChange={(e) => setRate(Number(e.target.value))} min={5} className="text-sm" />
             </div>
             <div>
               <Label>Years of experience</Label>
-              <Input type="number" value={experience} onChange={(e) => setExperience(Number(e.target.value))} min={0} />
+              <Input type="number" value={experience} onChange={(e) => setExperience(Number(e.target.value))} min={0} className="text-sm" />
             </div>
             <div>
               <Label>Teaching mode</Label>
               <Select value={mode} onValueChange={(v: any) => setMode(v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="online">Online</SelectItem>
                   <SelectItem value="home_visit">Home visit</SelectItem>
@@ -113,7 +113,7 @@ const TeacherOnboarding = () => {
             <div>
               <Label>Gender</Label>
               <Select value={gender} onValueChange={(v: any) => setGender(v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="male">Male</SelectItem>
                   <SelectItem value="female">Female</SelectItem>
@@ -122,28 +122,28 @@ const TeacherOnboarding = () => {
             </div>
             <div>
               <Label>Country</Label>
-              <Input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="UK" />
+              <Input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="UK" className="text-sm" />
             </div>
             <div>
               <Label>City</Label>
-              <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="London" />
+              <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="London" className="text-sm" />
             </div>
           </div>
 
           {subjects.some((s) => ["Quran", "Tajweed", "Hifz"].includes(s)) && (
             <div>
               <Label>Quran qualification (optional)</Label>
-              <Input value={quranLevel} onChange={(e) => setQuranLevel(e.target.value)} placeholder="Ijazah Hafs" />
+              <Input value={quranLevel} onChange={(e) => setQuranLevel(e.target.value)} placeholder="Ijazah Hafs" className="text-sm" />
             </div>
           )}
 
           <div>
             <Label>Bio</Label>
             <Textarea rows={5} value={bio} onChange={(e) => setBio(e.target.value)}
-              placeholder="Tell students about your teaching style, qualifications, and approach..." />
+              placeholder="Tell students about your teaching style, qualifications, and approach..." className="text-sm" />
           </div>
 
-          <Button onClick={save} disabled={saving} className="w-full">
+          <Button onClick={save} disabled={saving} className="w-full h-10 sm:h-12 text-sm sm:text-base">
             {saving ? "Saving..." : "Save profile"}
           </Button>
         </div>

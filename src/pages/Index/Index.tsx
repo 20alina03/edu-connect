@@ -1,10 +1,12 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, GraduationCap, Users, ArrowRight, LayoutDashboard } from "lucide-react";
+import { BookOpen, GraduationCap, Users, ArrowRight, LayoutDashboard, Menu, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import "./index.css";
 
 const Index = () => {
   const { user, role } = useAuth();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const dashHref = role === "teacher" ? "/dashboard/teacher" : "/dashboard/student";
   return (
     <div className="index-page">
@@ -14,7 +16,7 @@ const Index = () => {
           Edu<span className="text-primary">Connect</span>{" "}
           <span className="text-accent">Global</span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="hidden md:flex items-center gap-4">
           <div className="index-tagline">
             <span className="w-1.5 h-1.5 rounded-full bg-primary pulse-dot"/> Two portals · One account
           </div>
@@ -35,6 +37,52 @@ const Index = () => {
             </div>
           )}
         </div>
+
+        <button
+          type="button"
+          className="index-menu-button md:hidden"
+          aria-label="Toggle navigation menu"
+          aria-expanded={isMenuOpen}
+          onClick={() => setIsMenuOpen((open) => !open)}
+        >
+          {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
+
+        {isMenuOpen && (
+          <div className="index-mobile-menu md:hidden">
+            <div className="index-mobile-menu-panel">
+              <div className="index-mobile-menu-tagline">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary pulse-dot" /> Two portals · One account
+              </div>
+              <Link to="/islamiclandingpage" className="index-mobile-menu-link" onClick={() => setIsMenuOpen(false)}>
+                Islamic Learning
+              </Link>
+              <Link to="/schooltutoringLandingPage" className="index-mobile-menu-link" onClick={() => setIsMenuOpen(false)}>
+                School Tutoring
+              </Link>
+              <Link to="/how-it-works" className="index-mobile-menu-link" onClick={() => setIsMenuOpen(false)}>
+                How it works
+              </Link>
+              <Link to="/pricing" className="index-mobile-menu-link" onClick={() => setIsMenuOpen(false)}>
+                Pricing
+              </Link>
+              {user ? (
+                <Link to={dashHref} className="index-mobile-menu-cta" onClick={() => setIsMenuOpen(false)}>
+                  <LayoutDashboard className="w-4 h-4" /> Dashboard
+                </Link>
+              ) : (
+                <div className="index-mobile-menu-actions">
+                  <Link to="/login" className="index-mobile-menu-link" onClick={() => setIsMenuOpen(false)}>
+                    Sign In
+                  </Link>
+                  <Link to="/signup" className="index-mobile-menu-cta" onClick={() => setIsMenuOpen(false)}>
+                    Get Started
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </header>
 
       <main className="index-hero">

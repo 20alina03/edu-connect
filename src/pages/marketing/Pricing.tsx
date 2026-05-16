@@ -14,29 +14,29 @@ const tiers = [
 const Pricing = () => (
   <div className="min-h-screen bg-background">
     <AppHeader />
-    <div className="max-w-6xl mx-auto px-4 py-16">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold font-display mb-3">Simple, transparent pricing</h1>
-        <p className="text-muted-foreground">No hidden fees. Cancel anytime.</p>
+    <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-6 py-8 sm:py-12 lg:py-16">
+      <div className="text-center mb-10 sm:mb-14 lg:mb-16">
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold font-display mb-2 sm:mb-3">Simple, transparent pricing</h1>
+        <p className="text-xs sm:text-sm lg:text-base text-muted-foreground px-3">No hidden fees. Cancel anytime.</p>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
         {tiers.map((t) => (
-          <div key={t.name} className={`rounded-2xl p-6 border ${t.primary ? "border-primary bg-primary/5" : "border-border bg-card"}`}>
-            <h3 className="font-semibold text-lg">{t.name}</h3>
-            <div className="mt-4 mb-2">
-              <span className="text-4xl font-bold">{t.price}</span>
-              {t.suffix && <span className="text-muted-foreground">{t.suffix}</span>}
+          <div key={t.name} className={`rounded-lg sm:rounded-2xl p-4 sm:p-6 lg:p-8 border transition-all ${t.primary ? "border-primary bg-primary/5 shadow-lg" : "border-border bg-card hover:shadow-md"}`}>
+            <h3 className="font-semibold text-base sm:text-lg lg:text-xl">{t.name}</h3>
+            <div className="mt-3 sm:mt-4 mb-2">
+              <span className="text-3xl sm:text-4xl lg:text-5xl font-bold">{t.price}</span>
+              {t.suffix && <span className="text-xs sm:text-sm text-muted-foreground">{t.suffix}</span>}
             </div>
-            <p className="text-sm text-muted-foreground mb-4">{t.desc}</p>
-            <ul className="space-y-2 mb-6">
+            <p className="text-xs sm:text-sm text-muted-foreground mb-4 leading-relaxed">{t.desc}</p>
+            <ul className="space-y-2 sm:space-y-3 mb-6 sm:mb-8">
               {t.features.map((f) => (
-                <li key={f} className="flex items-center gap-2 text-sm">
-                  <Check className="w-4 h-4 text-primary" /> {f}
+                <li key={f} className="flex items-center gap-2 text-xs sm:text-sm">
+                  <Check className="w-4 h-4 text-primary flex-shrink-0" /> <span className="leading-relaxed">{f}</span>
                 </li>
               ))}
             </ul>
-            <Link to="/signup" className={`block text-center py-2.5 rounded-full font-medium ${
-              t.primary ? "bg-primary text-primary-foreground" : "border border-border hover:bg-muted"
+            <Link to="/signup" className={`block text-center py-2 sm:py-2.5 lg:py-3 rounded-lg sm:rounded-xl font-medium text-xs sm:text-sm transition-all ${
+              t.primary ? "bg-primary text-primary-foreground hover:bg-primary-dark" : "border border-border hover:bg-muted"
             }`}>{t.cta}</Link>
           </div>
         ))}
