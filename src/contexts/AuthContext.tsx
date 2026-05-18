@@ -10,7 +10,7 @@ interface AuthCtx {
   role: AppRole | null;
   loading: boolean;
   signUp: (email: string, password: string, fullName: string, role: AppRole) => Promise<{ error: string | null }>;
-  signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  signIn: (email: string, password: string, intendedRole?: AppRole) => Promise<{ error: string | null }>;
   signInWithGoogle: (role?: AppRole) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: string | null }>;
@@ -75,28 +75,61 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  const FRONTEND_URL = (import.meta.env.VITE_APP_URL as string) ?? "https://verceleduconnect.vercel.app";
+
   const signUp: AuthCtx["signUp"] = async (email, password, fullName, role) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/`,
+        emailRedirectTo: `${FRONTEND_URL}/`,
         data: { full_name: fullName, role },
       },
     });
     return { error: error?.message ?? null };
   };
 
-  const signIn: AuthCtx["signIn"] = async (email, password) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error: error?.message ?? null };
+  const signIn: AuthCtx["signIn"] = async (email, password, intendedRole: AppRole | null = null) => {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return { error: error.message };
+
+    const user = data.user;
+    if (!user) return { error: "Failed to sign in" };
+
+    // Prevent login if email not confirmed
+    // Supabase sets `email_confirmed_at` when confirmed
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const emailConfirmed = (user as any).email_confirmed_at;
+    if (!emailConfirmed) {
+      await supabase.auth.signOut();
+      return { error: "Please confirm your email before logging in." };
+    }
+
+    // If an intendedRole was provided, ensure the account has that role
+    if (intendedRole) {
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .order("role", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      const assignedRole = (roleData?.role as AppRole) ?? "student";
+      if (assignedRole !== intendedRole) {
+        await supabase.auth.signOut();
+        return { error: `Selected role does not match this account. Please choose the correct role to continue.` };
+      }
+    }
+
+    return { error: null };
   };
 
   const signInWithGoogle = async (role: AppRole = "student") => {
     localStorage.setItem("educonnect.pendingRole", role);
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/` },
+      options: { redirectTo: `${FRONTEND_URL}/` },
     });
   };
 
@@ -106,7 +139,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const resetPassword: AuthCtx["resetPassword"] = async (email) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${FRONTEND_URL}/reset-password`,
     });
     return { error: error?.message ?? null };
   };

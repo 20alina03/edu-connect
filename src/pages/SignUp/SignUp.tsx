@@ -39,8 +39,8 @@ const SignUp = () => {
     const { error } = await signUp(formData.email, formData.password, formData.fullName, role);
     setLoading(false);
     if (error) return setError(error);
-    toast.success("Account created! Welcome to EduConnect.");
-    navigate(role === "teacher" ? "/teacher/onboarding" : "/dashboard/student");
+    toast.success("Account created! Please check your email and confirm your account before logging in.");
+    navigate("/login");
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

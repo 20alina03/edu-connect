@@ -27,8 +27,7 @@ const Login = () => {
     setError("");
     if (!email || !password) return setError("Please fill in all fields");
     setLoading(true);
-    localStorage.setItem("educonnect.pendingRole", intendedRole);
-    const { error } = await signIn(email, password);
+    const { error } = await signIn(email, password, intendedRole);
     setLoading(false);
     if (error) return setError(error);
     toast.success("Welcome back!");
