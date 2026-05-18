@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await supabase.from("teacher_profiles").insert({ user_id: uid }).select().maybeSingle();
     }
 
-    localStorage.removeItem("educonnect.pendingRole");
+    localStorage.removeItem("ilmrise.pendingRole");
     return pendingRole;
   };
 
@@ -47,11 +47,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     if (orderedRole) {
       setRole(orderedRole);
-      localStorage.removeItem("educonnect.pendingRole");
+      localStorage.removeItem("ilmrise.pendingRole");
       return;
     }
 
-    const pendingRole = (localStorage.getItem("educonnect.pendingRole") as AppRole | null) ?? null;
+    const pendingRole = (localStorage.getItem("ilmrise.pendingRole") as AppRole | null) ?? null;
     const createdRole = await applyPendingGoogleRole(uid, pendingRole);
     setRole(createdRole ?? "student");
   };
@@ -126,7 +126,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signInWithGoogle = async (role: AppRole = "student") => {
-    localStorage.setItem("educonnect.pendingRole", role);
+    localStorage.setItem("ilmrise.pendingRole", role);
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${FRONTEND_URL}/` },

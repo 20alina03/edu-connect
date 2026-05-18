@@ -27,7 +27,7 @@ const Contact = () => {
             Questions about teachers, bookings, or partnerships — drop us a line.
           </p>
           <div className="space-y-3 sm:space-y-4">
-            <div className="flex gap-2 sm:gap-3"><Mail className="w-5 h-5 text-primary flex-shrink-0"/><span className="text-xs sm:text-sm lg:text-base">hello@educonnect.com</span></div>
+            <div className="flex gap-2 sm:gap-3"><Mail className="w-5 h-5 text-primary flex-shrink-0"/><span className="text-xs sm:text-sm lg:text-base">ilmrise.contact@gmail.com</span></div>
             <div className="flex gap-2 sm:gap-3"><MessageCircle className="w-5 h-5 text-primary flex-shrink-0"/><span className="text-xs sm:text-sm lg:text-base">Live chat (9am–9pm GMT)</span></div>
             <div className="flex gap-2 sm:gap-3"><MapPin className="w-5 h-5 text-primary flex-shrink-0"/><span className="text-xs sm:text-sm lg:text-base">London, UK</span></div>
           </div>

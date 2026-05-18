@@ -198,7 +198,7 @@ const PortalHome = ({ portal }: Props) => {
 
       <footer className="portal-home-footer">
         <div className="container text-center text-xs">
-          © {new Date().getFullYear()} EduConnect Global · One account · Two portals
+          © {new Date().getFullYear()} Ilmrise Global · One account · Two portals
         </div>
       </footer>
     </div>

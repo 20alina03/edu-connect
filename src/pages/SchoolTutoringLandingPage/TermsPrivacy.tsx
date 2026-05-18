@@ -55,7 +55,7 @@ const SchoolTermsPrivacy = () => {
               {
                 num: 1,
                 title: "Acceptance of Terms",
-                content: "By using EduConnect School Tutoring, you accept and agree to these terms. If you disagree, do not use this service.",
+                content: "By using Ilmrise School Tutoring, you accept and agree to these terms. If you disagree, do not use this service.",
               },
               {
                 num: 2,

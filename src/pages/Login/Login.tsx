@@ -41,8 +41,14 @@ const Login = () => {
 
       <div className="login-container">
         <div className="login-header">
-          <Link to="/" className="login-brand">
-            Edu<span className="text-primary">Connect</span>
+          <Link to="/" className="login-brand relative inline-flex items-center gap-3 overflow-visible">
+            <img
+              src="/logo.svg"
+              alt="Ilmrise logo"
+              className="absolute left-0 top-1/2 h-12 w-auto -translate-y-1/2 opacity-20 pointer-events-none select-none"
+              aria-hidden="true"
+            />
+            <span className="relative pl-10">ILMRISE</span>
           </Link>
         </div>
 

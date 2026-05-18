@@ -29,9 +29,9 @@ export const PortalNav = ({ portal }: Props) => {
     <>
       <nav className={cn("portal-nav", isIslamic ? "bg-forest" : "bg-navy")}>
         <Link to={isIslamic ? "/islamic" : "/school"} className="portal-nav-brand">
-          <img src="/logo.svg" alt="EduConnect" className="h-10 w-auto object-contain" />
-          <span className="hidden sm:inline">Edu<span className={isIslamic ? "text-primary" : "text-blue-400"}>Connect</span></span>
-          <span className="sm:hidden">EC</span>
+          <img src="/logo.svg" alt="Ilmrise logo" className="h-10 w-auto object-contain" />
+          <span className="hidden sm:inline">Ilm<span className={isIslamic ? "text-primary" : "text-blue-400"}>rise</span></span>
+          <span className="sm:hidden">IR</span>
           <span className={cn("text-[9px] font-bold px-2 py-0.5 rounded-full",
             isIslamic ? "bg-primary/15 text-primary-glow" : "bg-blue-500/15 text-blue-300")}>
             {isIslamic ? "Q" : "S"}

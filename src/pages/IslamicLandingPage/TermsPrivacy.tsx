@@ -55,7 +55,7 @@ const IslamicTermsPrivacy = () => {
               {
                 num: 1,
                 title: "Acceptance of Terms",
-                content: "By accessing and using EduConnect Islamic, you accept and agree to be bound by these terms. If you do not agree, please do not use this service.",
+                content: "By accessing and using Ilmrise Islamic, you accept and agree to be bound by these terms. If you do not agree, please do not use this service.",
               },
               {
                 num: 2,
@@ -70,7 +70,7 @@ const IslamicTermsPrivacy = () => {
               {
                 num: 4,
                 title: "Limitations of Liability",
-                content: "EduConnect Islamic and its suppliers shall not be liable for any damages arising from your use or inability to use our services.",
+                content: "Ilmrise Islamic and its suppliers shall not be liable for any damages arising from your use or inability to use our services.",
               },
               {
                 num: 5,
@@ -208,7 +208,7 @@ const IslamicTermsPrivacy = () => {
             <div className="absolute -top-4 -right-4 w-20 h-20 bg-gradient-to-br from-green-200 to-emerald-300 rounded-full opacity-20 blur-2xl"></div>
             <div className="relative">
               <p className="text-slate-600 mb-8 leading-relaxed">
-                EduConnect Islamic is fully compliant with GDPR and international data protection regulations. Your privacy is our highest priority.
+                Ilmrise Islamic is fully compliant with GDPR and international data protection regulations. Your privacy is our highest priority.
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

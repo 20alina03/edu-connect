@@ -5,9 +5,9 @@ const About = () => (
   <div className="min-h-screen bg-background">
     <AppHeader />
     <div className="max-w-3xl mx-auto px-4 py-16">
-      <h1 className="text-4xl font-bold font-display mb-6">About EduConnect</h1>
+      <h1 className="text-4xl font-bold font-display mb-6">About Ilmrise</h1>
       <p className="text-lg text-muted-foreground mb-4">
-        EduConnect bridges learners with the right teacher — whether you're memorising the Quran with an Ijazah-certified Ustadh
+        Ilmrise bridges learners with the right teacher — whether you're memorising the Quran with an Ijazah-certified Ustadh
         or preparing for GCSE Maths with a DBS-checked tutor.
       </p>
       <p className="text-muted-foreground mb-4">
@@ -28,7 +28,7 @@ const About = () => (
       </div>
       <div className="mt-10">
         <Link to="/signup" className="inline-block px-6 py-3 rounded-full bg-primary text-primary-foreground font-medium hover:bg-primary/90">
-          Join EduConnect
+          Join Ilmrise
         </Link>
       </div>
     </div>

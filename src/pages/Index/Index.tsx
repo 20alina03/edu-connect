@@ -12,9 +12,8 @@ const Index = () => {
     <div className="index-page">
       <header className="index-header">
         <div className="index-brand">
-          <img src="/logo.svg" alt="EduConnect" className="h-10 w-auto object-contain" />
-          Edu<span className="text-primary">Connect</span>{" "}
-          <span className="text-accent">Global</span>
+          <img src="/logo.svg" alt="Ilmrise logo" className="h-10 w-auto object-contain" />
+          ILMRISE
         </div>
         <div className="hidden md:flex items-center gap-4">
           <div className="index-tagline">
@@ -88,7 +87,7 @@ const Index = () => {
       <main className="index-hero">
         <div className="text-center mb-12 animate-fade-in">
           <div className="index-badge">
-            <span className="w-1.5 h-1.5 rounded-full bg-accent"/> Welcome to EduConnect
+            <span className="w-1.5 h-1.5 rounded-full bg-accent"/> Welcome to Ilmrise
           </div>
           <h1 className="index-title">
             Choose your <span className="text-accent">learning portal</span>

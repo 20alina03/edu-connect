@@ -324,7 +324,7 @@ const IslamicLandingPage = () => {
 
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-12 sm:py-16 lg:py-20 relative z-10">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-center mb-10 sm:mb-12 lg:mb-16 text-slate-800">
-            Why Choose EduConnect Islamic?
+            Why Choose Ilmrise Islamic?
           </h2>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-7 lg:gap-8">
@@ -627,7 +627,7 @@ const IslamicLandingPage = () => {
       {/* ─── FOOTER ─── */}
       <footer className="py-8">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="text-slate-600">&copy; 2026 EduConnect. All rights reserved.</p>
+          <p className="text-slate-600">&copy; 2026 Ilmrise. All rights reserved.</p>
         </div>
       </footer>
     </div>

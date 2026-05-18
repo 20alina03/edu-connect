@@ -25,7 +25,7 @@ const SchoolContact = () => {
 
             <div className="space-y-4 sm:space-y-5 lg:space-y-6">
               {[
-                { icon: EnvelopeSimple, title: "Email", lines: ["support@educonnect.com", "school@educonnect.com"] },
+                { icon: EnvelopeSimple, title: "Email", lines: ["ilmrise.contact@gmail.com", "ilmrise.contact@gmail.com"] },
                 { icon: Phone, title: "Phone", lines: ["+44 (0) 203 XXX XXXX", "9 AM - 6 PM GMT"] },
                 { icon: MapPin, title: "Location", lines: ["London, United Kingdom", "Support Nationwide"] },
                 { icon: Clock, title: "Hours", lines: ["Mon-Fri: 9 AM - 6 PM GMT", "Weekend: Limited Support"] },

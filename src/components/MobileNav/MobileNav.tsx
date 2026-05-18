@@ -51,8 +51,8 @@ export const MobileNav = ({ links, portal, onPortalSwitch }: MobileNavProps) => 
               className="flex items-center gap-2 text-white font-bold"
               onClick={() => setIsOpen(false)}
             >
-              <img src="/logo.svg" alt="EduConnect" className="h-8 w-auto" />
-              Edu<span className={isIslamic ? "text-primary" : "text-blue-400"}>Connect</span>
+              <img src="/logo.svg" alt="Ilmrise logo" className="h-8 w-auto" />
+              Ilm<span className={isIslamic ? "text-primary" : "text-blue-400"}>rise</span>
             </Link>
           </div>
 

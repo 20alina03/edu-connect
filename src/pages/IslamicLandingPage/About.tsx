@@ -14,13 +14,13 @@ const IslamicAbout = () => {
             About Us
           </h1>
           <p className="text-xs sm:text-sm lg:text-base text-slate-600 max-w-3xl mx-auto leading-relaxed mb-6 sm:mb-8">
-            EduConnect Islamic is a platform dedicated to making authentic Islamic education accessible to learners worldwide.
+            Ilmrise Islamic is a platform dedicated to making authentic Islamic education accessible to learners worldwide.
             We believe that learning the Quran and Islamic studies should be guided by qualified, verified teachers.
           </p>
           <div className="w-24 h-1 mx-auto rounded-full" style={{ background: 'linear-gradient(to right, hsl(153 56% 11%), hsl(153 56% 20%))' }}></div>
         </div>
 
-        {/* What is EduConnect Islamic Section */}
+        {/* What is Ilmrise Islamic Section */}
         <section className="mb-14 sm:mb-18 lg:mb-24">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
             {/* Mission Card */}

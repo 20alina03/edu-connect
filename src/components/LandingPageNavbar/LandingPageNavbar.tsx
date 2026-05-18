@@ -23,9 +23,9 @@ export const LandingPageNavbar = ({ baseRoute, portalName, accentColor = "text-p
     <nav className="landing-navbar">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition flex-shrink-0">
-          <img src="/logo.svg" alt="EduConnect" className="h-6 sm:h-8 w-auto" />
-          <span className="font-display font-bold text-sm sm:text-base hidden sm:inline">EduConnect</span>
-          <span className="font-display font-bold text-sm sm:hidden">EC</span>
+          <img src="/logo.svg" alt="Ilmrise logo" className="h-6 sm:h-8 w-auto" />
+          <span className="font-display font-bold text-sm sm:text-base hidden sm:inline">Ilmrise</span>
+          <span className="font-display font-bold text-sm sm:hidden">IR</span>
         </Link>
 
         {/* Desktop Menu */}

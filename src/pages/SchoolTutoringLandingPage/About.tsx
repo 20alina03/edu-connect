@@ -14,13 +14,13 @@ const SchoolAbout = () => {
             About Us
           </h1>
           <p className="text-xs sm:text-sm lg:text-base text-slate-600 max-w-3xl mx-auto leading-relaxed mb-6 sm:mb-8">
-            EduConnect School Tutoring is dedicated to transforming academic outcomes through personalized, expert tuition.
+            Ilmrise School Tutoring is dedicated to transforming academic outcomes through personalized, expert tuition.
             We connect students with qualified, verified tutors who are passionate about their success.
           </p>
           <div className="w-24 h-1 mx-auto rounded-full" style={{ background: 'linear-gradient(to right, hsl(213 70% 16%), hsl(213 70% 26%))' }}></div>
         </div>
 
-        {/* What is EduConnect School Section */}
+        {/* What is Ilmrise School Section */}
         <section className="mb-14 sm:mb-18 lg:mb-24">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
             {/* Mission Card */}

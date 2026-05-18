@@ -142,7 +142,7 @@ const TeacherProfile = () => {
             </Link>
           </div>
           <div className="teacher-profile-banner">
-            <strong>Trusted teacher</strong> — verified ID, certifications & background checked by EduConnect.
+            <strong>Trusted teacher</strong> — verified ID, certifications & background checked by Ilmrise.
           </div>
         </aside>
       </div>
