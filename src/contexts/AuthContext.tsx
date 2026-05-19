@@ -130,11 +130,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) return { error: error.message };
 
-      // If identities is empty the address is already registered but unconfirmed
-      if (data.user && data.user.identities && data.user.identities.length === 0) {
-        return { error: "An account with this email already exists. Please check your inbox for a confirmation email." };
-      }
-
       if (data.user && !data.session) {
         await supabase.auth.resend({
           email,

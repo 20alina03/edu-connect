@@ -6,9 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth, AppRole } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import "./signup.css";
 
@@ -38,29 +36,17 @@ const SignUp = () => {
     const v = validateForm();
     if (v) return setError(v);
     setLoading(true);
-    // store pending role so we can apply it after email confirmation
+    const { error } = await signUp(formData.email, formData.password, formData.fullName, role);
+    setLoading(false);
+    if (error) {
+      return setError(error);
+    }
+
+    // store pending role only after the signup actually succeeds
     try {
       localStorage.setItem("ilmrise.pendingRole", role);
     } catch (err) {
       // ignore storage errors
-    }
-    const { error } = await signUp(formData.email, formData.password, formData.fullName, role);
-    setLoading(false);
-    if (error) {
-      // If the user already exists, resend the confirmation email
-      const msg = String(error).toLowerCase();
-      if (msg.includes("already") || msg.includes("registered") || msg.includes("exists")) {
-        try {
-          await supabase.auth.resend({ email: formData.email, type: "signup", options: { emailRedirectTo: `${window.location.origin}/login` } });
-          toast.success("Confirmation email resent. Check your email to confirm the teacher account.");
-          navigate("/login");
-          return;
-        } catch (err) {
-          return setError("Account exists but we couldn't resend confirmation. Please contact support.");
-        }
-      }
-
-      return setError(error);
     }
 
     toast.success("Account created. Check your email to confirm your account.");
