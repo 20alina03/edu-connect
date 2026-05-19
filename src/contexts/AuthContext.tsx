@@ -16,7 +16,7 @@ interface AuthCtx {
   roles: AppRole[];
   loading: boolean;
   signUp: (email: string, password: string, fullName: string, role: AppRole) => Promise<{ error: string | null }>;
-  signIn: (email: string, redirectPath?: string) => Promise<SignInResult>;
+  signIn: (email: string, password: string) => Promise<SignInResult>;
   signInWithGoogle: (role?: AppRole) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: string | null }>;
@@ -33,9 +33,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const activeRoleKey = (uid: string) => `ilmrise.activeRole.${uid}`;
-  const getAppOrigin = () => (typeof window !== "undefined" ? window.location.origin : import.meta.env.VITE_APP_URL ?? "http://localhost:5173");
+  const getAppOrigin = () =>
+    typeof window !== "undefined"
+      ? window.location.origin
+      : import.meta.env.VITE_APP_URL ?? "http://localhost:5173";
 
-  const getRedirectUrl = (redirectPath = "/") => new URL(redirectPath, getAppOrigin()).toString();
+  const getRedirectUrl = (redirectPath = "/") =>
+    new URL(redirectPath, getAppOrigin()).toString();
 
   const syncSelectedRole = (uid: string, availableRoles: AppRole[]) => {
     const storedRole = sessionStorage.getItem(activeRoleKey(uid)) as AppRole | null;
@@ -43,28 +47,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setRole(storedRole);
       return;
     }
-
     if (availableRoles.length === 1) {
       setRole(availableRoles[0]);
       sessionStorage.setItem(activeRoleKey(uid), availableRoles[0]);
       return;
     }
-
     setRole(null);
   };
 
   const applyPendingGoogleRole = async (uid: string, pendingRole: AppRole | null) => {
     if (!pendingRole) return null;
-
-    const { error: roleError } = await supabase.from("user_roles").insert({ user_id: uid, role: pendingRole });
-    if (roleError && roleError.code !== "23505") {
-      return null;
-    }
-
+    const { error: roleError } = await supabase
+      .from("user_roles")
+      .insert({ user_id: uid, role: pendingRole });
+    if (roleError && roleError.code !== "23505") return null;
     if (pendingRole === "teacher") {
       await supabase.from("teacher_profiles").insert({ user_id: uid }).select().maybeSingle();
     }
-
     localStorage.removeItem("ilmrise.pendingRole");
     return pendingRole;
   };
@@ -72,7 +71,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const fetchRole = async (uid: string) => {
     const resp = await api.get<{ roles: AppRole[] }>("/auth/me");
     const pendingRole = (localStorage.getItem("ilmrise.pendingRole") as AppRole | null) ?? null;
-    let availableRoles = Array.isArray(resp?.roles) && resp.roles.length ? resp.roles : ["student"];
+    let availableRoles: AppRole[] =
+      Array.isArray(resp?.roles) && resp.roles.length ? resp.roles : ["student"];
 
     if (pendingRole) {
       const createdRole = await applyPendingGoogleRole(uid, pendingRole);
@@ -81,7 +81,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     }
 
-    setRoles([...new Set(availableRoles)]);
+    setRoles([...new Set(availableRoles)] as AppRole[]);
     syncSelectedRole(uid, availableRoles);
 
     if (!pendingRole) {
@@ -112,16 +112,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  // ✅ FIXED: Call Supabase directly from the frontend instead of going through
+  // the Express backend. The Express backend used supabaseAdmin.auth.admin.createUser()
+  // which intentionally bypasses the email confirmation flow.
+  // Calling supabase.auth.signUp() from the browser is the only way Supabase
+  // will trigger the confirmation email through your configured SMTP (Brevo).
   const signUp: AuthCtx["signUp"] = async (email, password, fullName, role) => {
     try {
-      const response = await api.post<{ user: { id: string; email: string } }>("/auth/signup", {
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        fullName,
-        role,
+        options: {
+          data: { full_name: fullName, role },
+          emailRedirectTo: getRedirectUrl("/login"),
+        },
       });
 
-      if (!response || !response.user) throw new Error("Signup failed");
+      if (error) return { error: error.message };
+
+      // If identities is empty the address is already registered but unconfirmed
+      if (data.user && data.user.identities && data.user.identities.length === 0) {
+        return { error: "An account with this email already exists. Please check your inbox for a confirmation email." };
+      }
+
+      // Store the role so it can be applied once the user confirms and logs in
+      try {
+        localStorage.setItem("ilmrise.pendingRole", role);
+      } catch {
+        // ignore storage errors
+      }
 
       return { error: null };
     } catch (err: any) {
@@ -134,7 +153,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) return { error: error.message };
-
       return { error: null };
     } catch (err: any) {
       return { error: err.message ?? "Unable to sign in" };
@@ -170,7 +188,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <Ctx.Provider value={{ user, session, role, roles, loading, signUp, signIn, signInWithGoogle, signOut, resetPassword, chooseRole }}>
+    <Ctx.Provider
+      value={{ user, session, role, roles, loading, signUp, signIn, signInWithGoogle, signOut, resetPassword, chooseRole }}
+    >
       {children}
     </Ctx.Provider>
   );
