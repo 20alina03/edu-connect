@@ -135,6 +135,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return { error: "An account with this email already exists. Please check your inbox for a confirmation email." };
       }
 
+      if (data.user && !data.session) {
+        await supabase.auth.resend({
+          email,
+          type: "signup",
+          options: { emailRedirectTo: getRedirectUrl("/login") },
+        });
+      }
+
       // Store the role so it can be applied once the user confirms and logs in
       try {
         localStorage.setItem("ilmrise.pendingRole", role);
