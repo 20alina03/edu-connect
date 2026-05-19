@@ -72,7 +72,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const fetchRole = async (uid: string) => {
     const resp = await api.get<{ roles: AppRole[] }>("/auth/me");
     const pendingRole = (localStorage.getItem("ilmrise.pendingRole") as AppRole | null) ?? null;
-    const availableRoles = Array.isArray(resp?.roles) && resp.roles.length ? resp.roles : ["student"];
+    let availableRoles = Array.isArray(resp?.roles) && resp.roles.length ? resp.roles : ["student"];
 
     if (pendingRole) {
       const createdRole = await applyPendingGoogleRole(uid, pendingRole);
