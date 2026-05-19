@@ -1,32 +1,6 @@
-import express from "express";
-import cors from "cors";
-import helmet from "helmet";
-import compression from "compression";
-import morgan from "morgan";
+import { app } from "./app.js";
 import { env } from "./config/env.js";
 import { logger } from "./lib/logger.js";
-import { apiRouter } from "./routes.js";
-import { errorHandler, notFoundHandler } from "./middleware/error.js";
-
-const app = express();
-
-app.use(helmet());
-app.use(
-  cors({
-    origin: (origin, cb) => {
-      if (!origin || env.corsOrigins.includes(origin)) return cb(null, true);
-      cb(new Error(`CORS blocked: ${origin}`));
-    },
-    credentials: true,
-  }),
-);
-app.use(compression());
-app.use(express.json({ limit: "1mb" }));
-app.use(morgan(env.NODE_ENV === "development" ? "dev" : "combined"));
-
-app.use("/api", apiRouter);
-app.use(notFoundHandler);
-app.use(errorHandler);
 
 app.listen(env.PORT, () => {
   logger.info(`🚀 EduConnect API listening on http://localhost:${env.PORT}`);

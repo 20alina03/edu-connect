@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000/api";
+const isLocalDev = typeof window !== "undefined" && /^(localhost|127\.0\.0\.1)$/i.test(window.location.hostname);
+const API_URL = import.meta.env.VITE_API_URL ?? (isLocalDev ? "http://localhost:4000/api" : "/api");
 
 export class ApiError extends Error {
   constructor(public status: number, message: string, public details?: unknown) {
