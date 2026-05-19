@@ -9,6 +9,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index/Index";
 import Login from "./pages/Login/Login";
 import SignUp from "./pages/SignUp/SignUp";
+import ChooseRole from "./pages/ChooseRole/ChooseRole";
 import ResetPassword from "./pages/ResetPassword";
 import PortalHome from "./pages/PortalHome/PortalHome";
 import TeachersList from "./pages/TeachersList/TeachersList";
@@ -43,7 +44,7 @@ import SchoolTermsPrivacy from "./pages/SchoolTutoringLandingPage/TermsPrivacy";
 const queryClient = new QueryClient();
 
 const DashboardRedirect = () => {
-  const { role, loading } = useAuth();
+  const { role, roles, loading } = useAuth();
 
   if (loading) {
     return (
@@ -51,6 +52,10 @@ const DashboardRedirect = () => {
         <div className="animate-pulse text-muted-foreground">Loading...</div>
       </div>
     );
+  }
+
+  if (!role && roles.length > 1) {
+    return <Navigate to="/choose-role" replace />;
   }
 
   return <Navigate to={role === "teacher" ? "/dashboard/teacher" : "/dashboard/student"} replace />;
@@ -68,6 +73,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/choose-role" element={<ProtectedRoute skipRoleCheck><ChooseRole /></ProtectedRoute>} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/about" element={<About />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
@@ -97,6 +103,7 @@ const App = () => (
             <Route path="/book/:id" element={<ProtectedRoute><Book /></ProtectedRoute>} />
             <Route path="/dashboard/student" element={<ProtectedRoute requireRole="student"><Dashboard /></ProtectedRoute>} />
             <Route path="/dashboard/teacher" element={<ProtectedRoute requireRole="teacher"><TeacherDashboard /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><DashboardRedirect /></ProtectedRoute>} />
             <Route path="/dashboard/:role" element={<ProtectedRoute><DashboardRedirect /></ProtectedRoute>} />
             <Route path="/teacher/onboarding" element={<ProtectedRoute requireRole="teacher"><TeacherOnboarding /></ProtectedRoute>} />
             <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />

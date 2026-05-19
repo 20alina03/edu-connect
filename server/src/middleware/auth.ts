@@ -8,6 +8,7 @@ export interface AuthedUser {
   id: string;
   email: string | null;
   role: AppRole;
+  roles: AppRole[];
 }
 
 declare global {
@@ -33,13 +34,16 @@ export const requireAuth = async (req: Request, _res: Response, next: NextFuncti
       .select("role")
       .eq("user_id", data.user.id)
       .order("role", { ascending: true })
-      .limit(1)
-      .maybeSingle();
+      .limit(10);
+
+    const roles = (roleRow ?? []).map((entry) => entry.role as AppRole);
+    const primaryRole = roles.find((value) => value === "admin") ?? roles.find((value) => value === "teacher") ?? roles.find((value) => value === "student") ?? "student";
 
     req.user = {
       id: data.user.id,
       email: data.user.email ?? null,
-      role: (roleRow?.role as AppRole) ?? "student",
+      role: primaryRole,
+      roles: roles.length ? roles : ["student"],
     };
     next();
   } catch (e) {

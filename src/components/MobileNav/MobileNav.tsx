@@ -17,7 +17,7 @@ export const MobileNav = ({ links, portal, onPortalSwitch }: MobileNavProps) => 
   const navigate = useNavigate();
   const { user, role, signOut } = useAuth();
   const isIslamic = portal === "islamic";
-  const dashHref = role === "teacher" ? "/dashboard/teacher" : "/dashboard/student";
+  const dashHref = role === "teacher" ? "/dashboard/teacher" : role === "student" ? "/dashboard/student" : "/choose-role";
 
   const handleNavClick = (href: string) => {
     navigate(href);

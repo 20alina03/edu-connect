@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Mail, Lock, ArrowRight, Eye, EyeOff, GraduationCap, BookOpen } from "lucide-react";
+import { Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuth, AppRole } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 import "./login.css";
 
 const Login = () => {
@@ -20,18 +20,27 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [intendedRole, setIntendedRole] = useState<AppRole>("student");
+  const [unconfirmedEmail, setUnconfirmedEmail] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (!email || !password) return setError("Please fill in all fields");
     setLoading(true);
-    const { error } = await signIn(email, password, intendedRole);
+    const result = await signIn(email, password);
     setLoading(false);
-    if (error) return setError(error);
+    if (result.error) {
+      const msg = String(result.error).toLowerCase();
+      // detect unconfirmed-email cases and show banner with resend option
+      if (msg.includes("confirm") || msg.includes("activate") || msg.includes("verify") || msg.includes("not confirmed") || msg.includes("already registered")) {
+        setUnconfirmedEmail(email);
+      }
+
+      return setError(result.error);
+    }
+
     toast.success("Welcome back!");
-    navigate(redirect || (intendedRole === "teacher" ? "/dashboard/teacher" : "/dashboard/student"));
+    navigate(redirect || "/dashboard");
   };
 
   return (
@@ -55,30 +64,7 @@ const Login = () => {
         <div className="login-card">
           <div className="text-center mb-6">
             <h1 className="login-title">Welcome back</h1>
-            <p className="login-subtitle">Sign in to continue learning</p>
-          </div>
-
-          {/* Role tabs */}
-          <div className="grid grid-cols-2 gap-2 mb-6 p-1 rounded-xl bg-white/5 border border-white/10">
-            {([
-              { v: "student", label: "Student / Parent", Icon: BookOpen },
-              { v: "teacher", label: "Teacher", Icon: GraduationCap },
-            ] as const).map(({ v, label, Icon }) => (
-              <button
-                key={v}
-                type="button"
-                onClick={() => setIntendedRole(v)}
-                className={cn(
-                  "flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition",
-                  intendedRole === v
-                    ? "bg-primary text-primary-foreground shadow"
-                    : "text-white/60 hover:text-white"
-                )}
-              >
-                <Icon className="w-4 h-4" />
-                {label}
-              </button>
-            ))}
+            <p className="login-subtitle">Sign in with your email and password</p>
           </div>
 
           {error && (
@@ -107,24 +93,41 @@ const Login = () => {
               <div className="login-input-group">
                 <Lock className="w-5 h-5 text-white/40" />
                 <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••"
-                  value={password} onChange={(e) => setPassword(e.target.value)}
-                  className="login-input" required />
-                <button type="button" onClick={() => setShowPassword(!showPassword)}
-                  className="text-white/40 hover:text-white/60 transition">
+                  value={password} onChange={(e) => setPassword(e.target.value)} className="login-input" required />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-white/40 hover:text-white/60 transition">
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
             </div>
 
             <Button type="submit" disabled={loading} className="login-submit-btn">
-              {loading ? "Signing in..." : `Sign In as ${intendedRole === "teacher" ? "Teacher" : "Student"}`}
+              {loading ? "Signing in..." : "Continue"}
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </form>
 
+          {unconfirmedEmail && (
+            <div className="p-3 mt-4 rounded-lg bg-yellow-500/10 border border-yellow-500 text-yellow-300 text-sm flex items-center justify-between">
+              <div>Please confirm your email address to sign in.</div>
+              <button
+                onClick={async () => {
+                  try {
+                    await supabase.auth.resend({ email: unconfirmedEmail, type: "signup", options: { emailRedirectTo: `${window.location.origin}/login` } });
+                    toast.success("Confirmation email resent. Check your inbox.");
+                  } catch (err) {
+                    toast.error("Unable to resend confirmation. Try again later.");
+                  }
+                }}
+                className="ml-3 text-sm underline"
+              >
+                Resend
+              </button>
+            </div>
+          )}
+
           <div className="login-divider"><span>or continue with</span></div>
 
-          <button onClick={() => signInWithGoogle(intendedRole)} disabled={loading} className="login-google-btn">
+          <button onClick={() => signInWithGoogle()} disabled={loading} className="login-google-btn">
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
               <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>

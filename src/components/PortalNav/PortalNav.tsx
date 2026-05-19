@@ -16,7 +16,7 @@ export const PortalNav = ({ portal }: Props) => {
   const isIslamic = portal === "islamic";
   const navigate = useNavigate();
   const { user, role, signOut } = useAuth();
-  const dashHref = role === "teacher" ? "/dashboard/teacher" : "/dashboard/student";
+  const dashHref = role === "teacher" ? "/dashboard/teacher" : role === "student" ? "/dashboard/student" : "/choose-role";
   const links = isIslamic
     ? [["Quran", "/islamic/teachers?s=Quran"], ["Tajweed", "/islamic/teachers?s=Tajweed"], ["Arabic", "/islamic/teachers?s=Arabic"], ["Islamic Studies", "/islamic/teachers?s=Islamic+Studies"]]
     : [["Maths", "/school/teachers?s=Maths"], ["Sciences", "/school/teachers?s=Physics"], ["English", "/school/teachers?s=English"], ["Home Tuition", "/school/teachers?mode=home_visit"]];

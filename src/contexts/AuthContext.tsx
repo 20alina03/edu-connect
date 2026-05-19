@@ -1,19 +1,26 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 
 export type AppRole = "student" | "teacher" | "admin";
+
+type SignInResult = {
+  error: string | null;
+};
 
 interface AuthCtx {
   user: User | null;
   session: Session | null;
   role: AppRole | null;
+  roles: AppRole[];
   loading: boolean;
   signUp: (email: string, password: string, fullName: string, role: AppRole) => Promise<{ error: string | null }>;
-  signIn: (email: string, password: string, intendedRole?: AppRole) => Promise<{ error: string | null }>;
+  signIn: (email: string, redirectPath?: string) => Promise<SignInResult>;
   signInWithGoogle: (role?: AppRole) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: string | null }>;
+  chooseRole: (role: AppRole) => void;
 }
 
 const Ctx = createContext<AuthCtx | undefined>(undefined);
@@ -22,7 +29,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<AppRole | null>(null);
+  const [roles, setRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const activeRoleKey = (uid: string) => `ilmrise.activeRole.${uid}`;
+  const getAppOrigin = () => (typeof window !== "undefined" ? window.location.origin : import.meta.env.VITE_APP_URL ?? "http://localhost:5173");
+
+  const getRedirectUrl = (redirectPath = "/") => new URL(redirectPath, getAppOrigin()).toString();
+
+  const syncSelectedRole = (uid: string, availableRoles: AppRole[]) => {
+    const storedRole = sessionStorage.getItem(activeRoleKey(uid)) as AppRole | null;
+    if (storedRole && availableRoles.includes(storedRole)) {
+      setRole(storedRole);
+      return;
+    }
+
+    if (availableRoles.length === 1) {
+      setRole(availableRoles[0]);
+      sessionStorage.setItem(activeRoleKey(uid), availableRoles[0]);
+      return;
+    }
+
+    setRole(null);
+  };
 
   const applyPendingGoogleRole = async (uid: string, pendingRole: AppRole | null) => {
     if (!pendingRole) return null;
@@ -41,19 +70,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const fetchRole = async (uid: string) => {
-    const { data } = await supabase.from("user_roles").select("role").eq("user_id", uid);
-    const roles = (data ?? []).map((entry) => entry.role as AppRole);
-    const orderedRole = roles.find((value) => value === "admin") ?? roles.find((value) => value === "teacher") ?? roles.find((value) => value === "student") ?? null;
+    const resp = await api.get<{ roles: AppRole[] }>("/auth/me");
+    const pendingRole = (localStorage.getItem("ilmrise.pendingRole") as AppRole | null) ?? null;
+    const availableRoles = Array.isArray(resp?.roles) && resp.roles.length ? resp.roles : ["student"];
 
-    if (orderedRole) {
-      setRole(orderedRole);
-      localStorage.removeItem("ilmrise.pendingRole");
-      return;
+    if (pendingRole) {
+      const createdRole = await applyPendingGoogleRole(uid, pendingRole);
+      if (createdRole && !availableRoles.includes(createdRole)) {
+        availableRoles = [...availableRoles, createdRole];
+      }
     }
 
-    const pendingRole = (localStorage.getItem("ilmrise.pendingRole") as AppRole | null) ?? null;
-    const createdRole = await applyPendingGoogleRole(uid, pendingRole);
-    setRole(createdRole ?? "student");
+    setRoles([...new Set(availableRoles)]);
+    syncSelectedRole(uid, availableRoles);
+
+    if (!pendingRole) {
+      localStorage.removeItem("ilmrise.pendingRole");
+    }
   };
 
   useEffect(() => {
@@ -61,91 +94,83 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(sess);
       setUser(sess?.user ?? null);
       if (sess?.user) {
-        setTimeout(() => fetchRole(sess.user.id), 0);
+        setTimeout(() => { void fetchRole(sess.user.id); }, 0);
       } else {
         setRole(null);
+        setRoles([]);
       }
     });
     supabase.auth.getSession().then(({ data: { session: sess } }) => {
       setSession(sess);
       setUser(sess?.user ?? null);
-      if (sess?.user) fetchRole(sess.user.id);
-      setLoading(false);
+      if (sess?.user) {
+        void fetchRole(sess.user.id).finally(() => setLoading(false));
+      } else {
+        setLoading(false);
+      }
     });
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  const FRONTEND_URL = (import.meta.env.VITE_APP_URL as string) ?? "https://verceleduconnect.vercel.app";
-
   const signUp: AuthCtx["signUp"] = async (email, password, fullName, role) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${FRONTEND_URL}/`,
-        data: { full_name: fullName, role },
-      },
-    });
-    return { error: error?.message ?? null };
+    try {
+      const response = await api.post<{ user: { id: string; email: string } }>("/auth/signup", {
+        email,
+        password,
+        fullName,
+        role,
+      });
+
+      if (!response || !response.user) throw new Error("Signup failed");
+
+      return { error: null };
+    } catch (err: any) {
+      const msg = err?.message || err?.toString?.() || "Unable to create account";
+      return { error: msg };
+    }
   };
 
-  const signIn: AuthCtx["signIn"] = async (email, password, intendedRole: AppRole | null = null) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) return { error: error.message };
+  const signIn: AuthCtx["signIn"] = async (email, password) => {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) return { error: error.message };
 
-    const user = data.user;
-    if (!user) return { error: "Failed to sign in" };
-
-    // Prevent login if email not confirmed
-    // Supabase sets `email_confirmed_at` when confirmed
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const emailConfirmed = (user as any).email_confirmed_at;
-    if (!emailConfirmed) {
-      await supabase.auth.signOut();
-      return { error: "Please confirm your email before logging in." };
+      return { error: null };
+    } catch (err: any) {
+      return { error: err.message ?? "Unable to sign in" };
     }
-
-    // If an intendedRole was provided, ensure the account has that role
-    if (intendedRole) {
-      const { data: roleData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .order("role", { ascending: true })
-        .limit(1)
-        .maybeSingle();
-
-      const assignedRole = (roleData?.role as AppRole) ?? "student";
-      if (assignedRole !== intendedRole) {
-        await supabase.auth.signOut();
-        return { error: `Selected role does not match this account. Please choose the correct role to continue.` };
-      }
-    }
-
-    return { error: null };
   };
 
   const signInWithGoogle = async (role: AppRole = "student") => {
     localStorage.setItem("ilmrise.pendingRole", role);
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${FRONTEND_URL}/` },
+      options: { redirectTo: getRedirectUrl("/") },
     });
   };
 
   const signOut = async () => {
+    if (user?.id) {
+      sessionStorage.removeItem(activeRoleKey(user.id));
+    }
     await supabase.auth.signOut();
+  };
+
+  const chooseRole = (selectedRole: AppRole) => {
+    if (!user?.id) return;
+    sessionStorage.setItem(activeRoleKey(user.id), selectedRole);
+    setRole(selectedRole);
   };
 
   const resetPassword: AuthCtx["resetPassword"] = async (email) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${FRONTEND_URL}/reset-password`,
+      redirectTo: getRedirectUrl("/reset-password"),
     });
     return { error: error?.message ?? null };
   };
 
   return (
-    <Ctx.Provider value={{ user, session, role, loading, signUp, signIn, signInWithGoogle, signOut, resetPassword }}>
+    <Ctx.Provider value={{ user, session, role, roles, loading, signUp, signIn, signInWithGoogle, signOut, resetPassword, chooseRole }}>
       {children}
     </Ctx.Provider>
   );

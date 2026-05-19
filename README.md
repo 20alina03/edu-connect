@@ -70,10 +70,10 @@ VITE_API_URL=http://localhost:4000/api
 ### REST endpoints
 
 ```
-POST   /api/auth/signup             { email, password, fullName, role }
-POST   /api/auth/login              { email, password }
 POST   /api/auth/reset              { email, redirectTo? }
 GET    /api/auth/me                 (auth)
+
+// Signup and email verification are handled directly by Supabase from the frontend.
 
 GET    /api/teachers                ?subject&mode&gender&min&max
 GET    /api/teachers/:id

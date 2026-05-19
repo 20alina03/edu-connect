@@ -89,15 +89,13 @@ Create these API endpoints:
 - Create/update user in database
 - Return JWT token
 
-**POST /api/auth/login**
-- Accept email & password
-- Validate credentials
-- Return JWT token
+**Email sign-in**
+- Handled directly by Supabase on the frontend with magic links
+- Redirects back to the current origin (local or Vercel)
 
-**POST /api/auth/signup**
-- Accept email, password, name
-- Create new user
-- Return JWT token
+**Signup and email verification**
+- Handled directly by Supabase on the frontend
+- Sends one confirmation email at account creation
 
 ## Example Backend Implementation (Node.js/Express)
 

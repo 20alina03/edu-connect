@@ -7,7 +7,7 @@ import "./index.css";
 const Index = () => {
   const { user, role } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const dashHref = role === "teacher" ? "/dashboard/teacher" : "/dashboard/student";
+  const dashHref = role === "teacher" ? "/dashboard/teacher" : role === "student" ? "/dashboard/student" : "/choose-role";
   return (
     <div className="index-page">
       <header className="index-header">

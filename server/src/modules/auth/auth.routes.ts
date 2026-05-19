@@ -4,7 +4,7 @@ import { supabaseAdmin, supabaseAnon } from "../../lib/supabase.js";
 import { validate } from "../../middleware/validate.js";
 import { requireAuth } from "../../middleware/auth.js";
 import { asyncHandler } from "../../lib/asyncHandler.js";
-import { badRequest, unauthorized } from "../../lib/http-error.js";
+import { badRequest } from "../../lib/http-error.js";
 
 export const authRouter = Router();
 
@@ -26,27 +26,20 @@ authRouter.post(
       email_confirm: false,
       user_metadata: { full_name: fullName, role },
     });
+
     if (error) throw badRequest(error.message);
     res.status(201).json({ user: { id: data.user?.id, email: data.user?.email } });
   }),
 );
 
-const LoginSchema = z.object({ email: z.string().email(), password: z.string().min(1) });
+const RoleSchema = z.enum(["student", "teacher", "admin"]);
 
-authRouter.post(
-  "/login",
-  validate({ body: LoginSchema }),
-  asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
-    const { data, error } = await supabaseAnon.auth.signInWithPassword({ email, password });
-    if (error) throw unauthorized(error.message);
-    res.json({
-      access_token: data.session?.access_token,
-      refresh_token: data.session?.refresh_token,
-      user: { id: data.user?.id, email: data.user?.email },
-    });
-  }),
-);
+const getUserRoles = async (userId: string) => {
+  const { data } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", userId);
+  const roles = (data ?? []).map((entry) => RoleSchema.parse(entry.role));
+  const uniqueRoles = [...new Set(roles)];
+  return uniqueRoles.length ? uniqueRoles : ["student"];
+};
 
 authRouter.post(
   "/reset",
@@ -64,6 +57,6 @@ authRouter.get(
   requireAuth,
   asyncHandler(async (req, res) => {
     const { data: profile } = await supabaseAdmin.from("profiles").select("*").eq("id", req.user!.id).maybeSingle();
-    res.json({ user: req.user, profile });
+    res.json({ user: req.user, profile, roles: req.user!.roles });
   }),
 );

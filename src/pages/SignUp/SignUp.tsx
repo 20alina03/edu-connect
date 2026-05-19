@@ -6,8 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth, AppRole } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import "./signup.css";
 
 const SignUp = () => {
@@ -36,10 +38,32 @@ const SignUp = () => {
     const v = validateForm();
     if (v) return setError(v);
     setLoading(true);
+    // store pending role so we can apply it after email confirmation
+    try {
+      localStorage.setItem("ilmrise.pendingRole", role);
+    } catch (err) {
+      // ignore storage errors
+    }
     const { error } = await signUp(formData.email, formData.password, formData.fullName, role);
     setLoading(false);
-    if (error) return setError(error);
-    toast.success("Account created! Please check your email and confirm your account before logging in.");
+    if (error) {
+      // If the user already exists, resend the confirmation email
+      const msg = String(error).toLowerCase();
+      if (msg.includes("already") || msg.includes("registered") || msg.includes("exists")) {
+        try {
+          await supabase.auth.resend({ email: formData.email, type: "signup", options: { emailRedirectTo: `${window.location.origin}/login` } });
+          toast.success("Confirmation email resent. Check your email to confirm the teacher account.");
+          navigate("/login");
+          return;
+        } catch (err) {
+          return setError("Account exists but we couldn't resend confirmation. Please contact support.");
+        }
+      }
+
+      return setError(error);
+    }
+
+    toast.success("Account created. Check your email to confirm your account.");
     navigate("/login");
   };
 
@@ -66,21 +90,27 @@ const SignUp = () => {
             <p className="signup-subtitle">Join thousands learning worldwide</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 mb-6 p-1 rounded-xl bg-white/5 border border-white/10">
-            {([
-              { v: "student", label: "I'm a Student", sub: "Find a tutor", Icon: BookOpen },
-              { v: "teacher", label: "I'm a Teacher", sub: "Offer lessons", Icon: GraduationCap },
-            ] as const).map(({ v, label, sub, Icon }) => (
-              <button key={v} type="button" onClick={() => setRole(v)}
-                className={cn(
-                  "flex flex-col items-center gap-1 py-3 px-3 rounded-lg text-sm font-medium transition",
-                  role === v ? "bg-primary text-primary-foreground shadow" : "text-white/60 hover:text-white"
-                )}>
-                <Icon className="w-5 h-5" />
-                <span>{label}</span>
-                <span className={cn("text-[10px] font-normal", role === v ? "opacity-90" : "text-white/40")}>{sub}</span>
-              </button>
-            ))}
+          <div className="space-y-2 mb-6">
+            <Label htmlFor="role" className="signup-label">Account type</Label>
+            <Select value={role} onValueChange={(value) => setRole(value as AppRole)}>
+              <SelectTrigger id="role" className="signup-input-group w-full">
+                <SelectValue placeholder="Choose account type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="student">
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="w-4 h-4" />
+                    <span>Student</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="teacher">
+                  <div className="flex items-center gap-2">
+                    <GraduationCap className="w-4 h-4" />
+                    <span>Teacher</span>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {error && (

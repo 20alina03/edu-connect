@@ -9,7 +9,7 @@ import {
 export const AppHeader = () => {
   const { user, role, signOut } = useAuth();
   const navigate = useNavigate();
-  const dashHref = role === "teacher" ? "/dashboard/teacher" : "/dashboard/student";
+  const dashHref = role === "teacher" ? "/dashboard/teacher" : role === "student" ? "/dashboard/student" : "/choose-role";
 
   return (
     <header className="sticky top-0 z-40 bg-background/80 backdrop-blur border-b border-border">

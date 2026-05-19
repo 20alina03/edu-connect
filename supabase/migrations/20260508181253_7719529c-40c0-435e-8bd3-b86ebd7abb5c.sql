@@ -13,6 +13,7 @@ CREATE TABLE public.profiles (
   avatar_url TEXT,
   phone TEXT,
   portal portal_type DEFAULT 'school',
+  email_otp_verified_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
