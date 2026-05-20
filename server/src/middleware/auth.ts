@@ -36,8 +36,25 @@ export const requireAuth = async (req: Request, _res: Response, next: NextFuncti
       .order("role", { ascending: true })
       .limit(10);
 
+    const { data: teacherProfile } = await supabaseAdmin
+      .from("teacher_profiles")
+      .select("user_id")
+      .eq("user_id", data.user.id)
+      .maybeSingle();
+
     const roles = (roleRow ?? []).map((entry) => entry.role as AppRole);
-    const primaryRole = roles.find((value) => value === "admin") ?? roles.find((value) => value === "teacher") ?? roles.find((value) => value === "student") ?? "student";
+    const metadataRole = (data.user.user_metadata?.role as AppRole | undefined) ?? (data.user.app_metadata?.role as AppRole | undefined);
+    const inferredTeacher = metadataRole === "teacher" || Boolean(teacherProfile);
+
+    if (inferredTeacher && !roles.includes("teacher")) {
+      await supabaseAdmin.from("user_roles").upsert(
+        { user_id: data.user.id, role: "teacher" },
+        { onConflict: "user_id,role" },
+      );
+      roles.push("teacher");
+    }
+
+    const primaryRole = roles.find((value) => value === "admin") ?? roles.find((value) => value === "teacher") ?? roles.find((value) => value === "student") ?? (inferredTeacher ? "teacher" : "student");
 
     req.user = {
       id: data.user.id,

@@ -1,0 +1,5 @@
+ALTER TABLE public.teacher_profiles
+ADD COLUMN IF NOT EXISTS lesson_notes JSONB NOT NULL DEFAULT '[]'::jsonb,
+ADD COLUMN IF NOT EXISTS template_lessons JSONB NOT NULL DEFAULT '[]'::jsonb,
+ADD COLUMN IF NOT EXISTS assessments JSONB NOT NULL DEFAULT '[]'::jsonb,
+ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;

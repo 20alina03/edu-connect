@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import {
   BookOpen, Plus, X, Link2, ExternalLink, Users, Globe,
@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
+import { teachersApi, TeacherLessonItem } from "@/lib/api/teachers";
 import { toast } from "sonner";
 import { StudentProfile, StudentSummary, initials } from "../TeacherDashboard";
 
@@ -47,6 +48,35 @@ const validateUrl = (url: string) => {
   try { new URL(url); return true; } catch { return false; }
 };
 
+const toStoredLesson = (item: NoteLink | TemplateLesson): TeacherLessonItem => ({
+  id: item.id,
+  title: item.title,
+  subject: "subject" in item ? item.subject : undefined,
+  driveUrl: item.driveUrl,
+  description: item.description,
+  assignedStudents: "assignedStudents" in item ? item.assignedStudents : [],
+  createdAt: item.createdAt,
+});
+
+const toNoteCard = (item: TeacherLessonItem): NoteLink => ({
+  id: item.id ?? crypto.randomUUID(),
+  title: item.title,
+  driveUrl: item.driveUrl,
+  description: item.description,
+  assignedStudents: item.assignedStudents ?? [],
+  createdAt: item.createdAt ?? new Date().toISOString(),
+});
+
+const toTemplateCard = (item: TeacherLessonItem): TemplateLesson => ({
+  id: item.id ?? crypto.randomUUID(),
+  title: item.title,
+  driveUrl: item.driveUrl,
+  subject: item.subject ?? "",
+  description: item.description,
+  createdAt: item.createdAt ?? new Date().toISOString(),
+  isPublic: true,
+});
+
 export const LessonsModule = ({
   user, studentProfiles, studentSummaries, onReload,
 }: LessonsModuleProps) => {
@@ -61,6 +91,7 @@ export const LessonsModule = ({
   const [noteStudents, setNoteStudents]     = useState<string[]>([]);
   const [noteForAll, setNoteForAll]         = useState(false);
   const [expandedNote, setExpandedNote]     = useState<string | null>(null);
+  const [editingNoteId, setEditingNoteId]    = useState<string | null>(null);
 
   /* Templates state */
   const [templates, setTemplates]           = useState<TemplateLesson[]>([]);
@@ -69,6 +100,24 @@ export const LessonsModule = ({
   const [tplUrl, setTplUrl]                 = useState("");
   const [tplSubject, setTplSubject]         = useState("");
   const [tplDesc, setTplDesc]               = useState("");
+  const [editingTplId, setEditingTplId]     = useState<string | null>(null);
+  const [portfolioAssessments, setPortfolioAssessments] = useState<any[]>([]);
+
+  const persistLessons = async (nextNotes: TeacherLessonItem[], nextTemplates: TeacherLessonItem[]) => {
+    await teachersApi.savePortfolio({
+      lesson_notes: nextNotes,
+      template_lessons: nextTemplates,
+      assessments: portfolioAssessments,
+    });
+  };
+
+  useEffect(() => {
+    teachersApi.getPortfolio().then(({ lesson_notes, template_lessons, assessments }) => {
+      setNotes((lesson_notes ?? []).map(toNoteCard));
+      setTemplates((template_lessons ?? []).map(toTemplateCard));
+      setPortfolioAssessments(assessments ?? []);
+    }).catch(() => {});
+  }, []);
 
   const allStudents = studentSummaries;
 
@@ -82,22 +131,39 @@ export const LessonsModule = ({
     if (!noteForAll && noteStudents.length === 0)    { toast.error("Assign to at least one student or make available to all."); return; }
 
     const note: NoteLink = {
-      id: crypto.randomUUID(),
+      id: editingNoteId ?? crypto.randomUUID(),
       title: noteTitle.trim(),
       driveUrl: noteUrl.trim(),
       description: noteDesc.trim(),
       assignedStudents: noteForAll ? [] : noteStudents,
       createdAt: new Date().toISOString(),
     };
-    setNotes((prev) => [note, ...prev]);
+    const nextNotes = editingNoteId
+      ? notes.map((existing) => (existing.id === editingNoteId ? note : existing))
+      : [note, ...notes];
+    setNotes(nextNotes);
     setShowNoteForm(false);
+    setEditingNoteId(null);
     setNoteTitle(""); setNoteUrl(""); setNoteDesc(""); setNoteStudents([]); setNoteForAll(false);
-    toast.success("Note link added!");
+    void persistLessons(nextNotes.map(toStoredLesson), templates.map(toStoredLesson));
+    toast.success(editingNoteId ? "Note updated!" : "Note link added!");
   };
 
   const deleteNote = (id: string) => {
-    setNotes((prev) => prev.filter((n) => n.id !== id));
+    const nextNotes = notes.filter((n) => n.id !== id);
+    setNotes(nextNotes);
+    void persistLessons(nextNotes.map(toStoredLesson), templates.map(toStoredLesson));
     toast.success("Note removed");
+  };
+
+  const startEditNote = (note: NoteLink) => {
+    setEditingNoteId(note.id);
+    setNoteTitle(note.title);
+    setNoteUrl(note.driveUrl);
+    setNoteDesc(note.description);
+    setNoteStudents(note.assignedStudents);
+    setNoteForAll(note.assignedStudents.length === 0);
+    setShowNoteForm(true);
   };
 
   /* ── Template handlers ── */
@@ -107,7 +173,7 @@ export const LessonsModule = ({
     if (!tplUrl.trim() || !validateUrl(tplUrl)) { toast.error("Enter a valid URL."); return; }
 
     const tpl: TemplateLesson = {
-      id: crypto.randomUUID(),
+      id: editingTplId ?? crypto.randomUUID(),
       title: tplTitle.trim(),
       driveUrl: tplUrl.trim(),
       subject: tplSubject.trim(),
@@ -115,15 +181,31 @@ export const LessonsModule = ({
       createdAt: new Date().toISOString(),
       isPublic: true,
     };
-    setTemplates((prev) => [...prev, tpl]);
+    const nextTemplates = editingTplId
+      ? templates.map((existing) => (existing.id === editingTplId ? tpl : existing))
+      : [...templates, tpl];
+    setTemplates(nextTemplates);
     setShowTplForm(false);
+    setEditingTplId(null);
     setTplTitle(""); setTplUrl(""); setTplSubject(""); setTplDesc("");
-    toast.success("Template lesson added — visible to all students!");
+    void persistLessons(notes.map(toStoredLesson), nextTemplates.map(toStoredLesson));
+    toast.success(editingTplId ? "Template updated" : "Template lesson added — visible to all students!");
   };
 
   const deleteTemplate = (id: string) => {
-    setTemplates((prev) => prev.filter((t) => t.id !== id));
+    const nextTemplates = templates.filter((t) => t.id !== id);
+    setTemplates(nextTemplates);
+    void persistLessons(notes.map(toStoredLesson), nextTemplates.map(toStoredLesson));
     toast.success("Template removed");
+  };
+
+  const startEditTemplate = (tpl: TemplateLesson) => {
+    setEditingTplId(tpl.id);
+    setTplTitle(tpl.title);
+    setTplUrl(tpl.driveUrl);
+    setTplSubject(tpl.subject);
+    setTplDesc(tpl.description);
+    setShowTplForm(true);
   };
 
   const studentName = (id: string) => studentProfiles[id]?.full_name ?? "Student";
@@ -264,6 +346,9 @@ export const LessonsModule = ({
                             <ExternalLink className="mr-1 h-3 w-3" /> Open
                           </Button>
                         </a>
+                        <Button size="sm" variant="outline" className="h-7 px-2 text-xs" onClick={() => startEditNote(note)}>
+                          <Edit2 className="mr-1 h-3 w-3" /> Edit
+                        </Button>
                         <button onClick={() => setExpandedNote(isExpanded ? null : note.id)}
                           className="rounded-lg p-1.5 hover:bg-muted">
                           {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -368,10 +453,16 @@ export const LessonsModule = ({
               {templates.map((tpl, idx) => (
                 <div key={tpl.id} className="td-card relative group">
                   <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => deleteTemplate(tpl.id)}
-                      className="rounded-lg p-1.5 hover:bg-red-50 text-muted-foreground hover:text-red-500 transition-colors">
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => startEditTemplate(tpl)}
+                        className="rounded-lg p-1.5 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+                        <Edit2 className="h-3.5 w-3.5" />
+                      </button>
+                      <button onClick={() => deleteTemplate(tpl.id)}
+                        className="rounded-lg p-1.5 hover:bg-red-50 text-muted-foreground hover:text-red-500 transition-colors">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2 mb-3">
                     <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-extrabold text-lg flex-shrink-0">

@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { format } from "date-fns";
 import {
   FileText, Plus, Upload, X, Send, Star, CheckCircle,
@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
+import { teachersApi, TeacherAssessmentItem } from "@/lib/api/teachers";
 import { toast } from "sonner";
 import { StudentProfile, StudentSummary, initials } from "../TeacherDashboard";
 
@@ -50,6 +50,52 @@ interface Solution {
 
 const MAX_FILE_MB = 10;
 
+const toAssessmentCard = (item: TeacherAssessmentItem): Assessment => ({
+  id: item.id ?? crypto.randomUUID(),
+  title: item.title,
+  description: item.description,
+  fileUrl: item.fileUrl ?? null,
+  fileName: item.fileName ?? null,
+  fileType: item.fileType ?? null,
+  createdAt: item.createdAt ?? new Date().toISOString(),
+  assignedStudents: item.assignedStudents ?? [],
+  solutions: (item.solutions ?? []).map((solution) => ({
+    id: solution.id ?? crypto.randomUUID(),
+    assessmentId: solution.assessmentId ?? item.id ?? crypto.randomUUID(),
+    studentId: solution.studentId,
+    fileUrl: solution.fileUrl,
+    fileName: solution.fileName,
+    submittedAt: solution.submittedAt ?? new Date().toISOString(),
+    marks: solution.marks ?? null,
+    maxMarks: solution.maxMarks ?? 100,
+    feedback: solution.feedback ?? null,
+    gradedAt: solution.gradedAt ?? null,
+  })),
+});
+
+const toStoredAssessment = (item: Assessment): TeacherAssessmentItem => ({
+  id: item.id,
+  title: item.title,
+  description: item.description,
+  fileUrl: item.fileUrl,
+  fileName: item.fileName,
+  fileType: item.fileType,
+  createdAt: item.createdAt,
+  assignedStudents: item.assignedStudents,
+  solutions: item.solutions.map((solution) => ({
+    id: solution.id,
+    assessmentId: solution.assessmentId,
+    studentId: solution.studentId,
+    fileUrl: solution.fileUrl,
+    fileName: solution.fileName,
+    submittedAt: solution.submittedAt,
+    marks: solution.marks,
+    maxMarks: solution.maxMarks,
+    feedback: solution.feedback,
+    gradedAt: solution.gradedAt,
+  })),
+});
+
 export const AssessmentsModule = ({
   user, studentProfiles, studentSummaries, onReload,
 }: AssessmentsModuleProps) => {
@@ -57,6 +103,9 @@ export const AssessmentsModule = ({
   const [showForm, setShowForm]           = useState(false);
   const [expandedId, setExpandedId]       = useState<string | null>(null);
   const [gradingId, setGradingId]         = useState<string | null>(null); // solution id
+  const [editingAssessmentId, setEditingAssessmentId] = useState<string | null>(null);
+  const [portfolioNotes, setPortfolioNotes] = useState<any[]>([]);
+  const [portfolioTemplates, setPortfolioTemplates] = useState<any[]>([]);
 
   /* Form state */
   const [formTitle, setFormTitle]         = useState("");
@@ -72,6 +121,22 @@ export const AssessmentsModule = ({
   const [gradeFeedback, setGradeFeedback] = useState("");
 
   const allStudents = studentSummaries;
+
+  const persistAssessments = async (nextAssessments: Assessment[]) => {
+    await teachersApi.savePortfolio({
+      lesson_notes: portfolioNotes,
+      template_lessons: portfolioTemplates,
+      assessments: nextAssessments.map(toStoredAssessment),
+    });
+  };
+
+  useEffect(() => {
+    teachersApi.getPortfolio().then(({ lesson_notes, template_lessons, assessments: saved }) => {
+      setPortfolioNotes(lesson_notes ?? []);
+      setPortfolioTemplates(template_lessons ?? []);
+      setAssessments((saved ?? []).map(toAssessmentCard));
+    }).catch(() => {});
+  }, []);
 
   const toggleStudent = (id: string) =>
     setFormStudents((prev) => prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]);
@@ -110,7 +175,7 @@ export const AssessmentsModule = ({
       }
 
       const newAssessment: Assessment = {
-        id: crypto.randomUUID(),
+        id: editingAssessmentId ?? crypto.randomUUID(),
         title: formTitle.trim(),
         description: formDesc.trim(),
         fileUrl,
@@ -121,10 +186,15 @@ export const AssessmentsModule = ({
         solutions: [],
       };
 
-      setAssessments((prev) => [newAssessment, ...prev]);
+      const nextAssessments = editingAssessmentId
+        ? assessments.map((existing) => (existing.id === editingAssessmentId ? newAssessment : existing))
+        : [newAssessment, ...assessments];
+      setAssessments(nextAssessments);
       setShowForm(false);
       setFormTitle(""); setFormDesc(""); setFormFile(null); setFormStudents([]);
-      toast.success("Assessment created & assigned!");
+      setEditingAssessmentId(null);
+      void persistAssessments(nextAssessments);
+      toast.success(editingAssessmentId ? "Assessment updated" : "Assessment created & assigned!");
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to create assessment");
     } finally {
@@ -133,8 +203,19 @@ export const AssessmentsModule = ({
   };
 
   const deleteAssessment = (id: string) => {
-    setAssessments((prev) => prev.filter((a) => a.id !== id));
+    const nextAssessments = assessments.filter((a) => a.id !== id);
+    setAssessments(nextAssessments);
+    void persistAssessments(nextAssessments);
     toast.success("Assessment deleted");
+  };
+
+  const startEditAssessment = (assessment: Assessment) => {
+    setEditingAssessmentId(assessment.id);
+    setFormTitle(assessment.title);
+    setFormDesc(assessment.description);
+    setFormStudents(assessment.assignedStudents);
+    setShowForm(true);
+    setFormFile(null);
   };
 
   /* Simulate student solution upload (teacher-side demo) */
@@ -197,8 +278,8 @@ export const AssessmentsModule = ({
       {showForm && (
         <div className="td-card space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-bold text-lg">New Assessment</h2>
-            <button onClick={() => setShowForm(false)}><X className="h-4 w-4" /></button>
+            <h2 className="font-bold text-lg">{editingAssessmentId ? "Edit Assessment" : "New Assessment"}</h2>
+            <button onClick={() => { setShowForm(false); setEditingAssessmentId(null); }}><X className="h-4 w-4" /></button>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -270,7 +351,7 @@ export const AssessmentsModule = ({
             <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
             <Button onClick={createAssessment} disabled={submitting}>
               {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-              {submitting ? "Creating…" : "Create & Assign"}
+              {submitting ? "Saving…" : editingAssessmentId ? "Save Changes" : "Create & Assign"}
             </Button>
           </div>
         </div>
@@ -310,6 +391,10 @@ export const AssessmentsModule = ({
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
+                    <button onClick={() => startEditAssessment(a)}
+                      className="rounded-lg p-1.5 hover:bg-muted transition-colors">
+                      <Eye className="h-4 w-4" />
+                    </button>
                     <button onClick={() => setExpandedId(isExpanded ? null : a.id)}
                       className="rounded-lg p-1.5 hover:bg-muted transition-colors">
                       {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}

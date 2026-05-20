@@ -6,7 +6,6 @@ SELECT
   id,
   user_id,
   subjects,
-  education,
   hourly_rate_usd,
   mode,
   bio,
@@ -21,5 +20,6 @@ SELECT
   is_verified,
   is_active,
   created_at,
-  updated_at
+  updated_at,
+  education
 FROM public.teacher_profiles;

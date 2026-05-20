@@ -11,6 +11,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppHeader } from "@/components/AppHeader";
+import { teachersApi } from "@/lib/api/teachers";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -155,12 +156,16 @@ const TeacherDashboard = () => {
     if (!user) return;
     setLoading(true);
     try {
-      const [profileResult, teacherResult, bookingResult, availabilityResult] = await Promise.all([
-        supabase.from("profiles").select("full_name, phone").eq("id", user.id).maybeSingle(),
-        supabase.from("teacher_profiles").select("*").eq("user_id", user.id).maybeSingle(),
+      const [dashboardResult, bookingResult] = await Promise.all([
+        teachersApi.getDashboard(),
         supabase.from("bookings").select("*").eq("teacher_id", user.id).order("start_at", { ascending: false }),
-        supabase.from("availability").select("*").eq("teacher_id", user.id).order("day_of_week", { ascending: true }).order("start_time", { ascending: true }),
       ]);
+
+      const [profileResult, teacherResult, availabilityResult] = [
+        { data: dashboardResult.teacher?.profile ?? null },
+        { data: dashboardResult.teacher },
+        { data: dashboardResult.teacher?.availability ?? [] },
+      ];
 
       const bookingsData = (bookingResult.data ?? []) as BookingRow[];
       setBookings(bookingsData);
@@ -235,21 +240,37 @@ const TeacherDashboard = () => {
         if (error) throw error;
         toast.info("Email change requested. Confirm from the verification email.");
       }
-      const { error: pe } = await supabase.from("profiles")
-        .update({ full_name: profileForm.fullName, phone: profileForm.phone }).eq("id", user.id);
-      if (pe) throw pe;
-      const { error: te } = await supabase.from("teacher_profiles").upsert(
-        { user_id: user.id, subjects: profileForm.subjects, education: profileForm.education.map((e) => e.trim()).filter(Boolean),
-          hourly_rate_usd: profileForm.rate, mode: profileForm.mode, bio: profileForm.bio,
-          quran_level: profileForm.quranLevel, gender: profileForm.gender, country: profileForm.country,
-          city: profileForm.city, experience_years: profileForm.experienceYears },
-        { onConflict: "user_id" }
-      );
-      if (te) throw te;
+
+      await teachersApi.updateProfile({
+        full_name: profileForm.fullName,
+        phone: profileForm.phone,
+        hourly_rate_usd: profileForm.rate,
+        subjects: profileForm.subjects,
+        education: profileForm.education.map((e) => e.trim()).filter(Boolean),
+        mode: profileForm.mode,
+        bio: profileForm.bio,
+        quran_level: profileForm.quranLevel,
+        gender: profileForm.gender,
+        country: profileForm.country,
+        city: profileForm.city,
+        experience_years: profileForm.experienceYears,
+      });
       toast.success("Profile saved");
       void loadDashboard();
     } catch (e: any) { toast.error(e?.message ?? "Failed to save profile"); }
     finally         { setSavingProfile(false); }
+  };
+
+  const deleteProfile = async () => {
+    if (!user) return;
+    if (!window.confirm("Delete your teacher profile? This will hide your profile and clear your teacher content.")) return;
+    try {
+      await teachersApi.deleteProfile();
+      toast.success("Teacher profile deleted");
+      navigate("/teacher/onboarding");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to delete profile");
+    }
   };
 
   const updateBookingStatus = async (id: string, status: BookingRow["status"]) => {
@@ -426,6 +447,7 @@ const TeacherDashboard = () => {
               addEducation={addEducation}
               removeEducation={removeEducation}
               saveProfile={saveProfile}
+              deleteProfile={deleteProfile}
               updateBookingStatus={updateBookingStatus}
               setBookingFilter={setBookingFilter}
               setBookingPage={setBookingPage}
@@ -468,7 +490,7 @@ const DashboardHome = ({
   studentSummaries, studentProfiles, filteredBookings, pagedBookings,
   bookingFilter, bookingPage, bookingTotalPages, bookingActionId, bookings,
   savingProfile, toggleSubject, updateEducation, addEducation, removeEducation,
-  saveProfile, updateBookingStatus, setBookingFilter, setBookingPage, navigate,
+  saveProfile, deleteProfile, updateBookingStatus, setBookingFilter, setBookingPage, navigate,
 }: any) => {
   const [showProfileEdit, setShowProfileEdit] = useState(false);
   const pastBookings    = bookings.filter((b: BookingRow) => new Date(b.start_at) < new Date());
@@ -748,6 +770,7 @@ const DashboardHome = ({
           removeEducation={removeEducation}
           savingProfile={savingProfile}
           saveProfile={async () => { await saveProfile(); setShowProfileEdit(false); }}
+          onDeleteProfile={deleteProfile}
           onClose={() => setShowProfileEdit(false)}
         />
       )}
@@ -760,7 +783,7 @@ const DashboardHome = ({
 ══════════════════════════════════════════════════════════════ */
 const ProfileEditModal = ({
   profileForm, setProfileForm, toggleSubject, updateEducation,
-  addEducation, removeEducation, savingProfile, saveProfile, onClose,
+  addEducation, removeEducation, savingProfile, saveProfile, onDeleteProfile, onClose,
 }: any) => {
   const ISLAMIC_SUBJECTS = ["Quran", "Tajweed", "Hifz", "Noorani Qaida", "Arabic", "Islamic Studies"];
   const SCHOOL_SUBJECTS  = ["Maths", "English", "Biology", "Chemistry", "Physics", "IELTS"];
@@ -786,7 +809,7 @@ const ProfileEditModal = ({
               <Input value={profileForm.phone} onChange={(e: any) => setProfileForm((c: any) => ({ ...c, phone: e.target.value }))} />
             </div>
             <div className="space-y-1.5">
-              <Label>Hourly Rate (USD)</Label>
+              <Label>Price per session (USD)</Label>
               <Input type="number" value={profileForm.rate} onChange={(e: any) => setProfileForm((c: any) => ({ ...c, rate: Number(e.target.value) }))} />
             </div>
             <div className="space-y-1.5">
@@ -852,6 +875,7 @@ const ProfileEditModal = ({
           </div>
         </div>
         <div className="td-modal-footer">
+          <Button variant="destructive" onClick={onDeleteProfile}>Delete profile</Button>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
           <Button onClick={saveProfile} disabled={savingProfile}>
             <Save className="mr-2 h-4 w-4" /> {savingProfile ? "Saving…" : "Save Profile"}

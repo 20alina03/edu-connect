@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
+import { teachersApi } from "@/lib/api/teachers";
 import { toast } from "sonner";
 import { AvailabilityRow } from "../TeacherDashboard";
 
@@ -22,11 +22,15 @@ interface AvailabilityModuleProps {
 
 export const AvailabilityModule = ({ user, availability, setAvailability, onReload }: AvailabilityModuleProps) => {
   const [saving, setSaving] = useState(false);
+  const [editingIndex, setEditingIndex] = useState<number | null>(0);
 
   const updateAvailability = (idx: number, field: keyof AvailabilityRow, val: string | number) =>
     setAvailability((c) => { const n = [...c]; n[idx] = { ...n[idx], [field]: val } as AvailabilityRow; return n; });
 
-  const addAvailability    = () => setAvailability((c) => [...c, newSlot()]);
+  const addAvailability    = () => {
+    setAvailability((c) => [...c, newSlot()]);
+    setEditingIndex(availability.length);
+  };
   const removeAvailability = (idx: number) =>
     setAvailability((c) => { const n = c.filter((_, i) => i !== idx); return n.length > 0 ? n : [newSlot()]; });
 
@@ -37,9 +41,11 @@ export const AvailabilityModule = ({ user, availability, setAvailability, onRelo
       const slots = availability
         .filter((s) => Number.isFinite(Number(s.day_of_week)) && s.start_time && s.end_time)
         .map((s) => ({ teacher_id: user.id, day_of_week: Number(s.day_of_week), start_time: s.start_time, end_time: s.end_time }));
-      const { error: de } = await supabase.from("availability").delete().eq("teacher_id", user.id);
-      if (de) throw de;
-      if (slots.length > 0) { const { error: ie } = await supabase.from("availability").insert(slots); if (ie) throw ie; }
+      await teachersApi.saveAvailability(slots.map((slot) => ({
+        day_of_week: slot.day_of_week,
+        start_time: slot.start_time,
+        end_time: slot.end_time,
+      })));
       toast.success("Availability updated");
       void onReload();
     } catch (e: any) { toast.error(e?.message ?? "Failed to save availability"); }
@@ -80,23 +86,30 @@ export const AvailabilityModule = ({ user, availability, setAvailability, onRelo
 
         <div className="grid gap-3">
           {availability.map((slot, idx) => (
-            <div key={`${slot.day_of_week}-${slot.start_time}-${idx}`} className="td-avail-slot">
+            <div key={`${slot.day_of_week}-${slot.start_time}-${idx}`} className={editingIndex === idx ? "td-avail-slot ring-2 ring-primary/30" : "td-avail-slot"}>
               <div className="space-y-1.5">
                 <Label className="text-xs">Day</Label>
-                <Select value={String(slot.day_of_week)} onValueChange={(v) => updateAvailability(idx, "day_of_week", Number(v))}>
+                <Select value={String(slot.day_of_week)} onValueChange={(v) => updateAvailability(idx, "day_of_week", Number(v))} disabled={editingIndex !== idx}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>{DAYS.map((d, di) => <SelectItem key={d} value={String(di)}>{d}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs">Start time</Label>
-                <Input type="time" value={slot.start_time} onChange={(e) => updateAvailability(idx, "start_time", e.target.value)} />
+                <Input type="time" value={slot.start_time} onChange={(e) => updateAvailability(idx, "start_time", e.target.value)} disabled={editingIndex !== idx} />
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs">End time</Label>
-                <Input type="time" value={slot.end_time} onChange={(e) => updateAvailability(idx, "end_time", e.target.value)} />
+                <Input type="time" value={slot.end_time} onChange={(e) => updateAvailability(idx, "end_time", e.target.value)} disabled={editingIndex !== idx} />
               </div>
-              <Button type="button" variant="ghost" onClick={() => removeAvailability(idx)} className="text-xs">Remove</Button>
+              <div className="flex gap-2">
+                <Button type="button" variant={editingIndex === idx ? "default" : "outline"} onClick={() => setEditingIndex(idx)} className="text-xs">
+                  Edit
+                </Button>
+                <Button type="button" variant="ghost" onClick={() => removeAvailability(idx)} className="text-xs text-red-500 hover:text-red-600">
+                  Delete
+                </Button>
+              </div>
             </div>
           ))}
         </div>
