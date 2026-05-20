@@ -54,7 +54,7 @@ const AssessmentItemSchema = z.object({
 });
 
 const TeacherProfilePatchSchema = z.object({
-  full_name: z.string().min(1).optional(),
+  full_name: z.string().optional().transform((v) => (v === "" ? undefined : v)),
   phone: z.string().optional(),
   avatar_url: z.string().url().optional(),
   hourly_rate_usd: z.number().nonnegative().optional(),
@@ -289,6 +289,19 @@ teacherDashboardRouter.get(
   asyncHandler(async (req, res) => {
     let data = await getTeacher(req.user!.id);
 
+    // Auto-create the profiles row if it was somehow missed at signup.
+    if (!data.profile) {
+      const { error: profileError } = await supabaseAdmin
+        .from("profiles")
+        .upsert({
+          id: req.user!.id,
+          full_name: req.user!.email ? req.user!.email.split("@")[0] : "Teacher",
+        }, { onConflict: "id" });
+      if (profileError) throw badRequest(profileError.message);
+      // Re-fetch after creating the row
+      data = await getTeacher(req.user!.id);
+    }
+
     // Auto-create the teacher_profiles row if it was somehow missed at signup.
     // This makes the dashboard resilient to existing users who signed up before
     // the trigger was hardened, or whose metadata didn't include role='teacher'.
@@ -324,15 +337,17 @@ teacherDashboardRouter.patch(
 
     // Only send fields that were actually provided – sending `undefined`
     // causes Supabase to return 422 Unprocessable Content.
-    const profilePatch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    const profilePatch: Record<string, unknown> = {
+      id: req.user!.id,
+      updated_at: new Date().toISOString(),
+    };
     if (body.full_name  !== undefined) profilePatch.full_name  = body.full_name;
     if (body.phone      !== undefined) profilePatch.phone      = body.phone;
     if (body.avatar_url !== undefined) profilePatch.avatar_url = body.avatar_url;
 
     const { data: profileData, error: profileError } = await supabaseAdmin
       .from("profiles")
-      .update(profilePatch)
-      .eq("id", req.user!.id)
+      .upsert(profilePatch, { onConflict: "id" })
       .select("id, full_name, phone, avatar_url")
       .single();
     if (profileError) throw badRequest(profileError.message);

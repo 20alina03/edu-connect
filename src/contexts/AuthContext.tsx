@@ -59,10 +59,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!pendingRole) return null;
     const { error: roleError } = await supabase
       .from("user_roles")
-      .insert({ user_id: uid, role: pendingRole });
-    if (roleError && roleError.code !== "23505") return null;
+      .upsert({ user_id: uid, role: pendingRole }, { onConflict: "user_id,role" });
+    if (roleError) return null;
     if (pendingRole === "teacher") {
-      await supabase.from("teacher_profiles").insert({ user_id: uid }).select().maybeSingle();
+      await supabase.from("teacher_profiles").upsert({ user_id: uid }, { onConflict: "user_id" });
     }
     localStorage.removeItem("ilmrise.pendingRole");
     return pendingRole;
