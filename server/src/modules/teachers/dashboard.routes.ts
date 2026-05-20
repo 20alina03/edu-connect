@@ -111,8 +111,11 @@ const normalizeAssessment = (item: z.infer<typeof AssessmentItemSchema>) => ({
 
 const getTeacher = async (userId: string) => {
   const [profileResult, teacherResult, availabilityResult, lessonResult, lessonStudentResult, assessmentResult, assessmentStudentResult, solutionResult] = await Promise.all([
-    supabaseAdmin.from("profiles").select("id, full_name, phone, avatar_url").eq("id", userId).maybeSingle(),
-    supabaseAdmin.from("teacher_profiles").select("*").eq("user_id", userId).maybeSingle(),
+    // Use limit(1) and handle the array result to avoid errors when duplicate
+    // rows exist temporarily (race conditions) which would make `.maybeSingle()`
+    // fail with "Cannot coerce the result to a single JSON object".
+    supabaseAdmin.from("profiles").select("id, full_name, phone, avatar_url").eq("id", userId).limit(1),
+    supabaseAdmin.from("teacher_profiles").select("*").eq("user_id", userId).limit(1),
     supabaseAdmin.from("availability").select("*").eq("teacher_id", userId).order("day_of_week", { ascending: true }).order("start_time", { ascending: true }),
     supabaseAdmin.from("teacher_lessons").select("*").eq("teacher_id", userId).is("deleted_at", null).order("created_at", { ascending: false }),
     supabaseAdmin.from("teacher_lesson_students").select("lesson_id, student_id"),
@@ -166,9 +169,13 @@ const getTeacher = async (userId: string) => {
     })),
   }));
 
+  // Extract single rows from the limited selects (take first row if present)
+  const profileRow = (profileResult.data ?? [])[0] ?? null;
+  const teacherRow = (teacherResult.data ?? [])[0] ?? null;
+
   return {
-    profile: profileResult.data ?? null,
-    teacher: teacherResult.data ?? null,
+    profile: profileRow,
+    teacher: teacherRow,
     availability: availabilityResult.data ?? [],
     lesson_notes: lessons.filter((lesson) => !lesson.subject),
     template_lessons: lessons.filter((lesson) => Boolean(lesson.subject)),
