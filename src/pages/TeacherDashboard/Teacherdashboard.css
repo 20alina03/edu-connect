@@ -1,158 +1,380 @@
 /* ── TeacherDashboard.css ─────────────────────────────────────── */
 
-/* ── Hero banner ── */
+/* ══════════════════════════════════════════════════════════════
+   SHELL & LAYOUT
+══════════════════════════════════════════════════════════════ */
+.td-shell {
+  @apply flex min-h-screen bg-background;
+}
+
+.td-main {
+  @apply flex flex-col flex-1 min-w-0 overflow-hidden;
+}
+
+.td-content {
+  @apply flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 max-w-[1400px] w-full mx-auto;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════════════════════════════ */
+.td-sidebar {
+  @apply fixed inset-y-0 left-0 z-50 w-64 flex flex-col bg-card border-r border-border
+         -translate-x-full transition-transform duration-300 ease-in-out;
+}
+
+.td-sidebar-open {
+  @apply translate-x-0;
+}
+
+/* On large screens, sidebar can be shown persistently by adding lg:translate-x-0 lg:relative to .td-sidebar */
+@media (min-width: 1280px) {
+  .td-sidebar {
+    @apply relative translate-x-0 z-auto;
+  }
+  .td-sidebar-overlay {
+    @apply hidden;
+  }
+}
+
+.td-sidebar-overlay {
+  @apply fixed inset-0 z-40 bg-black/50 backdrop-blur-sm;
+}
+
+.td-sidebar-header {
+  @apply flex items-center justify-between px-4 py-4 border-b border-border flex-shrink-0;
+}
+
+.td-sidebar-logo {
+  @apply flex items-center gap-2 font-extrabold text-base tracking-tight;
+}
+
+.td-sidebar-close {
+  @apply rounded-lg p-1.5 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors xl:hidden;
+}
+
+.td-sidebar-profile {
+  @apply flex items-center gap-3 px-4 py-4 border-b border-border flex-shrink-0;
+}
+
+.td-sidebar-avatar {
+  @apply h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-sm flex-shrink-0;
+}
+
+.td-sidebar-profile-info {
+  @apply min-w-0;
+}
+
+.td-sidebar-nav {
+  @apply flex-1 overflow-y-auto px-3 py-3 space-y-1;
+}
+
+.td-sidebar-nav-item {
+  @apply w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors
+         text-muted-foreground hover:bg-muted hover:text-foreground;
+}
+
+.td-sidebar-nav-item-active {
+  @apply bg-primary/10 text-primary font-semibold hover:bg-primary/15 hover:text-primary;
+}
+
+.td-sidebar-footer {
+  @apply px-3 py-3 border-t border-border space-y-1 flex-shrink-0;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TOP BAR
+══════════════════════════════════════════════════════════════ */
+.td-topbar {
+  @apply flex items-center gap-3 px-4 sm:px-6 py-3 border-b border-border bg-card/80 backdrop-blur-sm
+         sticky top-0 z-30 flex-shrink-0;
+}
+
+.td-burger {
+  @apply rounded-xl p-2 hover:bg-muted transition-colors xl:hidden;
+}
+
+.td-topbar-title {
+  @apply flex-1 font-bold text-base sm:text-lg;
+}
+
+.td-topbar-actions {
+  @apply flex items-center gap-1;
+}
+
+.td-topbar-icon-btn {
+  @apply rounded-xl p-2 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors relative;
+}
+
+.td-notif-dot {
+  @apply absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   HERO BANNER
+══════════════════════════════════════════════════════════════ */
 .td-hero {
   @apply relative overflow-hidden rounded-3xl border border-border p-5 sm:p-7 lg:p-10;
   background: linear-gradient(135deg, hsl(var(--primary)/0.08) 0%, hsl(var(--card)) 50%, hsl(var(--secondary)/0.06) 100%);
 }
+
 .td-hero-blob-tr {
   @apply absolute -right-12 -top-12 h-52 w-52 rounded-full blur-3xl pointer-events-none;
   background: hsl(var(--primary)/0.12);
 }
+
 .td-hero-blob-bl {
   @apply absolute -left-14 -bottom-8 h-44 w-44 rounded-full blur-3xl pointer-events-none;
   background: hsl(var(--secondary)/0.10);
 }
+
 .td-hero-portal-tag {
   @apply inline-flex items-center gap-2 rounded-full border border-primary/25 bg-background/70 px-3 py-1 text-xs font-bold text-primary tracking-wide;
 }
 
-/* ── Stat pill (hero row) ── */
+.td-hero-avatar {
+  @apply h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-extrabold text-xl sm:text-2xl flex-shrink-0;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   STAT PILL
+══════════════════════════════════════════════════════════════ */
 .td-stat-pill {
   @apply inline-flex items-center gap-1.5 rounded-full bg-background/70 border border-border px-3 py-1.5 text-xs sm:text-sm text-muted-foreground;
 }
 
-/* ── Profile completion card ── */
+/* ══════════════════════════════════════════════════════════════
+   PROFILE COMPLETION CARD
+══════════════════════════════════════════════════════════════ */
 .td-completion-card {
   @apply w-full max-w-sm rounded-2xl border border-border bg-background/80 p-4 shadow-sm backdrop-blur-sm;
 }
 
-/* ── KPI stat cards ── */
+/* ══════════════════════════════════════════════════════════════
+   KPI STAT CARDS
+══════════════════════════════════════════════════════════════ */
 .td-kpi-grid {
   @apply grid gap-3 sm:gap-4 grid-cols-2 xl:grid-cols-4;
 }
+
 .td-kpi-card {
   @apply rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-sm space-y-2 transition-shadow hover:shadow-md;
 }
+
 .td-kpi-label {
   @apply text-[11px] uppercase tracking-widest text-muted-foreground font-semibold;
 }
+
 .td-kpi-value {
   @apply text-2xl sm:text-3xl font-extrabold font-display;
 }
+
 .td-kpi-icon {
   @apply h-8 w-8 rounded-xl flex items-center justify-center flex-shrink-0;
 }
 
-/* ── Section card ── */
+/* ══════════════════════════════════════════════════════════════
+   SECTION CARD
+══════════════════════════════════════════════════════════════ */
 .td-card {
   @apply rounded-3xl border border-border bg-card p-4 sm:p-6 shadow-sm space-y-5;
 }
+
 .td-card-header {
   @apply flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between;
 }
+
 .td-card-title {
   @apply text-lg sm:text-xl font-bold font-display;
 }
+
 .td-card-sub {
   @apply text-xs sm:text-sm text-muted-foreground mt-0.5;
 }
 
-/* ── Booking item ── */
+/* ══════════════════════════════════════════════════════════════
+   BOOKING ITEM
+══════════════════════════════════════════════════════════════ */
 .td-booking-item {
   @apply rounded-2xl border border-border bg-background/60 p-4 space-y-3 transition-colors hover:bg-muted/40;
 }
+
 .td-booking-subject {
   @apply font-semibold text-sm sm:text-base;
 }
 
-/* ── Status badges ── */
+/* ══════════════════════════════════════════════════════════════
+   STATUS BADGES
+══════════════════════════════════════════════════════════════ */
 .td-badge {
   @apply rounded-full px-2.5 py-0.5 text-[11px] font-bold capitalize tracking-wide;
 }
-.td-badge-pending  { @apply bg-amber-500/10 text-amber-600 dark:text-amber-400; }
+
+.td-badge-pending   { @apply bg-amber-500/10 text-amber-600 dark:text-amber-400; }
 .td-badge-confirmed { @apply bg-primary/10 text-primary; }
 .td-badge-completed { @apply bg-green-500/10 text-green-600 dark:text-green-400; }
 .td-badge-cancelled { @apply bg-red-500/10 text-red-600 dark:text-red-400; }
 .td-badge-missed    { @apply bg-gray-400/15 text-gray-600 dark:text-gray-400; }
 
-/* ── Session history row ── */
+/* ══════════════════════════════════════════════════════════════
+   SESSION HISTORY
+══════════════════════════════════════════════════════════════ */
 .td-history-row {
   @apply flex items-start gap-3 p-3 rounded-xl border border-border bg-background/50 hover:bg-muted/40 transition-colors;
 }
+
 .td-history-dot {
   @apply mt-1 h-2.5 w-2.5 rounded-full flex-shrink-0;
 }
+
 .td-history-dot-attended  { @apply bg-green-500; }
 .td-history-dot-missed    { @apply bg-red-400; }
 .td-history-dot-cancelled { @apply bg-gray-400; }
 
-/* ── Reason chip ── */
+/* ══════════════════════════════════════════════════════════════
+   REASON CHIP
+══════════════════════════════════════════════════════════════ */
 .td-reason-chip {
   @apply inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border;
 }
+
 .td-reason-chip-student  { @apply bg-orange-50 border-orange-200 text-orange-700 dark:bg-orange-950/30 dark:border-orange-800 dark:text-orange-400; }
 .td-reason-chip-teacher  { @apply bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-950/30 dark:border-blue-800 dark:text-blue-400; }
 .td-reason-chip-other    { @apply bg-gray-100 border-gray-300 text-gray-600 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400; }
 
-/* ── Session history stat bar ── */
-.td-hist-stat-bar {
-  @apply h-2 rounded-full overflow-hidden bg-muted flex;
-}
-.td-hist-stat-bar-fill {
-  @apply h-full rounded-full transition-all duration-700;
-}
-
-/* ── Student card ── */
+/* ══════════════════════════════════════════════════════════════
+   STUDENT CARD
+══════════════════════════════════════════════════════════════ */
 .td-student-card {
   @apply flex items-center justify-between gap-3 rounded-2xl border border-border bg-background/60 p-3 sm:p-4 hover:bg-muted/40 transition-colors;
 }
+
 .td-student-avatar {
   @apply h-10 w-10 rounded-xl flex-shrink-0 flex items-center justify-center text-sm font-bold;
 }
 
-/* ── All bookings table ── */
+/* ══════════════════════════════════════════════════════════════
+   ALL BOOKINGS TABLE
+══════════════════════════════════════════════════════════════ */
 .td-table {
   @apply w-full text-sm;
 }
+
 .td-table th {
   @apply text-left py-2.5 px-3 text-xs uppercase tracking-wider text-muted-foreground font-semibold border-b border-border bg-muted/30;
 }
+
 .td-table td {
   @apply py-3 px-3 border-b border-border/60 align-middle text-xs sm:text-sm;
 }
+
 .td-table tr:hover td {
   @apply bg-muted/30;
 }
+
 .td-table tr:last-child td {
   @apply border-b-0;
 }
 
-/* ── Filter pill (booking type) ── */
+/* ══════════════════════════════════════════════════════════════
+   FILTER PILL
+══════════════════════════════════════════════════════════════ */
 .td-filter-pill {
   @apply text-xs font-semibold px-3 py-1.5 rounded-full border transition-all cursor-pointer select-none;
 }
+
 .td-filter-pill-active   { @apply bg-primary text-white border-primary; }
 .td-filter-pill-inactive { @apply bg-background text-muted-foreground border-border hover:border-primary/50; }
 
-/* ── Form section ── */
+/* ══════════════════════════════════════════════════════════════
+   FORM SECTION
+══════════════════════════════════════════════════════════════ */
 .td-form-section {
   @apply rounded-3xl border border-border bg-card p-4 sm:p-6 shadow-sm space-y-5;
 }
 
-/* ── Availability slot row ── */
+/* ══════════════════════════════════════════════════════════════
+   AVAILABILITY SLOT ROW
+══════════════════════════════════════════════════════════════ */
 .td-avail-slot {
   @apply grid gap-3 rounded-2xl border border-border bg-background/60 p-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end;
 }
 
-/* ── Dashed empty state ── */
+/* ══════════════════════════════════════════════════════════════
+   EMPTY STATE
+══════════════════════════════════════════════════════════════ */
 .td-empty {
   @apply rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground flex flex-col items-center gap-2;
 }
 
-/* ── Pagination ── */
+/* ══════════════════════════════════════════════════════════════
+   PAGINATION
+══════════════════════════════════════════════════════════════ */
 .td-page-btn {
   @apply w-7 h-7 text-xs font-semibold rounded-lg border transition-all;
 }
+
 .td-page-btn-active   { @apply bg-primary text-white border-primary; }
 .td-page-btn-inactive { @apply border-border hover:border-primary/50 text-muted-foreground; }
+
+/* ══════════════════════════════════════════════════════════════
+   SUBJECT CHIP (profile edit)
+══════════════════════════════════════════════════════════════ */
+.td-subject-chip {
+  @apply flex items-center gap-2 rounded-xl border border-border px-3 py-2 cursor-pointer text-sm
+         hover:border-primary/40 transition-colors select-none;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MODAL
+══════════════════════════════════════════════════════════════ */
+.td-modal-overlay {
+  @apply fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4;
+}
+
+.td-modal {
+  @apply w-full max-w-2xl bg-card border border-border rounded-3xl shadow-2xl flex flex-col max-h-[90vh];
+}
+
+.td-modal-header {
+  @apply flex items-center justify-between px-6 py-4 border-b border-border flex-shrink-0;
+}
+
+.td-modal-body {
+  @apply overflow-y-auto px-6 py-5 flex-1;
+}
+
+.td-modal-footer {
+  @apply flex items-center justify-end gap-2 px-6 py-4 border-t border-border flex-shrink-0;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   UPLOAD ZONE
+══════════════════════════════════════════════════════════════ */
+.td-upload-zone {
+  @apply rounded-2xl border-2 border-dashed border-border bg-muted/20 p-8 text-center
+         flex flex-col items-center gap-3 cursor-pointer transition-all
+         hover:border-primary/40 hover:bg-primary/5;
+}
+
+.td-upload-zone-filled {
+  @apply border-primary/30 bg-primary/5 p-4 flex-row text-left;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   LOADING SPINNER
+══════════════════════════════════════════════════════════════ */
+.td-loading-spinner {
+  @apply h-10 w-10 rounded-full border-4 border-border border-t-primary animate-spin;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   STAT BAR (session history)
+══════════════════════════════════════════════════════════════ */
+.td-hist-stat-bar {
+  @apply h-2 rounded-full overflow-hidden bg-muted flex;
+}
+
+.td-hist-stat-bar-fill {
+  @apply h-full rounded-full transition-all duration-700;
+}
