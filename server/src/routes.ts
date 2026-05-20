@@ -12,8 +12,8 @@ export const apiRouter = Router();
 
 apiRouter.get("/health", (_req, res) => res.json({ status: "ok", time: new Date().toISOString() }));
 apiRouter.use("/auth", authRouter);
-apiRouter.use("/teachers", teachersRouter);
 apiRouter.use("/teachers", teacherDashboardRouter);
+apiRouter.use("/teachers", teachersRouter);
 apiRouter.use("/bookings", bookingsRouter);
 apiRouter.use("/reviews", reviewsRouter);
 apiRouter.use("/messages", messagesRouter);
