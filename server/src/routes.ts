@@ -12,8 +12,16 @@ export const apiRouter = Router();
 
 apiRouter.get("/health", (_req, res) => res.json({ status: "ok", time: new Date().toISOString() }));
 apiRouter.use("/auth", authRouter);
-apiRouter.use("/teachers", teacherDashboardRouter);
-apiRouter.use("/teachers", teachersRouter);
+
+// ─── IMPORTANT: teacherDashboardRouter MUST be registered BEFORE teachersRouter.
+// teachersRouter has a wildcard GET /:id route. If it is registered first, Express
+// will match GET /teachers/me as id="me" and pass "me" to Supabase as a UUID →
+// "invalid input syntax for type uuid: me" (400 error).
+// By registering the dashboard router first, all /me and /me/* routes are matched
+// before the /:id wildcard ever sees the request.
+apiRouter.use("/teachers", teacherDashboardRouter); // ← specific /me routes first
+apiRouter.use("/teachers", teachersRouter);          // ← wildcard /:id second
+
 apiRouter.use("/bookings", bookingsRouter);
 apiRouter.use("/reviews", reviewsRouter);
 apiRouter.use("/messages", messagesRouter);

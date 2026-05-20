@@ -43,17 +43,30 @@ teachersRouter.get(
 teachersRouter.get(
   "/:id",
   asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    // ── Safety net ────────────────────────────────────────────────────────
+    // If route order is ever misconfigured and "me" falls through to here,
+    // return a clear error instead of passing "me" to Supabase as a UUID.
+    if (id === "me" || id === "me%2F" || !/^[0-9a-f-]{36}$/i.test(id)) {
+      throw badRequest(
+        id === "me"
+          ? 'Route conflict: "me" reached /:id — check route registration order in routes.ts'
+          : `Invalid teacher ID format: "${id}"`,
+      );
+    }
+
     const { data, error } = await supabaseAdmin
       .from("teacher_profiles")
       .select("*")
-      .eq("user_id", req.params.id)
+      .eq("user_id", id)
       .maybeSingle();
     if (error) throw badRequest(error.message);
     if (!data) throw notFound("Teacher not found");
     const { data: profile } = await supabaseAdmin
       .from("profiles")
       .select("id, full_name, avatar_url, phone")
-      .eq("id", req.params.id)
+      .eq("id", id)
       .maybeSingle();
     res.json({ teacher: { ...data, profile: profile ?? null } });
   }),
