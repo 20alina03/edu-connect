@@ -1,0 +1,129 @@
+/* ─── Student Burger Menu ─── */
+
+/* Trigger button */
+.burger-trigger {
+  @apply relative w-9 h-9 rounded-xl border border-border/60 
+         hover:border-primary/40 hover:bg-primary/5
+         transition-all duration-200;
+}
+
+/* Sheet panel */
+.burger-sheet {
+  @apply bg-background/95 backdrop-blur-xl border-r border-border/50;
+  overflow-y: auto;
+}
+
+/* Header */
+.burger-header {
+  @apply px-5 pt-5 pb-4 border-b border-border/40;
+  background: linear-gradient(135deg, hsl(var(--primary) / 0.04), transparent);
+}
+
+.burger-logo-ring {
+  @apply w-10 h-10 rounded-xl border border-primary/20 
+         bg-primary/5 flex items-center justify-center
+         shadow-sm;
+}
+
+/* Nav container */
+.burger-nav {
+  @apply flex flex-col py-3 px-3 gap-0.5;
+  flex: 1;
+}
+
+/* Section label */
+.burger-nav-section-label {
+  @apply text-[10px] uppercase tracking-[0.1em] font-bold 
+         text-muted-foreground/60 px-3 pt-1 pb-2;
+}
+
+/* Nav item wrapper */
+.burger-nav-item-wrapper {
+  @apply relative;
+}
+
+/* Nav item button */
+.burger-nav-item {
+  @apply w-full flex items-center gap-3 px-3 py-2.5 
+         rounded-xl text-left transition-all duration-200
+         hover:bg-muted/60 active:scale-[0.98]
+         cursor-pointer;
+}
+
+.burger-nav-item-active {
+  @apply bg-primary/[0.08] hover:bg-primary/[0.12];
+}
+
+.burger-nav-item-expanded {
+  @apply bg-muted/40;
+}
+
+/* Icon container */
+.burger-nav-icon {
+  @apply w-8 h-8 rounded-lg flex items-center justify-center 
+         flex-shrink-0 transition-all duration-200
+         bg-muted/60 text-muted-foreground;
+}
+
+.burger-nav-icon-active {
+  @apply bg-primary/10 text-primary;
+}
+
+.burger-nav-item:hover .burger-nav-icon {
+  @apply bg-primary/10 text-primary;
+}
+
+/* Text area */
+.burger-nav-text {
+  @apply flex flex-col flex-1 min-w-0;
+}
+
+.burger-nav-label {
+  @apply text-sm font-semibold truncate leading-tight;
+}
+
+.burger-nav-desc {
+  @apply text-[11px] text-muted-foreground/70 truncate leading-tight mt-0.5;
+}
+
+/* Badge */
+.burger-nav-badge {
+  @apply text-[10px] font-bold px-1.5 py-0.5 rounded-md
+         bg-primary text-primary-foreground flex-shrink-0
+         animate-pulse;
+}
+
+/* Submenu */
+.burger-submenu {
+  @apply ml-5 pl-3 border-l-2 border-primary/15 
+         flex flex-col gap-0.5 py-1.5
+         animate-in slide-in-from-top-1 duration-200;
+}
+
+.burger-submenu-item {
+  @apply w-full flex items-center gap-2.5 px-3 py-2 
+         rounded-lg text-left transition-all duration-150
+         hover:bg-muted/50 active:scale-[0.98]
+         cursor-pointer;
+}
+
+.burger-submenu-icon {
+  @apply w-6 h-6 rounded-md flex items-center justify-center 
+         flex-shrink-0 bg-muted/50 text-muted-foreground
+         transition-colors duration-150;
+}
+
+.burger-submenu-item:hover .burger-submenu-icon {
+  @apply bg-primary/10 text-primary;
+}
+
+/* Footer */
+.burger-footer {
+  @apply px-4 pb-5 pt-3 mt-auto;
+}
+
+.burger-footer-card {
+  @apply p-4 rounded-xl border border-primary/15 
+         bg-gradient-to-br from-primary/5 to-transparent
+         text-center;
+}

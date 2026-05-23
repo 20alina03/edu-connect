@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { StudentBurgerMenu } from "@/components/StudentBurgerMenu";
 
 export const AppHeader = () => {
   const { user, role, signOut } = useAuth();
@@ -31,9 +32,7 @@ export const AppHeader = () => {
         {user ? (
           <div className="flex items-center gap-2">
             {role === "student" && (
-              <Button variant="ghost" size="sm" onClick={() => navigate("/reports")} className="text-xs sm:text-sm">
-                Reports
-              </Button>
+              <StudentBurgerMenu />
             )}
             <Button variant="ghost" size="icon" onClick={() => navigate("/notifications")}>
               <Bell className="w-5 h-5" />
