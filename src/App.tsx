@@ -16,6 +16,7 @@ import TeachersList from "./pages/TeachersList/TeachersList";
 import TeacherProfile from "./pages/TeacherProfile/TeacherProfile";
 import Book from "./pages/Book/Book";
 import Dashboard from "./pages/Dashboard/dashboard";
+import Assignments from "./pages/Assignments/Assignments";
 import TeacherDashboard from "./pages/TeacherDashboard/TeacherDashboard";
 import TeacherOnboarding from "./pages/TeacherOnboarding";
 import Messages from "./pages/Messages";
@@ -103,6 +104,7 @@ const App = () => (
             {/* Protected */}
             <Route path="/book/:id" element={<ProtectedRoute><Book /></ProtectedRoute>} />
             <Route path="/dashboard/student" element={<ProtectedRoute requireRole="student"><Dashboard /></ProtectedRoute>} />
+            <Route path="/assignments" element={<ProtectedRoute requireRole="student"><Assignments /></ProtectedRoute>} />
             <Route path="/dashboard/teacher" element={<ProtectedRoute requireRole="teacher"><TeacherDashboard /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><DashboardRedirect /></ProtectedRoute>} />
             <Route path="/dashboard/:role" element={<ProtectedRoute><DashboardRedirect /></ProtectedRoute>} />
