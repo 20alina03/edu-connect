@@ -1,11 +1,13 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Search, Star, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PortalNav } from "@/components/PortalNav/PortalNav";
-import { teachers, Portal } from "@/data/teachers";
+import { Portal } from "@/data/teachers";
 import { cn } from "@/lib/utils";
 import "./portalhome.css";
 import { Book, BookOpen, MusicNotes, Globe, Ruler, Flask, FileText, MapPin } from "@phosphor-icons/react";
+import { teachersApi } from "@/lib/api/teachers";
 
 interface Props {
   portal: Portal;
@@ -53,10 +55,44 @@ const SCHOOL = {
   ],
 };
 
+const ISLAMIC_SUBJECTS = ["Quran", "Tajweed", "Hifz", "Noorani Qaida", "Arabic", "Islamic Studies"];
+
+const inferPortal = (subjects: string[]) => (
+  subjects.some((subject) => ISLAMIC_SUBJECTS.includes(subject)) ? "islamic" : "school"
+);
+
 const PortalHome = ({ portal }: Props) => {
   const isIslamic = portal === "islamic";
   const c = isIslamic ? ISLAMIC : SCHOOL;
-  const previewTeachers = teachers.filter(t => t.portal === portal).slice(0, 3);
+  const [previewTeachers, setPreviewTeachers] = useState<Array<{ id: string; initials: string; name: string; tagline: string; rate: number; rating: number }>>([]);
+
+  useEffect(() => {
+    let active = true;
+    teachersApi.list()
+      .then(({ teachers }) => {
+        if (!active) return;
+        const mapped = teachers
+          .filter((teacher) => inferPortal(teacher.subjects ?? []) === portal)
+          .map((teacher) => {
+            const name = teacher.profile?.full_name ?? "Teacher";
+            return {
+              id: teacher.user_id,
+              initials: name.split(" ").map((word) => word[0]).join("").slice(0, 2).toUpperCase(),
+              name,
+              tagline: `${teacher.subjects?.join(", ") || "General tutoring"} · ${teacher.experience_years ?? 0} yrs`,
+              rate: Number(teacher.hourly_rate_usd) || 0,
+              rating: Number(teacher.rating) || 0,
+            };
+          })
+          .sort((a, b) => b.rating - a.rating)
+          .slice(0, 3);
+
+        setPreviewTeachers(mapped);
+      })
+      .catch(() => active && setPreviewTeachers([]));
+
+    return () => { active = false; };
+  }, [portal]);
 
   return (
     <div className="portal-home-page">

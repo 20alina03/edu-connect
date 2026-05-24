@@ -28,6 +28,8 @@ interface BookingReport {
   start_at: string;
   duration_min: number;
   status: "completed" | "cancelled" | "pending" | "booked";
+  attendance_status?: "present" | "absent" | "late" | null;
+  attendance_marked_at?: string | null;
   rating?: number;
   teacher_remarks?: string;
 }
@@ -80,6 +82,18 @@ const scoreColor = (pct: number) =>
 
 const barColor = (pct: number) =>
   pct >= 80 ? "bg-green-500" : pct >= 60 ? "bg-yellow-500" : "bg-red-500";
+
+const attendanceBadgeClass = (status?: BookingReport["attendance_status"]) => {
+  if (status === "present") return "bg-green-500/10 text-green-600 dark:text-green-400";
+  if (status === "late") return "bg-amber-500/10 text-amber-600 dark:text-amber-400";
+  if (status === "absent") return "bg-red-500/10 text-red-600 dark:text-red-400";
+  return "bg-muted text-muted-foreground";
+};
+
+const attendanceLabel = (status?: BookingReport["attendance_status"]) => {
+  if (!status) return "Pending";
+  return status.charAt(0).toUpperCase() + status.slice(1);
+};
 
 /* ─── Contact Modal ─── */
 const ContactModal = ({
@@ -260,6 +274,8 @@ const StudentReports = () => {
             portal: idx % 2 === 0 ? "islamic" : "school",
             teacher_name: `Teacher ${idx + 1}`,
             teacher_phone: "923001234567",
+            attendance_status: b.attendance_status ?? null,
+            attendance_marked_at: b.attendance_marked_at ?? null,
             rating: Math.floor(Math.random() * 2) + 4,
             teacher_remarks: [
               "Great progress with pronunciation!",
@@ -381,6 +397,11 @@ const StudentReports = () => {
   );
 
   const completedBookings = bookings.filter((b) => b.status === "completed");
+  const attendanceMarkedBookings = bookings.filter((b) => b.attendance_status);
+  const attendedBookings = bookings.filter((b) => b.attendance_status === "present" || b.attendance_status === "late");
+  const attendanceRate = attendanceMarkedBookings.length > 0
+    ? Math.round((attendedBookings.length / attendanceMarkedBookings.length) * 100)
+    : Math.round((completedBookings.length / Math.max(bookings.length, 1)) * 100);
 
   /* Unique teachers list for "Contact" section */
   const uniqueTeachers: TeacherContact[] = [
@@ -431,7 +452,7 @@ const StudentReports = () => {
           {[
             { label: "Total Sessions",   value: bookings.length,                                      icon: BookOpen,    color: "text-primary"     },
             { label: "Completed",        value: completedBookings.length,                              icon: CheckCircle, color: "text-green-500"   },
-            { label: "Attendance Rate",  value: `${Math.round((completedBookings.length / Math.max(bookings.length, 1)) * 100)}%`, icon: TrendingUp, color: "text-blue-500" },
+            { label: "Attendance Rate",  value: `${attendanceRate}%`, icon: TrendingUp, color: "text-blue-500" },
             { label: "Avg Rating",       value: bookings.length > 0 ? (Math.round((bookings.reduce((s, b) => s + (b.rating || 0), 0) / bookings.length) * 10) / 10) + " ★" : "—", icon: Star, color: "text-yellow-500" },
           ].map((stat) => (
             <Card key={stat.label} className="p-3 sm:p-4">
@@ -759,8 +780,9 @@ const StudentReports = () => {
                           <tr className="text-muted-foreground text-xs uppercase tracking-wider">
                             <th className="text-left py-2 px-2">Assessment</th>
                             <th className="text-left py-2 px-2">Subject</th>
-                            <th className="text-left py-2 px-2">Marks</th>
-                            <th className="text-left py-2 px-2">Score</th>
+                            <th className="text-left py-2 px-2">Status</th>
+                            <th className="text-left py-2 px-2">Attendance</th>
+                            <th className="text-left py-2 px-2">Rating</th>
                             <th className="text-left py-2 px-2">Grade</th>
                             <th className="text-left py-2 px-2">Date</th>
                             <th className="text-left py-2 px-2">Contact</th>
@@ -926,6 +948,9 @@ const StudentReports = () => {
                       <div className="flex items-start justify-between gap-2 mb-1 flex-wrap">
                         <div className="font-semibold text-sm">{b.teacher_name}</div>
                         <div className="flex items-center gap-2">
+                            <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full", attendanceBadgeClass(b.attendance_status))}>
+                              {attendanceLabel(b.attendance_status)}
+                            </span>
                           <span className="flex items-center gap-1 text-xs">
                             <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
                             {b.rating}/5
@@ -1044,6 +1069,7 @@ const StudentReports = () => {
                     <th className="text-left py-2 px-2">Portal</th>
                     <th className="text-left py-2 px-2">Date</th>
                     <th className="text-left py-2 px-2">Status</th>
+                    <th className="text-left py-2 px-2">Attendance</th>
                     <th className="text-left py-2 px-2">Rating</th>
                   </tr>
                 </thead>
@@ -1065,6 +1091,11 @@ const StudentReports = () => {
                           : b.status === "cancelled" ? "bg-red-500/10 text-red-600 dark:text-red-400"
                           : "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400")}>
                           {b.status}
+                        </span>
+                      </td>
+                      <td className="py-2 px-2 text-xs sm:text-sm">
+                        <span className={cn("inline-block px-2 py-0.5 rounded-full text-xs font-semibold", attendanceBadgeClass(b.attendance_status))}>
+                          {attendanceLabel(b.attendance_status)}
                         </span>
                       </td>
                       <td className="py-2 px-2 text-xs sm:text-sm">

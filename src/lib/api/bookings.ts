@@ -11,6 +11,9 @@ export interface Booking {
   status: "pending" | "confirmed" | "completed" | "cancelled";
   notes: string | null;
   price_usd: number;
+  meeting_link: string | null;
+  attendance_status: "present" | "absent" | "late" | null;
+  attendance_marked_at: string | null;
   created_at: string;
   updated_at: string;
 }

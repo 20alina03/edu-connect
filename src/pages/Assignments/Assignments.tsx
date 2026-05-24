@@ -1,11 +1,12 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { format, formatDistanceToNow, addHours, differenceInHours } from "date-fns";
+import { format, formatDistanceToNow, differenceInHours } from "date-fns";
 import {
   AlertTriangle,
   ArrowRight,
   CalendarClock,
   CheckCircle2,
+  BookOpen,
   Clock3,
   FileText,
   GraduationCap,
@@ -19,116 +20,21 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { studentsApi, type StudentAssignmentItem, type StudentResourceItem } from "@/lib/api/students";
 import { cn } from "@/lib/utils";
 
 type AssignmentStatus = "upcoming" | "submitted" | "graded";
 type Priority = "high" | "medium" | "low";
 type Portal = "islamic" | "school";
+const assignmentsPriority = (assignment: StudentAssignmentItem): Priority => {
+  if (assignment.status !== "upcoming") return "low";
+  const hoursLeft = differenceInHours(new Date(assignment.dueAt), new Date());
+  if (hoursLeft <= 12) return "high";
+  if (hoursLeft <= 48) return "medium";
+  return "low";
+};
 
-interface Assignment {
-  id: string;
-  title: string;
-  subject: string;
-  portal: Portal;
-  teacher: string;
-  dueAt: string;
-  assignedAt: string;
-  submittedAt?: string;
-  score?: number;
-  maxScore: number;
-  status: AssignmentStatus;
-  priority: Priority;
-  note: string;
-}
-
-const assignments: Assignment[] = [
-  {
-    id: "a1",
-    title: "Surah Al-Mulk Recitation Practice",
-    subject: "Quran",
-    portal: "islamic",
-    teacher: "Ustadh Ahmed",
-    dueAt: addHours(new Date(), 8).toISOString(),
-    assignedAt: new Date(Date.now() - 2 * 86400000).toISOString(),
-    maxScore: 100,
-    status: "upcoming",
-    priority: "high",
-    note: "Record a clean recitation and submit before your next lesson.",
-  },
-  {
-    id: "a2",
-    title: "Quadratic Equations Worksheet",
-    subject: "Mathematics",
-    portal: "school",
-    teacher: "Mr. Johnson",
-    dueAt: addHours(new Date(), 30).toISOString(),
-    assignedAt: new Date(Date.now() - 3 * 86400000).toISOString(),
-    maxScore: 50,
-    status: "upcoming",
-    priority: "medium",
-    note: "Complete all practice questions and review the worked examples.",
-  },
-  {
-    id: "a3",
-    title: "Tajweed Rule Summary",
-    subject: "Tajweed",
-    portal: "islamic",
-    teacher: "Sister Fatima",
-    dueAt: addHours(new Date(), 52).toISOString(),
-    assignedAt: new Date(Date.now() - 5 * 86400000).toISOString(),
-    maxScore: 20,
-    status: "upcoming",
-    priority: "low",
-    note: "Summarize the Noon Sakinah rules with a few examples.",
-  },
-  {
-    id: "a4",
-    title: "Essay Draft Review",
-    subject: "English",
-    portal: "school",
-    teacher: "Ms. Roberts",
-    dueAt: new Date(Date.now() - 2 * 86400000).toISOString(),
-    assignedAt: new Date(Date.now() - 10 * 86400000).toISOString(),
-    submittedAt: new Date(Date.now() - 3 * 86400000).toISOString(),
-    score: 85,
-    maxScore: 100,
-    status: "graded",
-    priority: "medium",
-    note: "Great structure and analysis. Add a stronger closing paragraph next time.",
-  },
-  {
-    id: "a5",
-    title: "Islamic Studies Reflection",
-    subject: "Islamic Studies",
-    portal: "islamic",
-    teacher: "Ustadh Ali",
-    dueAt: new Date(Date.now() - 6 * 86400000).toISOString(),
-    assignedAt: new Date(Date.now() - 14 * 86400000).toISOString(),
-    submittedAt: new Date(Date.now() - 5 * 86400000).toISOString(),
-    score: 92,
-    maxScore: 100,
-    status: "graded",
-    priority: "low",
-    note: "Very strong response with thoughtful detail and excellent presentation.",
-  },
-  {
-    id: "a6",
-    title: "Cell Structure Lab Notes",
-    subject: "Biology",
-    portal: "school",
-    teacher: "Dr. Smith",
-    dueAt: new Date(Date.now() - 4 * 86400000).toISOString(),
-    assignedAt: new Date(Date.now() - 12 * 86400000).toISOString(),
-    submittedAt: new Date(Date.now() - 3 * 86400000).toISOString(),
-    score: 78,
-    maxScore: 100,
-    status: "submitted",
-    priority: "medium",
-    note: "Submitted on time. Teacher feedback is pending.",
-  },
-];
-
-const getBanner = (assignment: Assignment) => {
+const getBanner = (assignment: StudentAssignmentItem) => {
   const hoursLeft = differenceInHours(new Date(assignment.dueAt), new Date());
 
   if (assignment.status !== "upcoming") return null;
@@ -174,6 +80,34 @@ const priorityClass: Record<Priority, string> = {
 
 const AssignmentsPage = () => {
   const { role } = useAuth();
+  const [assignments, setAssignments] = useState<StudentAssignmentItem[]>([]);
+  const [lessonNotes, setLessonNotes] = useState<StudentResourceItem[]>([]);
+  const [templateLessons, setTemplateLessons] = useState<StudentResourceItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+
+    studentsApi.getAssignments()
+      .then(({ assignments: nextAssignments, resources }) => {
+        if (!active) return;
+        setAssignments(nextAssignments ?? []);
+        setLessonNotes(resources.lesson_notes ?? []);
+        setTemplateLessons(resources.template_lessons ?? []);
+      })
+      .catch(() => {
+        if (!active) return;
+        setAssignments([]);
+        setLessonNotes([]);
+        setTemplateLessons([]);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => { active = false; };
+  }, []);
 
   const metrics = useMemo(() => {
     const upcoming = assignments.filter((a) => a.status === "upcoming");
@@ -186,7 +120,7 @@ const AssignmentsPage = () => {
       graded: graded.length,
       avgMark,
     };
-  }, []);
+  }, [assignments]);
 
   const upcomingAssignments = assignments
     .filter((a) => a.status === "upcoming")
@@ -204,6 +138,30 @@ const AssignmentsPage = () => {
 
   if (role && role !== "student") {
     return <Navigate to="/dashboard/teacher" replace />;
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <AppHeader />
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-8 lg:py-10 space-y-6">
+          <section className="rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-sm animate-pulse space-y-4">
+            <div className="h-3 w-28 rounded-full bg-muted" />
+            <div className="h-8 w-3/4 rounded-2xl bg-muted" />
+            <div className="h-4 w-1/2 rounded-full bg-muted" />
+          </section>
+          <section className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className="rounded-2xl border border-border bg-card p-4 shadow-sm space-y-2 animate-pulse">
+                <div className="h-5 w-5 rounded-full bg-muted" />
+                <div className="h-8 w-16 rounded bg-muted" />
+                <div className="h-3 w-10 rounded bg-muted" />
+              </div>
+            ))}
+          </section>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -299,7 +257,7 @@ const AssignmentsPage = () => {
         )}
 
         <Tabs defaultValue="upcoming" className="space-y-5">
-          <TabsList className="grid w-full grid-cols-3 rounded-2xl p-1 bg-muted/50">
+          <TabsList className="grid w-full grid-cols-4 rounded-2xl p-1 bg-muted/50">
             <TabsTrigger value="upcoming" className="rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm">
               Upcoming assignments
             </TabsTrigger>
@@ -308,6 +266,9 @@ const AssignmentsPage = () => {
             </TabsTrigger>
             <TabsTrigger value="history" className="rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm">
               History
+            </TabsTrigger>
+            <TabsTrigger value="resources" className="rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              Resources
             </TabsTrigger>
           </TabsList>
 
@@ -327,8 +288,8 @@ const AssignmentsPage = () => {
                             <span className={cn("text-[10px] font-bold px-2.5 py-1 rounded-full border", portalBadgeClass[assignment.portal])}>
                               {portalLabel[assignment.portal]}
                             </span>
-                            <span className={cn("text-[10px] font-bold px-2.5 py-1 rounded-full border", priorityClass[assignment.priority])}>
-                              {assignment.priority} priority
+                            <span className={cn("text-[10px] font-bold px-2.5 py-1 rounded-full border", priorityClass[assignmentsPriority(assignment)])}>
+                              {assignmentsPriority(assignment)} priority
                             </span>
                             {banner && (
                               <span className={cn(
@@ -365,8 +326,12 @@ const AssignmentsPage = () => {
                             Max score: {assignment.maxScore} marks
                           </div>
                           <div className="flex gap-2">
-                            <Button size="sm" className="flex-1 rounded-full">Submit</Button>
-                            <Button size="sm" variant="outline" className="flex-1 rounded-full">Open</Button>
+                            <Button size="sm" className="flex-1 rounded-full" asChild>
+                              <a href="#resources">Review</a>
+                            </Button>
+                            <Button size="sm" variant="outline" className="flex-1 rounded-full" asChild>
+                              <Link to={`/messages/${assignment.teacherId}`}>Message</Link>
+                            </Button>
                           </div>
                         </div>
                       </div>
@@ -383,16 +348,16 @@ const AssignmentsPage = () => {
                   </div>
                   <div className="space-y-3 text-sm">
                     <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-3">
-                      <div className="font-semibold text-red-700 dark:text-red-400">1 urgent deadline</div>
-                      <div className="text-xs text-muted-foreground mt-1">Finish the Quran recitation practice first.</div>
+                      <div className="font-semibold text-red-700 dark:text-red-400">{urgentAssignments.length > 0 ? `${urgentAssignments.length} urgent deadline${urgentAssignments.length === 1 ? "" : "s"}` : "No urgent deadlines"}</div>
+                      <div className="text-xs text-muted-foreground mt-1">Tackle the closest due work first.</div>
                     </div>
                     <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-3">
-                      <div className="font-semibold text-amber-700 dark:text-amber-400">1 assignment due tomorrow</div>
-                      <div className="text-xs text-muted-foreground mt-1">Keep momentum by clearing the maths worksheet today.</div>
+                      <div className="font-semibold text-amber-700 dark:text-amber-400">{upcomingAssignments.length > urgentAssignments.length ? `${upcomingAssignments.length - urgentAssignments.length} assignment${upcomingAssignments.length - urgentAssignments.length === 1 ? "" : "s"} due later` : "No later deadlines"}</div>
+                      <div className="text-xs text-muted-foreground mt-1">Keep momentum by working through the remaining queue.</div>
                     </div>
                     <div className="rounded-2xl border border-primary/20 bg-primary/5 p-3">
-                      <div className="font-semibold text-primary">2 tasks already planned</div>
-                      <div className="text-xs text-muted-foreground mt-1">A few short sessions will keep you ahead.</div>
+                      <div className="font-semibold text-primary">{templateLessons.length + lessonNotes.length} resources unlocked</div>
+                      <div className="text-xs text-muted-foreground mt-1">Template videos are open to all; notes unlock after bookings.</div>
                     </div>
                   </div>
                 </div>
@@ -488,6 +453,68 @@ const AssignmentsPage = () => {
                     </div>
                   );
                 })}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="resources" className="space-y-4 mt-4" id="resources">
+            <div className="grid lg:grid-cols-2 gap-4">
+              <div className="rounded-3xl border border-border bg-card p-5 sm:p-6 shadow-sm space-y-4">
+                <div>
+                  <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/40 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    <BookOpen className="w-3.5 h-3.5 text-primary" /> Available to all students
+                  </div>
+                  <h3 className="font-display font-bold text-lg mt-3">Template videos</h3>
+                  <p className="text-sm text-muted-foreground mt-1">These shared lessons are visible to every student in the portal.</p>
+                </div>
+                <div className="space-y-3">
+                  {templateLessons.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-4 text-sm text-muted-foreground">No template lessons have been published yet.</div>
+                  ) : templateLessons.map((resource) => (
+                    <div key={resource.id} className="rounded-2xl border border-border bg-background/60 p-4 space-y-2">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{resource.teacher}</div>
+                          <h4 className="font-semibold mt-1">{resource.title}</h4>
+                        </div>
+                        <span className={cn("text-[10px] font-bold px-2.5 py-1 rounded-full border", portalBadgeClass[resource.portal])}>{portalLabel[resource.portal]}</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground line-clamp-2">{resource.description || "Open the shared video or lesson link to review the material."}</p>
+                      <a href={resource.driveUrl} target="_blank" rel="noreferrer" className="inline-flex text-sm font-semibold text-primary hover:underline">
+                        Open lesson <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-3xl border border-border bg-card p-5 sm:p-6 shadow-sm space-y-4">
+                <div>
+                  <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/40 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    <FileText className="w-3.5 h-3.5 text-primary" /> Unlocked after booking
+                  </div>
+                  <h3 className="font-display font-bold text-lg mt-3">Teacher notes</h3>
+                  <p className="text-sm text-muted-foreground mt-1">Notes from teachers you have booked are available here.</p>
+                </div>
+                <div className="space-y-3">
+                  {lessonNotes.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-4 text-sm text-muted-foreground">Book a session with a teacher to unlock their notes and handouts.</div>
+                  ) : lessonNotes.map((resource) => (
+                    <div key={resource.id} className="rounded-2xl border border-border bg-background/60 p-4 space-y-2">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{resource.teacher}</div>
+                          <h4 className="font-semibold mt-1">{resource.title}</h4>
+                        </div>
+                        <span className={cn("text-[10px] font-bold px-2.5 py-1 rounded-full border", portalBadgeClass[resource.portal])}>{portalLabel[resource.portal]}</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground line-clamp-2">{resource.description || "Teacher notes and follow-up materials appear here after a booking."}</p>
+                      <a href={resource.driveUrl} target="_blank" rel="noreferrer" className="inline-flex text-sm font-semibold text-primary hover:underline">
+                        Open notes <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                      </a>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </TabsContent>

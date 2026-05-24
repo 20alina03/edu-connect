@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -79,8 +80,15 @@ const Settings = () => {
     <div className="min-h-screen bg-background">
       <AppHeader />
       <div className="max-w-2xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
-        <h1 className="text-2xl sm:text-3xl font-bold font-display mb-2">Settings</h1>
-        <p className="text-muted-foreground mb-6 text-sm sm:text-base">Update your profile details and teacher pricing.</p>
+        <div className="flex items-start justify-between gap-3 mb-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold font-display mb-2">Settings</h1>
+            <p className="text-muted-foreground mb-0 text-sm sm:text-base">Update your profile details and teacher pricing.</p>
+          </div>
+          <Button variant="outline" onClick={() => navigate(role === "teacher" ? "/dashboard/teacher" : "/dashboard/student")} className="rounded-full shrink-0">
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back
+          </Button>
+        </div>
 
         <div className="space-y-4 bg-card border border-border rounded-2xl p-4 sm:p-6">
           <div>

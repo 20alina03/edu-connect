@@ -21,6 +21,10 @@ export interface TeacherProfile {
   lesson_notes?: TeacherLessonItem[];
   template_lessons?: TeacherLessonItem[];
   assessments?: TeacherAssessmentItem[];
+  availability?: TeacherAvailabilityItem[];
+  booked_slots?: { start_at: string; duration_min: number; status: "pending" | "confirmed" | "completed" | "cancelled" }[];
+  note_access?: boolean;
+  portals?: Array<"islamic" | "school">;
   deleted_at?: string | null;
 }
 
@@ -29,6 +33,7 @@ export interface TeacherAvailabilityItem {
   day_of_week: number;
   start_time: string;
   end_time: string;
+  available_date?: string | null;
 }
 
 export interface TeacherLessonItem {
@@ -39,6 +44,7 @@ export interface TeacherLessonItem {
   description: string;
   assignedStudents: string[];
   createdAt?: string;
+  lessonType?: "note" | "template";
 }
 
 export interface TeacherAssessmentSolution {
@@ -62,6 +68,7 @@ export interface TeacherAssessmentItem {
   fileName?: string | null;
   fileType?: "pdf" | "image" | null;
   createdAt?: string;
+  dueAt?: string;
   assignedStudents: string[];
   solutions: TeacherAssessmentSolution[];
 }
@@ -88,6 +95,8 @@ export interface TeacherDashboardRecord {
   lesson_notes: TeacherLessonItem[];
   template_lessons: TeacherLessonItem[];
   assessments: TeacherAssessmentItem[];
+  note_access?: boolean;
+  portals?: Array<"islamic" | "school">;
   deleted_at?: string | null;
 }
 

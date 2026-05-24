@@ -11,12 +11,14 @@ export const teacherDashboardRouter = Router();
 
 const TeachingModeSchema = z.enum(["online", "home_visit", "both"]);
 const GenderSchema = z.enum(["male", "female"]);
+const ISLAMIC_SUBJECTS = new Set(["Quran", "Tajweed", "Hifz", "Noorani Qaida", "Arabic", "Islamic Studies"]);
 
 const AvailabilityItemSchema = z.object({
   id: z.string().uuid().optional(),
   day_of_week: z.coerce.number().int().min(0).max(6),
   start_time: z.string().min(1),
   end_time: z.string().min(1),
+  available_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
 });
 
 const LessonItemSchema = z.object({
@@ -48,6 +50,7 @@ const AssessmentItemSchema = z.object({
   fileUrl: z.string().url().nullable().optional(),
   fileName: z.string().nullable().optional(),
   fileType: z.enum(["pdf", "image"]).nullable().optional(),
+  dueAt: z.string().datetime().optional(),
   createdAt: z.string().optional(),
   assignedStudents: z.array(z.string().uuid()).default([]),
   solutions: z.array(SolutionSchema).default([]),
@@ -77,6 +80,70 @@ const PortfolioSchema = z.object({
 
 const toISO = (value?: string) => value ?? new Date().toISOString();
 
+const DEFAULT_DUE_DAYS = 7;
+
+const defaultDueAt = (dueAt?: string | null, createdAt?: string | null) => (
+  dueAt ?? new Date((createdAt ? new Date(createdAt).getTime() : Date.now()) + (DEFAULT_DUE_DAYS * 86400000)).toISOString()
+);
+
+const localDateKey = (value: Date) => {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const isMissingColumnError = (error: { message?: string } | null | undefined, column: string) =>
+  Boolean(error?.message?.toLowerCase().includes(`column \"${column}\" does not exist`) || error?.message?.toLowerCase().includes(column.toLowerCase()));
+
+const inferTeacherPortals = (subjects: string[] | null | undefined) => {
+  const subjectList = subjects ?? [];
+  const hasIslamic = subjectList.some((subject) => ISLAMIC_SUBJECTS.has(subject));
+  const hasSchool = subjectList.some((subject) => !ISLAMIC_SUBJECTS.has(subject));
+  const portals: Array<"islamic" | "school"> = [];
+  if (hasIslamic) portals.push("islamic");
+  if (hasSchool || portals.length === 0) portals.push("school");
+  return portals;
+};
+
+const supportsDueAt = async () => {
+  const probe = await supabaseAdmin.from("teacher_assessments").select("due_at").limit(1);
+  return !probe.error || !isMissingColumnError(probe.error, "due_at");
+};
+
+const fetchAvailability = async (userId: string) => {
+  const withDate = await supabaseAdmin
+    .from("availability")
+    .select("*")
+    .eq("teacher_id", userId)
+    .order("available_date", { ascending: true, nullsFirst: false })
+    .order("day_of_week", { ascending: true })
+    .order("start_time", { ascending: true });
+
+  if (!withDate.error) {
+    return {
+      data: (withDate.data ?? []).map((slot) => ({ ...slot, available_date: (slot as Record<string, unknown>).available_date ?? null })),
+      error: null,
+    };
+  }
+
+  if (!isMissingColumnError(withDate.error, "available_date")) {
+    return withDate;
+  }
+
+  const weeklyOnly = await supabaseAdmin
+    .from("availability")
+    .select("*")
+    .eq("teacher_id", userId)
+    .order("day_of_week", { ascending: true })
+    .order("start_time", { ascending: true });
+
+  return {
+    data: (weeklyOnly.data ?? []).map((slot) => ({ ...slot, available_date: null })),
+    error: weeklyOnly.error,
+  };
+};
+
 const normalizeLesson = (item: z.infer<typeof LessonItemSchema>) => ({
   id: item.id ?? randomUUID(),
   title: item.title,
@@ -95,6 +162,7 @@ const normalizeAssessment = (item: z.infer<typeof AssessmentItemSchema>) => ({
   fileName: item.fileName ?? null,
   fileType: item.fileType ?? null,
   createdAt: toISO(item.createdAt),
+  dueAt: defaultDueAt(item.dueAt, item.createdAt),
   assignedStudents: item.assignedStudents ?? [],
   solutions: (item.solutions ?? []).map((solution) => ({
     id: solution.id ?? randomUUID(),
@@ -116,7 +184,7 @@ const getTeacher = async (userId: string) => {
     // fail with "Cannot coerce the result to a single JSON object".
     supabaseAdmin.from("profiles").select("id, full_name, phone, avatar_url").eq("id", userId).limit(1),
     supabaseAdmin.from("teacher_profiles").select("*").eq("user_id", userId).limit(1),
-    supabaseAdmin.from("availability").select("*").eq("teacher_id", userId).order("day_of_week", { ascending: true }).order("start_time", { ascending: true }),
+    fetchAvailability(userId),
     supabaseAdmin.from("teacher_lessons").select("*").eq("teacher_id", userId).is("deleted_at", null).order("created_at", { ascending: false }),
     supabaseAdmin.from("teacher_lesson_students").select("lesson_id, student_id"),
     supabaseAdmin.from("teacher_assessments").select("*").eq("teacher_id", userId).is("deleted_at", null).order("created_at", { ascending: false }),
@@ -140,6 +208,7 @@ const getTeacher = async (userId: string) => {
     subject: lesson.subject ?? null,
     driveUrl: lesson.drive_url,
     description: lesson.description ?? "",
+    lessonType: lesson.lesson_type,
     assignedStudents: lessonStudents.filter((row) => row.lesson_id === lesson.id).map((row) => row.student_id),
     createdAt: lesson.created_at,
   }));
@@ -154,6 +223,7 @@ const getTeacher = async (userId: string) => {
     fileName: assessment.file_name,
     fileType: assessment.file_type,
     createdAt: assessment.created_at,
+    dueAt: defaultDueAt(assessment.due_at, assessment.created_at),
     assignedStudents: assessmentStudents.filter((row) => row.assessment_id === assessment.id).map((row) => row.student_id),
     solutions: solutions.filter((solution) => solution.assessment_id === assessment.id).map((solution) => ({
       id: solution.id,
@@ -239,18 +309,23 @@ const replaceAssessments = async (userId: string, assessmentsInput: z.infer<type
   if (assessmentsInput.length === 0) return;
 
   const assessments = assessmentsInput.map((item) => normalizeAssessment(item));
+  const hasDueAt = await supportsDueAt();
   const { error: insertError } = await supabaseAdmin.from("teacher_assessments").insert(
-    assessments.map((assessment) => ({
-      id: assessment.id,
-      teacher_id: userId,
-      title: assessment.title,
-      description: assessment.description,
-      file_url: assessment.fileUrl,
-      file_name: assessment.fileName,
-      file_type: assessment.fileType,
-      created_at: assessment.createdAt,
-      updated_at: new Date().toISOString(),
-    })),
+    assessments.map((assessment) => {
+      const row: Record<string, unknown> = {
+        id: assessment.id,
+        teacher_id: userId,
+        title: assessment.title,
+        description: assessment.description,
+        file_url: assessment.fileUrl,
+        file_name: assessment.fileName,
+        file_type: assessment.fileType,
+        created_at: assessment.createdAt,
+        updated_at: new Date().toISOString(),
+      };
+      if (hasDueAt) row.due_at = assessment.dueAt;
+      return row;
+    }),
   );
   if (insertError) throw badRequest(insertError.message);
 
@@ -324,6 +399,7 @@ teacherDashboardRouter.get(
         lesson_notes: data.lesson_notes,
         template_lessons: data.template_lessons,
         assessments: data.assessments,
+        portals: inferTeacherPortals(data.teacher.subjects),
       },
     });
   }),
@@ -421,8 +497,9 @@ teacherDashboardRouter.delete(
 teacherDashboardRouter.get(
   "/me/availability",
   asyncHandler(async (req, res) => {
-    const { availability } = await getTeacher(req.user!.id);
-    res.json({ availability });
+    const availability = await fetchAvailability(req.user!.id);
+    if (availability.error) throw badRequest(availability.error.message);
+    res.json({ availability: availability.data ?? [] });
   }),
 );
 
@@ -430,18 +507,45 @@ teacherDashboardRouter.put(
   "/me/availability",
   validate({ body: z.object({ availability: z.array(AvailabilityItemSchema) }) }),
   asyncHandler(async (req, res) => {
+    const todayKey = localDateKey(new Date());
+    const maxDateKey = localDateKey(new Date(Date.now() + (60 * 86400000)));
+    const { data: sampleAvailability, error: sampleError } = await supabaseAdmin.from("availability").select("*").eq("teacher_id", req.user!.id).limit(1);
+    const hasAvailableDateColumn = !sampleError && Boolean((sampleAvailability ?? [])[0] && Object.prototype.hasOwnProperty.call((sampleAvailability ?? [])[0], "available_date"));
     const availability = req.body.availability.map((slot: z.infer<typeof AvailabilityItemSchema>) => ({
       teacher_id: req.user!.id,
       day_of_week: slot.day_of_week,
       start_time: slot.start_time,
       end_time: slot.end_time,
+      ...(hasAvailableDateColumn ? { available_date: slot.available_date ?? null } : {}),
     }));
+
+    for (const slot of availability) {
+      if (slot.available_date) {
+        if (slot.available_date < todayKey || slot.available_date > maxDateKey) {
+          throw badRequest("Date-based availability must stay within the next 2 months");
+        }
+        const slotDate = new Date(`${slot.available_date}T00:00:00`);
+        if (slotDate.getDay() !== slot.day_of_week) {
+          throw badRequest("The selected day must match the chosen date");
+        }
+      }
+    }
 
     const { error: deleteError } = await supabaseAdmin.from("availability").delete().eq("teacher_id", req.user!.id);
     if (deleteError) throw badRequest(deleteError.message);
 
     if (availability.length > 0) {
       const { data, error } = await supabaseAdmin.from("availability").insert(availability).select();
+      if (error && hasAvailableDateColumn && isMissingColumnError(error, "available_date")) {
+        const weeklyOnly = availability.map((slot) => {
+          const { available_date: _availableDate, ...rest } = slot as Record<string, unknown>;
+          return rest;
+        });
+        const retry = await supabaseAdmin.from("availability").insert(weeklyOnly).select();
+        if (retry.error) throw badRequest(retry.error.message);
+        res.json({ availability: retry.data ?? [] });
+        return;
+      }
       if (error) throw badRequest(error.message);
       res.json({ availability: data ?? [] });
       return;

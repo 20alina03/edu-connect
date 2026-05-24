@@ -11,6 +11,7 @@ import {
   Search,
   Settings,
   User,
+  Globe,
 } from "lucide-react";
 
 export interface StudentNavItem {
@@ -77,6 +78,12 @@ export const studentNavSections: StudentNavSection[] = [
   {
     title: "Communication",
     items: [
+      {
+        label: "Community",
+        href: "/community",
+        icon: Globe,
+        description: "Islamic and school teacher posts",
+      },
       {
         label: "Messages",
         href: "/messages",

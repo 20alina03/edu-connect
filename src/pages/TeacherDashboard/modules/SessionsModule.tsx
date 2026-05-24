@@ -1,15 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import {
-  Calendar, CheckCircle, XCircle, Clock, MapPin, Video,
-  ExternalLink, Plus, Users, CheckSquare, Square, Link2,
-  AlertCircle, Play, History,
+  Calendar, CheckCircle, XCircle, Clock, Video,
+  ExternalLink, Users, CheckSquare, Square, Link2,
+  Play, History, CircleAlert,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { notificationsApi } from "@/lib/api/notifications";
 import { toast } from "sonner";
 import { BookingRow, StudentProfile, initials, statusBadgeClass } from "../TeacherDashboard";
 
@@ -28,7 +29,7 @@ type SessionTab = "active" | "upcoming" | "past";
 /* Attendance record stored in local state (would be persisted to DB in production) */
 interface AttendanceRecord {
   bookingId: string;
-  studentPresent: boolean;
+  status: "present" | "absent" | "late" | null;
   markedAt: string;
 }
 
@@ -36,10 +37,10 @@ export const SessionsModule = ({
   user, bookings, studentProfiles, onReload, updateBookingStatus, bookingActionId,
 }: SessionsModuleProps) => {
   const [tab, setTab] = useState<SessionTab>("upcoming");
-  const [meetingLinks, setMeetingLinks] = useState<Record<string, string>>({});
   const [editingLinkId, setEditingLinkId] = useState<string | null>(null);
   const [linkDraft, setLinkDraft] = useState("");
   const [attendance, setAttendance] = useState<Record<string, AttendanceRecord>>({});
+  const [meetingLinks, setMeetingLinks] = useState<Record<string, string | null>>({});
   const [savingLink, setSavingLink] = useState(false);
 
   const now = new Date();
@@ -63,37 +64,118 @@ export const SessionsModule = ({
     { id: "past",     label: "Past",     count: pastSessions.length,     icon: History  },
   ];
 
-  const saveMeetingLink = async (bookingId: string) => {
+  const saveMeetingLink = async (booking: BookingRow) => {
     setSavingLink(true);
     try {
-      // In production: await supabase.from("bookings").update({ meeting_link: linkDraft }).eq("id", bookingId);
-      setMeetingLinks((prev) => ({ ...prev, [bookingId]: linkDraft }));
+      const link = linkDraft.trim();
+      const payload = {
+        booking_id: booking.id,
+        meeting_link: link || null,
+        subject: booking.subject,
+      };
+
+      const { error } = await supabase.from("notifications").insert([
+        {
+          user_id: user.id,
+          type: "meeting_link",
+          title: `Meeting link updated for ${booking.subject}`,
+          body: link ? link : "Meeting link cleared",
+          data: payload,
+        },
+        {
+          user_id: booking.student_id,
+          type: "meeting_link",
+          title: `Meeting link updated for ${booking.subject}`,
+          body: link ? link : "Meeting link cleared",
+          data: payload,
+        },
+      ]);
+
+      if (error) throw error;
+
+      setMeetingLinks((prev) => ({ ...prev, [booking.id]: link || null }));
+      onReload();
       setEditingLinkId(null);
       toast.success("Meeting link saved");
     } catch (e: any) {
-      toast.error("Failed to save link");
+      toast.error(e?.message ?? "Failed to save link");
     } finally {
       setSavingLink(false);
     }
   };
 
-  const toggleAttendance = (bookingId: string, studentId: string) => {
-    setAttendance((prev) => {
-      const existing = prev[bookingId];
-      if (existing) {
-        const updated = { ...existing, studentPresent: !existing.studentPresent };
-        toast.success(updated.studentPresent ? "Attendance marked ✓" : "Attendance unmarked");
-        return { ...prev, [bookingId]: updated };
-      }
-      toast.success("Attendance marked ✓");
-      return {
+  const markAttendance = async (bookingId: string, status: "present" | "absent" | "late") => {
+    try {
+      const { error } = await supabase
+        .from("bookings")
+        .update({ attendance_status: status, attendance_marked_at: new Date().toISOString() })
+        .eq("id", bookingId);
+      if (error) throw error;
+      setAttendance((prev) => ({
         ...prev,
-        [bookingId]: { bookingId, studentPresent: true, markedAt: new Date().toISOString() },
-      };
-    });
+        [bookingId]: { bookingId, status, markedAt: new Date().toISOString() },
+      }));
+      toast.success(`Marked ${status}`);
+      onReload();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to update attendance");
+    }
   };
 
+  const isSessionStarted = (booking: BookingRow) => new Date(booking.start_at) <= new Date();
+
+  const getAttendanceStatus = (booking: BookingRow) => attendance[booking.id]?.status ?? booking.attendance_status ?? null;
+  const getMeetingLink = (booking: BookingRow) => meetingLinks[booking.id] ?? booking.meeting_link ?? null;
+
   const studentName = (id: string) => studentProfiles[id]?.full_name ?? "Student";
+
+  useEffect(() => {
+    if (!user) return;
+
+    let active = true;
+
+    const hydrateLinks = async () => {
+      const { notifications } = await notificationsApi.list();
+      if (!active) return;
+
+      const next: Record<string, string | null> = {};
+      notifications
+        .filter((n) => n.type === "meeting_link")
+        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+        .forEach((n) => {
+          const bookingId = typeof n.data.booking_id === "string" ? n.data.booking_id : null;
+          if (!bookingId) return;
+          const link = typeof n.data.meeting_link === "string" ? n.data.meeting_link.trim() : "";
+          if (link) next[bookingId] = link;
+          else delete next[bookingId];
+        });
+
+      setMeetingLinks(next);
+    };
+
+    void hydrateLinks();
+
+    const channel = supabase
+      .channel(`meeting-links-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          const row = payload.new as { type?: string; data?: Record<string, unknown> };
+          if (row.type !== "meeting_link") return;
+          const bookingId = typeof row.data?.booking_id === "string" ? row.data.booking_id : null;
+          const link = typeof row.data?.meeting_link === "string" ? row.data.meeting_link.trim() : "";
+          if (!bookingId) return;
+          setMeetingLinks((prev) => ({ ...prev, [bookingId]: link || null }));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      active = false;
+      void supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   return (
     <div className="space-y-5">
@@ -141,13 +223,14 @@ export const SessionsModule = ({
                 key={b.id}
                 booking={b}
                 studentName={studentName(b.student_id)}
-                meetingLink={meetingLinks[b.id]}
-                attendance={attendance[b.id]}
-                onToggleAttendance={() => toggleAttendance(b.id, b.student_id)}
+                meetingLink={getMeetingLink(b) ?? undefined}
+                attendance={attendance[b.id] ?? (b.attendance_status ? { bookingId: b.id, status: b.attendance_status, markedAt: b.attendance_marked_at ?? new Date().toISOString() } : undefined)}
+                onMarkAttendance={markAttendance}
                 onUpdateStatus={updateBookingStatus}
                 bookingActionId={bookingActionId}
                 showAttendance
                 variant="active"
+                started={isSessionStarted(b)}
               />
             ))
           )}
@@ -173,19 +256,24 @@ export const SessionsModule = ({
                       <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {b.duration_min} min</span>
                       <span className="inline-flex items-center gap-1"><Users className="h-3 w-3" /> {studentName(b.student_id)}</span>
                     </div>
+                    {b.notes && (
+                      <div className="mt-2 text-xs text-muted-foreground rounded-lg bg-muted/40 border border-border/60 px-3 py-2">
+                        <span className="font-semibold text-foreground">Topic:</span> {b.notes}
+                      </div>
+                    )}
                   </div>
                   <span className={statusBadgeClass[b.status]}>{b.status}</span>
                 </div>
 
                 {/* Meeting link section */}
-                {meetingLinks[b.id] ? (
+                {getMeetingLink(b) ? (
                   <div className="flex items-center gap-2 p-2 rounded-xl bg-primary/5 border border-primary/20">
                     <Video className="h-4 w-4 text-primary flex-shrink-0" />
-                    <a href={meetingLinks[b.id]} target="_blank" rel="noreferrer"
+                    <a href={getMeetingLink(b) ?? undefined} target="_blank" rel="noreferrer"
                        className="text-xs font-medium text-primary truncate flex-1 hover:underline">
-                      {meetingLinks[b.id]}
+                      {getMeetingLink(b)}
                     </a>
-                    <button onClick={() => { setEditingLinkId(b.id); setLinkDraft(meetingLinks[b.id]); }}
+                    <button onClick={() => { setEditingLinkId(b.id); setLinkDraft(getMeetingLink(b) ?? ""); }}
                       className="text-xs text-muted-foreground hover:text-foreground">Edit</button>
                   </div>
                 ) : editingLinkId === b.id ? (
@@ -196,7 +284,7 @@ export const SessionsModule = ({
                       onChange={(e) => setLinkDraft(e.target.value)}
                       className="text-xs"
                     />
-                    <Button size="sm" onClick={() => saveMeetingLink(b.id)} disabled={savingLink || !linkDraft.trim()}>Save</Button>
+                    <Button size="sm" onClick={() => saveMeetingLink(b)} disabled={savingLink || !linkDraft.trim()}>Save</Button>
                     <Button size="sm" variant="outline" onClick={() => setEditingLinkId(null)}>Cancel</Button>
                   </div>
                 ) : (
@@ -214,6 +302,38 @@ export const SessionsModule = ({
                         <Video className="mr-1.5 h-3.5 w-3.5" /> New Zoom
                       </Button>
                     </a>
+                  </div>
+                )}
+
+                {getMeetingLink(b) && (
+                  <div className="rounded-xl border border-border bg-background/60 p-3 space-y-2">
+                    <div className="flex items-center gap-2 text-sm font-semibold">
+                      <CircleAlert className="h-4 w-4 text-primary" /> Mark attendance
+                    </div>
+                    {!isSessionStarted(b) && (
+                      <div className="text-xs text-muted-foreground">
+                        Attendance opens when the session starts.
+                      </div>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                      {(["present", "absent", "late"] as const).map((status) => (
+                        <Button
+                          key={status}
+                          size="sm"
+                          variant={getAttendanceStatus(b) === status ? "default" : "outline"}
+                          onClick={() => markAttendance(b.id, status)}
+                          disabled={savingLink || !isSessionStarted(b)}
+                          className="capitalize"
+                        >
+                          {status}
+                        </Button>
+                      ))}
+                    </div>
+                    {getAttendanceStatus(b) && (
+                      <div className="text-xs text-muted-foreground">
+                        Attendance saved as <span className="font-semibold text-foreground capitalize">{getAttendanceStatus(b)}</span>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -248,13 +368,14 @@ export const SessionsModule = ({
                 key={b.id}
                 booking={b}
                 studentName={studentName(b.student_id)}
-                meetingLink={meetingLinks[b.id]}
-                attendance={attendance[b.id]}
-                onToggleAttendance={() => toggleAttendance(b.id, b.student_id)}
+                meetingLink={getMeetingLink(b) ?? undefined}
+                attendance={attendance[b.id] ?? (b.attendance_status ? { bookingId: b.id, status: b.attendance_status, markedAt: b.attendance_marked_at ?? new Date().toISOString() } : undefined)}
+                onMarkAttendance={markAttendance}
                 onUpdateStatus={updateBookingStatus}
                 bookingActionId={bookingActionId}
                 showAttendance
                 variant="past"
+                started={true}
               />
             ))
           )}
@@ -266,18 +387,19 @@ export const SessionsModule = ({
 
 /* ── Session Card ── */
 const SessionCard = ({
-  booking: b, studentName, meetingLink, attendance, onToggleAttendance,
-  onUpdateStatus, bookingActionId, showAttendance, variant,
+  booking: b, studentName, meetingLink, attendance, onMarkAttendance,
+  onUpdateStatus, bookingActionId, showAttendance, variant, started,
 }: {
   booking: BookingRow;
   studentName: string;
   meetingLink?: string;
   attendance?: AttendanceRecord;
-  onToggleAttendance: () => void;
+  onMarkAttendance: (bookingId: string, status: "present" | "absent" | "late") => void;
   onUpdateStatus: (id: string, status: BookingRow["status"]) => void;
   bookingActionId: string | null;
   showAttendance?: boolean;
   variant: "active" | "past";
+  started?: boolean;
 }) => {
   return (
     <div className={cn("td-booking-item space-y-3", variant === "active" && "border-primary/30 bg-primary/5")}>
@@ -295,6 +417,11 @@ const SessionCard = ({
             <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {b.duration_min} min</span>
             <span className="inline-flex items-center gap-1"><Users className="h-3 w-3" /> {studentName}</span>
           </div>
+          {b.notes && (
+            <div className="mt-2 text-xs text-muted-foreground rounded-lg bg-muted/40 border border-border/60 px-3 py-2">
+              <span className="font-semibold text-foreground">Topic:</span> {b.notes}
+            </div>
+          )}
         </div>
         <span className={statusBadgeClass[b.status]}>{b.status}</span>
       </div>
@@ -314,21 +441,20 @@ const SessionCard = ({
             <Users className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm">Student attendance</span>
           </div>
-          <button
-            onClick={onToggleAttendance}
-            className={cn(
-              "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
-              attendance?.studentPresent
-                ? "bg-green-500/10 text-green-600 border border-green-200"
-                : "bg-muted text-muted-foreground border border-border hover:border-green-300"
-            )}
-          >
-            {attendance?.studentPresent ? (
-              <><CheckSquare className="h-3.5 w-3.5" /> Present</>
-            ) : (
-              <><Square className="h-3.5 w-3.5" /> Mark present</>
-            )}
-          </button>
+          <div className="flex flex-wrap gap-2 justify-end">
+            {(["present", "absent", "late"] as const).map((status) => (
+              <Button
+                key={status}
+                size="sm"
+                variant={attendance?.status === status ? "default" : "outline"}
+                onClick={() => onMarkAttendance(b.id, status)}
+                disabled={!started}
+                className="capitalize"
+              >
+                {status}
+              </Button>
+            ))}
+          </div>
         </div>
       )}
 

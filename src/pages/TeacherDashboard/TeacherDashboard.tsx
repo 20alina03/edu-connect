@@ -66,11 +66,15 @@ export interface BookingRow {
   id: string;
   student_id: string;
   subject: string;
+  notes?: string | null;
   start_at: string;
   duration_min: number;
   status: "pending" | "confirmed" | "completed" | "cancelled";
   mode: TeachingMode;
   price_usd: number;
+  meeting_link?: string | null;
+  attendance_status?: "present" | "absent" | "late" | null;
+  attendance_marked_at?: string | null;
 }
 
 export interface AvailabilityRow {
@@ -78,6 +82,7 @@ export interface AvailabilityRow {
   day_of_week: number;
   start_time: string;
   end_time: string;
+  available_date?: string | null;
 }
 
 export interface StudentSummary {
@@ -323,6 +328,11 @@ const TeacherDashboard = () => {
         <div className="td-loading-spinner" />
       </div>
     );
+                            {b.notes && (
+                              <div className="mt-1 text-[11px] text-muted-foreground max-w-[18rem] truncate">
+                                Topic: {b.notes}
+                              </div>
+                            )}
   }
 
   /* ── Shared props for modules ── */
@@ -386,6 +396,10 @@ const TeacherDashboard = () => {
         </nav>
 
         <div className="td-sidebar-footer">
+          <button className="td-sidebar-nav-item" onClick={() => navigate("/community") }>
+            <MessageSquare className="h-4 w-4 flex-shrink-0" />
+            <span className="text-sm">Community</span>
+          </button>
           <button className="td-sidebar-nav-item" onClick={() => navigate("/settings")}>
             <Settings className="h-4 w-4 flex-shrink-0" />
             <span className="text-sm">Settings</span>
@@ -699,6 +713,7 @@ const DashboardHome = ({
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <div className="td-booking-subject">{b.subject}</div>
+                        {b.notes && <div className="mt-1 text-xs text-muted-foreground">Topic: {b.notes}</div>}
                         <div className="text-xs text-muted-foreground flex flex-wrap gap-2 mt-1">
                           <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" /> {format(new Date(b.start_at), "PPp")}</span>
                           <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {b.duration_min} min</span>

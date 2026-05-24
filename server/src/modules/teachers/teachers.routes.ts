@@ -1,12 +1,27 @@
 import { Router } from "express";
 import { z } from "zod";
-import { supabaseAdmin } from "../../lib/supabase.js";
+import { supabaseAdmin, supabaseAnon } from "../../lib/supabase.js";
 import { requireAuth, requireRole } from "../../middleware/auth.js";
 import { validate } from "../../middleware/validate.js";
 import { asyncHandler } from "../../lib/asyncHandler.js";
 import { notFound, badRequest } from "../../lib/http-error.js";
 
 export const teachersRouter = Router();
+
+const isMissingColumnError = (error: { message?: string } | null | undefined, column: string) =>
+  Boolean(error?.message?.toLowerCase().includes(`column \"${column}\" does not exist`) || error?.message?.toLowerCase().includes(column.toLowerCase()));
+
+const ISLAMIC_SUBJECTS = new Set(["Quran", "Tajweed", "Hifz", "Noorani Qaida", "Arabic", "Islamic Studies"]);
+
+const inferTeacherPortals = (subjects: string[] | null | undefined) => {
+  const subjectList = subjects ?? [];
+  const hasIslamic = subjectList.some((subject) => ISLAMIC_SUBJECTS.has(subject));
+  const hasSchool = subjectList.some((subject) => !ISLAMIC_SUBJECTS.has(subject));
+  const portals: Array<"islamic" | "school"> = [];
+  if (hasIslamic) portals.push("islamic");
+  if (hasSchool || portals.length === 0) portals.push("school");
+  return portals;
+};
 
 const ListQuery = z.object({
   subject: z.string().optional(),
@@ -63,12 +78,93 @@ teachersRouter.get(
       .maybeSingle();
     if (error) throw badRequest(error.message);
     if (!data) throw notFound("Teacher not found");
+    const { data: availabilityWithDates, error: availabilityError } = await supabaseAdmin
+      .from("availability")
+      .select("id, day_of_week, start_time, end_time, available_date")
+      .eq("teacher_id", id)
+      .order("available_date", { ascending: true, nullsFirst: false })
+      .order("day_of_week", { ascending: true })
+      .order("start_time", { ascending: true });
+    const availability = availabilityError && isMissingColumnError(availabilityError, "available_date")
+      ? await supabaseAdmin
+          .from("availability")
+          .select("id, day_of_week, start_time, end_time")
+          .eq("teacher_id", id)
+          .order("day_of_week", { ascending: true })
+          .order("start_time", { ascending: true })
+      : { data: availabilityWithDates, error: availabilityError };
+
+    if (availability.error) throw badRequest(availability.error.message);
+
+    const { data: bookings, error: bookingError } = await supabaseAdmin
+      .from("bookings")
+      .select("start_at, duration_min, status")
+      .eq("teacher_id", id)
+      .neq("status", "cancelled")
+      .order("start_at", { ascending: true });
+    if (bookingError) throw badRequest(bookingError.message);
+
+    const { data: lessonRows, error: lessonError } = await supabaseAdmin
+      .from("teacher_lessons")
+      .select("id, teacher_id, lesson_type, title, subject, drive_url, description, created_at")
+      .eq("teacher_id", id)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false });
+    if (lessonError) throw badRequest(lessonError.message);
+
+    const lessonStudentRows = lessonRows?.length
+      ? await supabaseAdmin.from("teacher_lesson_students").select("lesson_id, student_id").in("lesson_id", lessonRows.map((lesson) => lesson.id))
+      : { data: [], error: null };
+    if (lessonStudentRows.error) throw badRequest(lessonStudentRows.error.message);
+
+    const header = req.headers.authorization;
+    const viewer = header?.startsWith("Bearer ") ? await supabaseAnon.auth.getUser(header.slice(7)).then(({ data, error }) => (error || !data.user ? null : data.user)) : null;
+    const hasNoteAccess = Boolean(viewer && (viewer.id === id || (await supabaseAdmin.from("bookings").select("id").eq("student_id", viewer.id).eq("teacher_id", id).neq("status", "cancelled").limit(1)).data?.length));
+
+    const lessonStudents = lessonStudentRows.data ?? [];
+    const templateLessons = (lessonRows ?? [])
+      .filter((lesson) => lesson.lesson_type === "template")
+      .map((lesson) => ({
+        id: lesson.id,
+        title: lesson.title,
+        subject: lesson.subject ?? null,
+        driveUrl: lesson.drive_url,
+        description: lesson.description ?? "",
+        assignedStudents: lessonStudents.filter((row) => row.lesson_id === lesson.id).map((row) => row.student_id),
+        createdAt: lesson.created_at,
+      }));
+
+    const lessonNotes = hasNoteAccess
+      ? (lessonRows ?? [])
+          .filter((lesson) => lesson.lesson_type === "note")
+          .map((lesson) => ({
+            id: lesson.id,
+            title: lesson.title,
+            subject: lesson.subject ?? null,
+            driveUrl: lesson.drive_url,
+            description: lesson.description ?? "",
+            assignedStudents: lessonStudents.filter((row) => row.lesson_id === lesson.id).map((row) => row.student_id),
+            createdAt: lesson.created_at,
+          }))
+      : [];
+
     const { data: profile } = await supabaseAdmin
       .from("profiles")
       .select("id, full_name, avatar_url, phone")
       .eq("id", id)
       .maybeSingle();
-    res.json({ teacher: { ...data, profile: profile ?? null } });
+    res.json({
+      teacher: {
+        ...data,
+        profile: profile ?? null,
+        availability: (availability.data ?? []).map((slot) => ({ ...slot, available_date: (slot as Record<string, unknown>).available_date ?? null })),
+        booked_slots: bookings ?? [],
+        lesson_notes: lessonNotes,
+        template_lessons: templateLessons,
+        note_access: hasNoteAccess,
+        portals: inferTeacherPortals(data.subjects),
+      },
+    });
   }),
 );
 

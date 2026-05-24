@@ -25,6 +25,7 @@ import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Bookings from "./pages/Bookings";
 import StudentReports from "./pages/StudentReports/StudentReports";
+import Community from "./pages/Community/Community";
 import About from "./pages/marketing/About";
 import HowItWorks from "./pages/marketing/HowItWorks";
 import Pricing from "./pages/marketing/Pricing";
@@ -111,6 +112,7 @@ const App = () => (
             <Route path="/teacher/onboarding" element={<ProtectedRoute requireRole="teacher"><TeacherOnboarding /></ProtectedRoute>} />
             <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/messages/:userId" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+            <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
             <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />

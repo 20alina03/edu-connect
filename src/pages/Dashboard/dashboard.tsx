@@ -22,13 +22,27 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
-import { teachers as mockTeachers } from "@/data/teachers";
 import { cn } from "@/lib/utils";
+import { teachersApi } from "@/lib/api/teachers";
+import { studentsApi, type StudentAssignmentItem } from "@/lib/api/students";
 import { studentNavSections } from "@/components/studentNavigation";
+import { notificationsApi } from "@/lib/api/notifications";
 
 interface Booking {
   id: string; subject: string; start_at: string; duration_min: number;
   status: string; price_usd: number; teacher_id: string; student_id: string;
+  meeting_link?: string | null;
+}
+
+interface RecommendedTeacher {
+  id: string;
+  name: string;
+  initials: string;
+  portal: "islamic" | "school";
+  tagline: string;
+  rate: number;
+  rating: number;
+  bio: string;
 }
 
 const Dashboard = () => {
@@ -39,6 +53,9 @@ const Dashboard = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [profileName, setProfileName] = useState("");
   const [stats, setStats] = useState({ upcoming: 0, total: 0, completed: 0, earnings: 0 });
+  const [recommendedTeachers, setRecommendedTeachers] = useState<RecommendedTeacher[]>([]);
+  const [assignments, setAssignments] = useState<StudentAssignmentItem[]>([]);
+  const [meetingLinks, setMeetingLinks] = useState<Record<string, string | null>>({});
 
   const isActive = (href: string) => location.pathname === href || location.pathname.startsWith(`${href}/`);
 
@@ -61,7 +78,120 @@ const Dashboard = () => {
       });
   }, [user, isTeacher]);
 
+  useEffect(() => {
+    if (isTeacher) return;
+
+    teachersApi.list().then(({ teachers }) => {
+      const mapped = teachers
+        .map((teacher) => {
+          const name = teacher.profile?.full_name ?? "Teacher";
+          const portal = teacher.subjects?.some((subject) => ["Quran", "Tajweed", "Hifz", "Noorani Qaida", "Arabic", "Islamic Studies"].includes(subject)) ? "islamic" : "school";
+
+          return {
+            id: teacher.user_id,
+            name,
+            initials: name.split(" ").map((word) => word[0]).join("").slice(0, 2).toUpperCase(),
+            portal,
+            tagline: `${teacher.subjects?.join(", ") || "General tutoring"} · ${teacher.experience_years ?? 0} yrs`,
+            rate: Number(teacher.hourly_rate_usd) || 0,
+            rating: Number(teacher.rating) || 0,
+            bio: teacher.bio || "",
+          } as RecommendedTeacher;
+        })
+        .sort((a, b) => b.rating - a.rating)
+        .slice(0, 3);
+
+      setRecommendedTeachers(mapped);
+    }).catch(() => setRecommendedTeachers([]));
+  }, [isTeacher]);
+
+  useEffect(() => {
+    if (isTeacher) return;
+
+    studentsApi.getAssignments()
+      .then(({ assignments: nextAssignments }) => setAssignments(nextAssignments ?? []))
+      .catch(() => setAssignments([]));
+  }, [isTeacher]);
+
   const upcomingList = bookings.filter((b) => new Date(b.start_at) >= new Date() && b.status !== "cancelled").slice(0, 5);
+  const upcomingAssignments = assignments.filter((assignment) => assignment.status === "upcoming").slice(0, 3);
+  const getMeetingLink = (bookingId: string) => meetingLinks[bookingId] ?? null;
+
+  useEffect(() => {
+    if (!user) return;
+
+    let active = true;
+
+    const hydrateLinks = async () => {
+      const { notifications } = await notificationsApi.list();
+      if (!active) return;
+
+      const next: Record<string, string | null> = {};
+      notifications
+        .filter((n) => n.type === "meeting_link")
+        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+        .forEach((n) => {
+          const bookingId = typeof n.data.booking_id === "string" ? n.data.booking_id : null;
+          if (!bookingId) return;
+          const link = typeof n.data.meeting_link === "string" ? n.data.meeting_link.trim() : "";
+          if (link) next[bookingId] = link;
+          else delete next[bookingId];
+        });
+
+      setMeetingLinks(next);
+    };
+
+    void hydrateLinks();
+
+    const channel = supabase
+      .channel(`meeting-links-dashboard-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          const row = payload.new as { type?: string; data?: Record<string, unknown> };
+          if (row.type !== "meeting_link") return;
+          const bookingId = typeof row.data?.booking_id === "string" ? row.data.booking_id : null;
+          const link = typeof row.data?.meeting_link === "string" ? row.data.meeting_link.trim() : "";
+          if (!bookingId) return;
+          setMeetingLinks((prev) => ({ ...prev, [bookingId]: link || null }));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      active = false;
+      void supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel(`bookings-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "bookings", filter: isTeacher ? `teacher_id=eq.${user.id}` : `student_id=eq.${user.id}` },
+        () => {
+          const col = isTeacher ? "teacher_id" : "student_id";
+          supabase.from("bookings").select("*").eq(col, user.id)
+            .order("start_at", { ascending: true })
+            .then(({ data }) => {
+              const all = data ?? [];
+              setBookings(all);
+              const now = new Date();
+              const upcoming = all.filter((b) => new Date(b.start_at) >= now && b.status !== "cancelled").length;
+              const completed = all.filter((b) => b.status === "completed").length;
+              const earnings = isTeacher ? all.filter((b) => b.status === "completed").reduce((s, b) => s + Number(b.price_usd), 0) : 0;
+              setStats({ upcoming, total: all.length, completed, earnings });
+            });
+        }
+      )
+      .subscribe();
+
+    return () => { void supabase.removeChannel(channel); };
+  }, [user, isTeacher]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -208,6 +338,42 @@ const Dashboard = () => {
               ))}
             </section>
 
+            {!isTeacher && (
+              <section className="rounded-3xl border border-border bg-card/90 p-5 sm:p-6 shadow-sm space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-bold">Assignments</div>
+                    <h3 className="font-display font-bold text-lg mt-1">What your teachers assigned</h3>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => navigate("/assignments")} className="rounded-full">
+                    Open assignments
+                  </Button>
+                </div>
+
+                {upcomingAssignments.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-4 text-sm text-muted-foreground">
+                    No active assignments right now. New teacher assignments will appear here.
+                  </div>
+                ) : (
+                  <div className="grid gap-3 md:grid-cols-3">
+                    {upcomingAssignments.map((assignment) => (
+                      <div key={assignment.id} className="rounded-2xl border border-border bg-background/70 p-4 space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">{assignment.teacher}</div>
+                          <div className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full border", assignment.portal === "islamic" ? "bg-primary/10 text-primary border-primary/20" : "bg-blue-500/10 text-blue-600 border-blue-500/20")}>{assignment.portal}</div>
+                        </div>
+                        <h4 className="font-semibold line-clamp-2">{assignment.title}</h4>
+                        <p className="text-sm text-muted-foreground line-clamp-2">{assignment.note}</p>
+                        <div className="text-xs text-muted-foreground">
+                          Due {format(new Date(assignment.dueAt), "PPP")}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
+
             {isTeacher && (
               <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
                 <div>
@@ -255,6 +421,11 @@ const Dashboard = () => {
                         </div>
                         <div className="text-xs sm:text-sm text-right flex-shrink-0">
                           <div className="font-semibold">{format(new Date(b.start_at), "PPp")}</div>
+                              {getMeetingLink(b.id) && (
+                                <a href={getMeetingLink(b.id) ?? undefined} target="_blank" rel="noreferrer" className="text-primary text-[11px] font-semibold underline underline-offset-2 block mt-1">
+                              Join meet
+                            </a>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -271,17 +442,17 @@ const Dashboard = () => {
                     </Link>
                   </div>
                   <div className="grid grid-cols-1 gap-3 sm:gap-4">
-                    {mockTeachers.slice(0, 3).map((t) => (
-                      <Link key={t.id} to={`/teachers/${t.id}`}
+                      {recommendedTeachers.map((t) => (
+                        <Link key={t.id} to={`/teachers/${t.id}`}
                         className="rounded-2xl border border-border bg-card p-4 shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-200">
                         <div className="flex items-center gap-3 mb-3">
                           <div className="w-11 h-11 rounded-2xl bg-primary/10 text-primary font-bold flex items-center justify-center text-xs sm:text-sm flex-shrink-0">
-                            {t.initials}
+                              {t.initials}
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="font-semibold text-sm truncate">{t.name}</div>
                             <div className="text-xs text-accent flex items-center gap-1">
-                              <Star className="w-3 h-3 fill-accent" /> {t.rating}
+                                <Star className="w-3 h-3 fill-accent" /> {t.rating}
                             </div>
                           </div>
                         </div>

@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef } from "react";
-import { format } from "date-fns";
+import { addDays, format } from "date-fns";
 import {
   FileText, Plus, Upload, X, Send, Star, CheckCircle,
-  Eye, ChevronDown, ChevronUp, Paperclip, Users, Loader2,
+  Eye, ChevronDown, ChevronUp, Paperclip, Users, Loader2, Clock3,
   Award, MessageSquare, Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,7 @@ interface Assessment {
   fileName: string | null;
   fileType: "pdf" | "image" | null;
   createdAt: string;
+  dueAt: string;
   assignedStudents: string[];
   solutions: Solution[];
 }
@@ -58,6 +59,7 @@ const toAssessmentCard = (item: TeacherAssessmentItem): Assessment => ({
   fileName: item.fileName ?? null,
   fileType: item.fileType ?? null,
   createdAt: item.createdAt ?? new Date().toISOString(),
+  dueAt: item.dueAt ?? new Date(Date.now() + (7 * 86400000)).toISOString(),
   assignedStudents: item.assignedStudents ?? [],
   solutions: (item.solutions ?? []).map((solution) => ({
     id: solution.id ?? crypto.randomUUID(),
@@ -81,6 +83,7 @@ const toStoredAssessment = (item: Assessment): TeacherAssessmentItem => ({
   fileName: item.fileName,
   fileType: item.fileType,
   createdAt: item.createdAt,
+  dueAt: item.dueAt,
   assignedStudents: item.assignedStudents,
   solutions: item.solutions.map((solution) => ({
     id: solution.id,
@@ -112,6 +115,7 @@ export const AssessmentsModule = ({
   const [formDesc, setFormDesc]           = useState("");
   const [formFile, setFormFile]           = useState<File | null>(null);
   const [formStudents, setFormStudents]   = useState<string[]>([]);
+  const [formDueAt, setFormDueAt]         = useState(format(addDays(new Date(), 7), "yyyy-MM-dd'T'HH:mm"));
   const [submitting, setSubmitting]       = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -182,6 +186,7 @@ export const AssessmentsModule = ({
         fileName,
         fileType,
         createdAt: new Date().toISOString(),
+        dueAt: new Date(formDueAt).toISOString(),
         assignedStudents: formStudents,
         solutions: [],
       };
@@ -191,7 +196,7 @@ export const AssessmentsModule = ({
         : [newAssessment, ...assessments];
       setAssessments(nextAssessments);
       setShowForm(false);
-      setFormTitle(""); setFormDesc(""); setFormFile(null); setFormStudents([]);
+      setFormTitle(""); setFormDesc(""); setFormFile(null); setFormStudents([]); setFormDueAt(format(addDays(new Date(), 7), "yyyy-MM-dd'T'HH:mm"));
       setEditingAssessmentId(null);
       void persistAssessments(nextAssessments);
       toast.success(editingAssessmentId ? "Assessment updated" : "Assessment created & assigned!");
@@ -214,6 +219,7 @@ export const AssessmentsModule = ({
     setFormTitle(assessment.title);
     setFormDesc(assessment.description);
     setFormStudents(assessment.assignedStudents);
+    setFormDueAt(format(new Date(assessment.dueAt), "yyyy-MM-dd'T'HH:mm"));
     setShowForm(true);
     setFormFile(null);
   };
@@ -291,6 +297,10 @@ export const AssessmentsModule = ({
               <Label>Description</Label>
               <Textarea rows={3} value={formDesc} onChange={(e) => setFormDesc(e.target.value)}
                 placeholder="Explain what this assessment covers, instructions, deadline, etc." />
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>Due date *</Label>
+              <Input type="datetime-local" value={formDueAt} onChange={(e) => setFormDueAt(e.target.value)} />
             </div>
           </div>
 
@@ -388,6 +398,7 @@ export const AssessmentsModule = ({
                       <span className="inline-flex items-center gap-1"><FileText className="h-3 w-3" /> {a.solutions.length} solutions</span>
                       {pendingCount > 0 && <span className="text-amber-600 font-semibold">{pendingCount} pending</span>}
                       <span>{format(new Date(a.createdAt), "PP")}</span>
+                      <span className="inline-flex items-center gap-1"><Clock3 className="h-3 w-3" /> Due {format(new Date(a.dueAt), "PP p")}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-1">

@@ -5,12 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Clock, Star } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { bookingsApi, type Booking } from "@/lib/api/bookings";
 import { reviewsApi } from "@/lib/api/reviews";
+import { notificationsApi } from "@/lib/api/notifications";
 
 const Bookings = () => {
   const { user, role } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [meetingLinks, setMeetingLinks] = useState<Record<string, string | null>>({});
   const [reviewing, setReviewing] = useState<string | null>(null);
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
@@ -27,6 +30,69 @@ const Bookings = () => {
 
   useEffect(() => { load(); }, [user, role]);
 
+  useEffect(() => {
+    if (!user) return;
+
+    let active = true;
+
+    const hydrateLinks = async () => {
+      const { notifications } = await notificationsApi.list();
+      if (!active) return;
+
+      const next: Record<string, string | null> = {};
+      notifications
+        .filter((n) => n.type === "meeting_link")
+        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+        .forEach((n) => {
+          const bookingId = typeof n.data.booking_id === "string" ? n.data.booking_id : null;
+          if (!bookingId) return;
+          const link = typeof n.data.meeting_link === "string" ? n.data.meeting_link.trim() : "";
+          if (link) next[bookingId] = link;
+          else delete next[bookingId];
+        });
+
+      setMeetingLinks(next);
+    };
+
+    void hydrateLinks();
+
+    const channel = supabase
+      .channel(`meeting-links-bookings-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          const row = payload.new as { type?: string; data?: Record<string, unknown> };
+          if (row.type !== "meeting_link") return;
+          const bookingId = typeof row.data?.booking_id === "string" ? row.data.booking_id : null;
+          const link = typeof row.data?.meeting_link === "string" ? row.data.meeting_link.trim() : "";
+          if (!bookingId) return;
+          setMeetingLinks((prev) => ({ ...prev, [bookingId]: link || null }));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      active = false;
+      void supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel(`bookings-page-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "bookings", filter: role === "teacher" ? `teacher_id=eq.${user.id}` : `student_id=eq.${user.id}` },
+        () => { void load(); }
+      )
+      .subscribe();
+
+    return () => { void supabase.removeChannel(channel); };
+  }, [user, role]);
+
   const updateStatus = async (id: string, status: Booking["status"]) => {
     try {
       await bookingsApi.setStatus(id, status);
@@ -42,6 +108,18 @@ const Bookings = () => {
       setReviewing(null);
       setComment("");
     } catch (e: any) { toast.error(e.message); }
+  };
+
+  const getMeetingLink = (bookingId: string) => meetingLinks[bookingId] ?? null;
+  const attendanceLabel = (status: Booking["attendance_status"]) => {
+    if (!status) return "Pending";
+    return status.charAt(0).toUpperCase() + status.slice(1);
+  };
+  const attendanceBadgeClass = (status: Booking["attendance_status"]) => {
+    if (status === "present") return "bg-green-500/10 text-green-600";
+    if (status === "late") return "bg-amber-500/10 text-amber-600";
+    if (status === "absent") return "bg-red-500/10 text-red-600";
+    return "bg-muted text-muted-foreground";
   };
 
   return (
@@ -73,6 +151,18 @@ const Bookings = () => {
                     }`}>{b.status}</span>
                     <span className="font-semibold text-sm">${b.price_usd}</span>
                   </div>
+                </div>
+
+                {getMeetingLink(b.id) && (
+                  <a href={getMeetingLink(b.id) ?? undefined} target="_blank" rel="noreferrer" className="mt-3 flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm font-medium text-primary hover:bg-primary/10 transition-colors">
+                    <Calendar className="w-4 h-4" />
+                    Join meet
+                  </a>
+                )}
+
+                <div className={"mt-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold " + attendanceBadgeClass(b.attendance_status)}>
+                    <span>Attendance:</span>
+                  <span>{attendanceLabel(b.attendance_status)}</span>
                 </div>
 
                 {role === "teacher" && b.status === "pending" && (

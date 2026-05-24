@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { PortalNav } from "@/components/PortalNav/PortalNav";
 import { TeacherCard } from "@/components/TeacherCard/TeacherCard";
-import { teachers as mockTeachers, Portal, Teacher } from "@/data/teachers";
+import { Portal, Teacher } from "@/data/teachers";
 import { Search, X } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
@@ -56,7 +56,7 @@ const TeachersList = ({ portal }: { portal: Portal }) => {
   const toggleSubject = (s: string) =>
     setSubjects(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
 
-  const all = useMemo(() => [...dbTeachers, ...mockTeachers], [dbTeachers]);
+  const all = useMemo(() => [...dbTeachers], [dbTeachers]);
 
   const filtered = useMemo(() => {
     return all.filter(t => {

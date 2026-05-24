@@ -137,10 +137,9 @@ const Index = () => {
           </Link>
         </div>
 
-        <Link to="/family" className="index-family-link hover:bg-white/10 hover:text-white">
-          <Users className="w-4 h-4"/> Family account — manage both portals for all your children
-          <ArrowRight className="w-3.5 h-3.5"/>
-        </Link>
+        <div className="index-family-link hover:bg-white/10 hover:text-white" role="note" aria-label="Manage both portals">
+          <Users className="w-4 h-4"/>  manage both portals 
+        </div>
       </main>
 
       <footer className="index-footer">
