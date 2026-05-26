@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { PortalNav } from "@/components/PortalNav/PortalNav";
+import { PageBackButton } from "@/components/PageBackButton";
 import { TeacherCard } from "@/components/TeacherCard/TeacherCard";
 import { Portal, Teacher } from "@/data/teachers";
 import { Search, X } from "lucide-react";
@@ -82,6 +83,9 @@ const TeachersList = ({ portal }: { portal: Portal }) => {
 
       <div className={cn("teachers-list-search", isIslamic ? "bg-forest" : "bg-navy") }>
         <div className="teachers-list-search-inner">
+          <div className="px-3 sm:px-4 py-3">
+            <PageBackButton />
+          </div>
           <div className="teachers-list-searchbar">
             <Search className="w-4 h-4 text-white/40"/>
             <input value={query} onChange={e => setQuery(e.target.value)}

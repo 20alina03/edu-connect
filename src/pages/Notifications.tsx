@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
+import { PageBackButton } from "@/components/PageBackButton";
 import { Bell, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
@@ -43,6 +44,7 @@ const Notifications = () => {
           {items.some((i) => !i.read_at) && (
             <Button variant="ghost" size="sm" onClick={markAllRead} className="text-xs sm:text-sm">Mark all read</Button>
           )}
+          <PageBackButton />
         </div>
         {items.length === 0 ? (
           <div className="text-center py-12 sm:py-16 text-muted-foreground">

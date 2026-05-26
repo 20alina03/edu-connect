@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
+import { PageBackButton } from "@/components/PageBackButton";
 import { Send, MessageSquare } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -154,7 +155,10 @@ const Messages = () => {
           ) : other ? (
             <>
               <div className="px-3 sm:px-4 py-2 sm:py-3 border-b border-border font-semibold text-sm sm:text-base flex items-center justify-between">
-                {other.full_name || "User"}
+                <div className="flex items-center gap-3">
+                  <PageBackButton />
+                  <div>{other.full_name || "User"}</div>
+                </div>
                 <Link to="/messages" className="md:hidden text-xs text-muted-foreground hover:text-foreground">Back</Link>
               </div>
               <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-2">

@@ -73,9 +73,9 @@ const TeacherProfilePatchSchema = z.object({
 });
 
 const PortfolioSchema = z.object({
-  lesson_notes: z.array(LessonItemSchema).default([]),
-  template_lessons: z.array(LessonItemSchema).default([]),
-  assessments: z.array(AssessmentItemSchema).default([]),
+  lesson_notes: z.array(LessonItemSchema).optional(),
+  template_lessons: z.array(LessonItemSchema).optional(),
+  assessments: z.array(AssessmentItemSchema).optional(),
 });
 
 const toISO = (value?: string) => value ?? new Date().toISOString();
@@ -568,8 +568,12 @@ teacherDashboardRouter.put(
   validate({ body: PortfolioSchema }),
   asyncHandler(async (req, res) => {
     const body = req.body as z.infer<typeof PortfolioSchema>;
-    await replaceLessons(req.user!.id, body.lesson_notes ?? [], body.template_lessons ?? []);
-    await replaceAssessments(req.user!.id, body.assessments ?? []);
+    if (body.lesson_notes !== undefined || body.template_lessons !== undefined) {
+      await replaceLessons(req.user!.id, body.lesson_notes ?? [], body.template_lessons ?? []);
+    }
+    if (body.assessments !== undefined) {
+      await replaceAssessments(req.user!.id, body.assessments);
+    }
     const refreshed = await getTeacher(req.user!.id);
     res.json({ teacher: refreshed });
   }),

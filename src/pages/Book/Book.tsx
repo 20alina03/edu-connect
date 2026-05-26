@@ -7,6 +7,7 @@ import { profileApi } from "@/lib/api/profile";
 import { bookingsApi } from "@/lib/api/bookings";
 import { teachersApi, type TeacherAvailabilityItem, type TeacherProfile } from "@/lib/api/teachers";
 import { PortalNav } from "@/components/PortalNav/PortalNav";
+import { PageBackButton } from "@/components/PageBackButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -223,6 +224,9 @@ const Book = () => {
 
       <div className="book-body">
         <main>
+          <div className="mb-4">
+            <PageBackButton />
+          </div>
           <div className="book-steps">
             {["Schedule", "Details", "Confirm"].map((label, index) => {
               const num = index + 1;

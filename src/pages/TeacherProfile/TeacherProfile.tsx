@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { format } from "date-fns";
 import { ArrowRight, Calendar, Home as HomeIcon, MapPin, MessageCircle, ShieldCheck, Star, Wifi, BookOpen, Lock, Send } from "lucide-react";
 import { PortalNav } from "@/components/PortalNav/PortalNav";
+import { PageBackButton } from "@/components/PageBackButton";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
@@ -111,8 +112,11 @@ const TeacherProfilePage = () => {
 
       <header className={cn("teacher-profile-header", isIslamic ? "bg-forest" : "bg-navy")}>
         <div className="teacher-profile-header-inner">
-          <div className={cn("teacher-profile-avatar", isIslamic ? "bg-primary-light text-primary-dark" : "bg-secondary-bg text-secondary") }>
-            {teacherName.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase()}
+          <div className="flex items-center gap-3">
+            <PageBackButton />
+            <div className={cn("teacher-profile-avatar", isIslamic ? "bg-primary-light text-primary-dark" : "bg-secondary-bg text-secondary") }>
+              {teacherName.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase()}
+            </div>
           </div>
           <div className="flex-1 text-white">
             <h1 className="font-display font-extrabold text-2xl sm:text-3xl lg:text-4xl mb-1 sm:mb-2">{teacherName}</h1>

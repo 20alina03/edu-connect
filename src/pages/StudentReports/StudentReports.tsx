@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppHeader } from "@/components/AppHeader";
+import { PageBackButton } from "@/components/PageBackButton";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +18,8 @@ import {
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import "./student-reports.css";
+import { studentsApi } from "@/lib/api/students";
+import { reviewsApi } from "@/lib/api/reviews";
 
 /* ─── Types ─── */
 interface BookingReport {
@@ -174,6 +177,34 @@ const ContactModal = ({
           Tapping WhatsApp will open a pre-filled message to the teacher
         </p>
       </div>
+      {/* Rating modal */}
+      {ratingBookingId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setRatingBookingId(null)} />
+          <div className="relative bg-card border border-border rounded-xl p-4 w-full max-w-md">
+            <h3 className="font-bold mb-2">Rate your teacher</h3>
+            <div className="flex items-center gap-2 mb-3">
+              {[5,4,3,2,1].map((v) => (
+                <button key={v} onClick={() => setRatingValue(v)} className={cn("text-2xl", ratingValue >= v ? "text-yellow-400" : "text-muted-foreground")}>★</button>
+              ))}
+            </div>
+            <textarea value={ratingComment} onChange={(e) => setRatingComment(e.target.value)} className="w-full border border-border rounded-lg p-2 mb-3" placeholder="Optional comment" />
+            <div className="flex items-center justify-end gap-2">
+              <Button variant="outline" onClick={() => setRatingBookingId(null)}>Cancel</Button>
+              <Button onClick={async () => {
+                try {
+                  await reviewsApi.create({ booking_id: ratingBookingId!, rating: ratingValue, comment: ratingComment || undefined });
+                  setBookings((cur) => cur.map((b) => b.id === ratingBookingId ? { ...b, rating: ratingValue } : b));
+                  setRatingBookingId(null);
+                  setRatingComment("");
+                } catch (err) {
+                  console.error(err);
+                }
+              }}>Submit</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -237,6 +268,9 @@ const StudentReports = () => {
   const [bookings, setBookings] = useState<BookingReport[]>([]);
   const [portalStats, setPortalStats] = useState<PortalStats[]>([]);
   const [assessments, setAssessments] = useState<Assessment[]>([]);
+  const [ratingBookingId, setRatingBookingId] = useState<string | null>(null);
+  const [ratingValue, setRatingValue] = useState<number>(5);
+  const [ratingComment, setRatingComment] = useState<string>("");
   const [progressFilter, setProgressFilter] = useState<ProgressFilter>("monthly");
   const [contactTeacher, setContactTeacher] = useState<TeacherContact | null>(null);
   const [assessmentPortalFilter, setAssessmentPortalFilter] = useState<"all" | "islamic" | "school">("all");
@@ -441,10 +475,13 @@ const StudentReports = () => {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-8 space-y-6">
 
         {/* ── Header ── */}
-        <div>
-          <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Reports</div>
-          <h1 className="text-2xl sm:text-3xl font-bold font-display mb-1">Learning Progress & Reports</h1>
-          <p className="text-sm text-muted-foreground">Track your performance across Islamic and School portals</p>
+        <div className="flex items-start justify-between gap-3 mb-4">
+          <div>
+            <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Reports</div>
+            <h1 className="text-2xl sm:text-3xl font-bold font-display mb-1">Learning Progress & Reports</h1>
+            <p className="text-sm text-muted-foreground">Track your performance across Islamic and School portals</p>
+          </div>
+          <PageBackButton />
         </div>
 
         {/* ── Overall Stats ── */}
@@ -1101,7 +1138,9 @@ const StudentReports = () => {
                       <td className="py-2 px-2 text-xs sm:text-sm">
                         {b.status === "completed" && b.rating
                           ? <span className="flex items-center gap-1"><Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />{b.rating}/5</span>
-                          : "—"}
+                          : b.status === "completed" ? (
+                            <Button size="sm" variant="outline" onClick={() => { setRatingBookingId(b.id); setRatingValue(5); setRatingComment(""); }}>Rate</Button>
+                          ) : "—"}
                       </td>
                     </tr>
                   ))}
@@ -1110,6 +1149,7 @@ const StudentReports = () => {
             </div>
           )}
         </Card>
+
       </div>
     </div>
   );

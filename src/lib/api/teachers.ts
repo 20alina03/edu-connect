@@ -121,5 +121,5 @@ export const teachersApi = {
   getAvailability: () => api.get<{ availability: TeacherAvailabilityItem[] }>(`/teachers/me/availability`),
   saveAvailability: (availability: TeacherAvailabilityItem[]) => api.put<{ availability: TeacherAvailabilityItem[] }>(`/teachers/me/availability`, { availability }),
   getPortfolio: () => api.get<{ lesson_notes: TeacherLessonItem[]; template_lessons: TeacherLessonItem[]; assessments: TeacherAssessmentItem[] }>(`/teachers/me/portfolio`),
-  savePortfolio: (data: { lesson_notes: TeacherLessonItem[]; template_lessons: TeacherLessonItem[]; assessments: TeacherAssessmentItem[] }) => api.put<{ teacher: TeacherProfile }>(`/teachers/me/portfolio`, data),
+  savePortfolio: (data: { lesson_notes?: TeacherLessonItem[]; template_lessons?: TeacherLessonItem[]; assessments?: TeacherAssessmentItem[] }) => api.put<{ teacher: TeacherProfile }>(`/teachers/me/portfolio`, data),
 };

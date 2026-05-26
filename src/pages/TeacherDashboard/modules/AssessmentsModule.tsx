@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { teachersApi, TeacherAssessmentItem } from "@/lib/api/teachers";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { StudentProfile, StudentSummary, initials } from "../TeacherDashboard";
 
@@ -114,6 +115,9 @@ export const AssessmentsModule = ({
   const [formTitle, setFormTitle]         = useState("");
   const [formDesc, setFormDesc]           = useState("");
   const [formFile, setFormFile]           = useState<File | null>(null);
+  const [formExistingFileUrl, setFormExistingFileUrl] = useState<string | null>(null);
+  const [formExistingFileName, setFormExistingFileName] = useState<string | null>(null);
+  const [formExistingFileType, setFormExistingFileType] = useState<Assessment["fileType"]>(null);
   const [formStudents, setFormStudents]   = useState<string[]>([]);
   const [formDueAt, setFormDueAt]         = useState(format(addDays(new Date(), 7), "yyyy-MM-dd'T'HH:mm"));
   const [submitting, setSubmitting]       = useState(false);
@@ -170,12 +174,21 @@ export const AssessmentsModule = ({
       let fileType: Assessment["fileType"] = null;
 
       if (formFile) {
-        // In production: upload to supabase storage
-        // const { data } = await supabase.storage.from("assessments").upload(`${user.id}/${Date.now()}_${formFile.name}`, formFile);
-        // fileUrl = data?.path ?? null;
-        fileUrl  = URL.createObjectURL(formFile); // demo
+        const safeName = formFile.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const storagePath = `${user.id}/${Date.now()}_${safeName}`;
+        const { error: uploadError } = await supabase.storage.from("assessments").upload(storagePath, formFile, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+        if (uploadError) throw uploadError;
+        const { data } = supabase.storage.from("assessments").getPublicUrl(storagePath);
+        fileUrl = data.publicUrl;
         fileName = formFile.name;
         fileType = formFile.type === "application/pdf" ? "pdf" : "image";
+      } else if (editingAssessmentId) {
+        fileUrl = formExistingFileUrl;
+        fileName = formExistingFileName;
+        fileType = formExistingFileType;
       }
 
       const newAssessment: Assessment = {
@@ -197,6 +210,9 @@ export const AssessmentsModule = ({
       setAssessments(nextAssessments);
       setShowForm(false);
       setFormTitle(""); setFormDesc(""); setFormFile(null); setFormStudents([]); setFormDueAt(format(addDays(new Date(), 7), "yyyy-MM-dd'T'HH:mm"));
+      setFormExistingFileUrl(null);
+      setFormExistingFileName(null);
+      setFormExistingFileType(null);
       setEditingAssessmentId(null);
       void persistAssessments(nextAssessments);
       toast.success(editingAssessmentId ? "Assessment updated" : "Assessment created & assigned!");
@@ -222,6 +238,9 @@ export const AssessmentsModule = ({
     setFormDueAt(format(new Date(assessment.dueAt), "yyyy-MM-dd'T'HH:mm"));
     setShowForm(true);
     setFormFile(null);
+    setFormExistingFileUrl(assessment.fileUrl);
+    setFormExistingFileName(assessment.fileName);
+    setFormExistingFileType(assessment.fileType);
   };
 
   /* Simulate student solution upload (teacher-side demo) */
@@ -393,6 +412,14 @@ export const AssessmentsModule = ({
                       )}
                     </div>
                     {a.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{a.description}</p>}
+                    {a.fileUrl && (
+                      <div className="mt-2 flex items-center gap-2 text-xs">
+                        <span className="text-muted-foreground">Attachment:</span>
+                        <a href={a.fileUrl} target="_blank" rel="noreferrer" className="font-semibold text-primary hover:underline">
+                          {a.fileName || "Open file"}
+                        </a>
+                      </div>
+                    )}
                     <div className="flex flex-wrap gap-3 mt-2 text-xs text-muted-foreground">
                       <span className="inline-flex items-center gap-1"><Users className="h-3 w-3" /> {a.assignedStudents.length} assigned</span>
                       <span className="inline-flex items-center gap-1"><FileText className="h-3 w-3" /> {a.solutions.length} solutions</span>

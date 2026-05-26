@@ -41,6 +41,15 @@ reviewsRouter.post(
     if (booking.student_id !== req.user!.id) throw forbidden("Only the student can review");
     if (booking.status !== "completed") throw badRequest("Booking must be completed");
 
+    const { data: existing, error: existErr } = await supabaseAdmin
+      .from("reviews")
+      .select("id")
+      .eq("booking_id", booking.id)
+      .eq("student_id", req.user!.id)
+      .limit(1);
+    if (existErr) throw badRequest(existErr.message);
+    if (existing && existing.length > 0) throw badRequest("Booking already reviewed");
+
     const { data, error } = await supabaseAdmin
       .from("reviews")
       .insert({
@@ -53,6 +62,20 @@ reviewsRouter.post(
       .select()
       .single();
     if (error) throw badRequest(error.message);
+    // Recalculate teacher aggregate rating and total reviews
+    const { data: teacherReviews } = await supabaseAdmin
+      .from("reviews")
+      .select("rating")
+      .eq("teacher_id", booking.teacher_id);
+    const ratings = (teacherReviews ?? []).map((r: any) => Number(r.rating));
+    const total = ratings.length;
+    const avg = total > 0 ? Math.round((ratings.reduce((s: number, v: number) => s + v, 0) / total) * 10) / 10 : null;
+    const { error: updateError } = await supabaseAdmin
+      .from("teacher_profiles")
+      .update({ total_reviews: total, rating: avg })
+      .eq("user_id", booking.teacher_id);
+    if (updateError) console.warn("Failed to update teacher aggregates:", updateError.message);
+
     res.status(201).json({ review: data });
   }),
 );

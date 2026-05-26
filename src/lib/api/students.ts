@@ -18,6 +18,9 @@ export interface StudentAssignmentItem {
   maxScore: number;
   status: StudentAssignmentStatus;
   note: string;
+  fileUrl?: string | null;
+  fileName?: string | null;
+  fileType?: "pdf" | "image" | null;
 }
 
 export interface StudentResourceItem {
@@ -44,4 +47,6 @@ export interface StudentAssignmentsResponse {
 
 export const studentsApi = {
   getAssignments: () => api.get<StudentAssignmentsResponse>("/students/me/assignments"),
+  submitSolution: (assessmentId: string, data: { fileUrl: string; fileName: string }) =>
+    api.post<{ solution: { id: string } }>(`/students/me/assignments/${assessmentId}/solutions`, data),
 };

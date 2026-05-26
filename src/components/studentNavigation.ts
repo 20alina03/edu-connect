@@ -73,6 +73,12 @@ export const studentNavSections: StudentNavSection[] = [
         description: "Session tasks and follow-ups",
         badge: "New",
       },
+      {
+        label: "Notes",
+        href: "/notes",
+        icon: FileText,
+        description: "Teacher notes unlocked by sessions",
+      },
     ],
   },
   {

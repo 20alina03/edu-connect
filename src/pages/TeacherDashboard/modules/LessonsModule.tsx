@@ -101,21 +101,18 @@ export const LessonsModule = ({
   const [tplSubject, setTplSubject]         = useState("");
   const [tplDesc, setTplDesc]               = useState("");
   const [editingTplId, setEditingTplId]     = useState<string | null>(null);
-  const [portfolioAssessments, setPortfolioAssessments] = useState<any[]>([]);
 
   const persistLessons = async (nextNotes: TeacherLessonItem[], nextTemplates: TeacherLessonItem[]) => {
     await teachersApi.savePortfolio({
       lesson_notes: nextNotes,
       template_lessons: nextTemplates,
-      assessments: portfolioAssessments,
     });
   };
 
   useEffect(() => {
-    teachersApi.getPortfolio().then(({ lesson_notes, template_lessons, assessments }) => {
+    teachersApi.getPortfolio().then(({ lesson_notes, template_lessons }) => {
       setNotes((lesson_notes ?? []).map(toNoteCard));
       setTemplates((template_lessons ?? []).map(toTemplateCard));
-      setPortfolioAssessments(assessments ?? []);
     }).catch(() => {});
   }, []);
 

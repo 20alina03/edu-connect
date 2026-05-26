@@ -21,6 +21,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { studentsApi, type StudentAssignmentItem, type StudentResourceItem } from "@/lib/api/students";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 type AssignmentStatus = "upcoming" | "submitted" | "graded";
@@ -84,6 +85,10 @@ const AssignmentsPage = () => {
   const [lessonNotes, setLessonNotes] = useState<StudentResourceItem[]>([]);
   const [templateLessons, setTemplateLessons] = useState<StudentResourceItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const [submitAssignmentId, setSubmitAssignmentId] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -309,6 +314,14 @@ const AssignmentsPage = () => {
                             <p className="text-sm text-muted-foreground mt-1">{assignment.subject} · {assignment.teacher}</p>
                           </div>
                           <p className="text-sm text-foreground/90 leading-relaxed">{assignment.note}</p>
+                          {assignment.fileUrl && (
+                            <div className="flex flex-wrap items-center gap-2 text-xs">
+                              <span className="text-muted-foreground">Teacher file:</span>
+                              <a href={assignment.fileUrl} target="_blank" rel="noreferrer" className="font-semibold text-primary hover:underline">
+                                {assignment.fileName || (assignment.fileType ? `Open ${assignment.fileType}` : "Open file")}
+                              </a>
+                            </div>
+                          )}
                           <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                             <span className="inline-flex items-center gap-1.5"><CalendarClock className="w-3.5 h-3.5" /> Due {format(new Date(assignment.dueAt), "PPP p")}</span>
                             <span className="inline-flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5" /> Assigned {formatDistanceToNow(new Date(assignment.assignedAt), { addSuffix: true })}</span>
@@ -329,6 +342,9 @@ const AssignmentsPage = () => {
                             <Button size="sm" className="flex-1 rounded-full" asChild>
                               <a href="#resources">Review</a>
                             </Button>
+                            <Button size="sm" variant="outline" className="flex-1 rounded-full" onClick={() => setSubmitAssignmentId(assignment.id)} disabled={new Date() > new Date(assignment.dueAt)}>
+                              Submit
+                            </Button>
                             <Button size="sm" variant="outline" className="flex-1 rounded-full" asChild>
                               <Link to={`/messages/${assignment.teacherId}`}>Message</Link>
                             </Button>
@@ -339,6 +355,46 @@ const AssignmentsPage = () => {
                   );
                 })}
               </div>
+
+              {/* Submission modal */}
+              {submitAssignmentId && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                  <div className="absolute inset-0 bg-black/40" onClick={() => { if (!uploading) { setSubmitAssignmentId(null); setSelectedFile(null); } }} />
+                  <div className="relative bg-card border border-border rounded-xl p-4 w-full max-w-lg">
+                    <h3 className="font-bold mb-2">Submit assignment</h3>
+                    <p className="text-sm text-muted-foreground mb-3">Attach a PDF or image. Submissions are locked after the due date.</p>
+                    <input type="file" accept="application/pdf,image/*" onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)} />
+                    <div className="flex items-center justify-end gap-2 mt-4">
+                      <Button variant="outline" onClick={() => { if (!uploading) { setSubmitAssignmentId(null); setSelectedFile(null); } }}>Cancel</Button>
+                      <Button disabled={!selectedFile || uploading} onClick={async () => {
+                        if (!selectedFile || !user) return;
+                        setUploading(true);
+                        try {
+                          const assessmentId = submitAssignmentId;
+                          const safeName = selectedFile.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+                          const path = `${user.id}-${Date.now()}-${safeName}`;
+                          const { error: uploadErr } = await supabase.storage.from("solutions").upload(path, selectedFile, { cacheControl: "3600", upsert: false });
+                          if (uploadErr) throw uploadErr;
+                          const { data: publicData } = supabase.storage.from("solutions").getPublicUrl(path);
+                          const publicUrl = publicData.publicUrl;
+                          await studentsApi.submitSolution(assessmentId, { fileUrl: publicUrl, fileName: selectedFile.name });
+                          // refresh assignments
+                          const { assignments: nextAssignments, resources } = await studentsApi.getAssignments();
+                          setAssignments(nextAssignments ?? []);
+                          setLessonNotes(resources.lesson_notes ?? []);
+                          setTemplateLessons(resources.template_lessons ?? []);
+                          setSubmitAssignmentId(null);
+                          setSelectedFile(null);
+                        } catch (err) {
+                          console.error(err);
+                        } finally {
+                          setUploading(false);
+                        }
+                      }}>Upload & Submit</Button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-4">
                 <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
@@ -435,6 +491,11 @@ const AssignmentsPage = () => {
                         <h4 className="font-semibold text-sm sm:text-base">{assignment.title}</h4>
                         <p className="text-xs text-muted-foreground mt-1">{assignment.subject} · {assignment.teacher}</p>
                         <p className="text-xs text-muted-foreground mt-2">Submitted {assignment.submittedAt ? formatDistanceToNow(new Date(assignment.submittedAt), { addSuffix: true }) : "recently"}</p>
+                        {assignment.fileUrl && (
+                          <a href={assignment.fileUrl} target="_blank" rel="noreferrer" className="inline-flex text-xs font-semibold text-primary hover:underline mt-2">
+                            Open teacher file
+                          </a>
+                        )}
                       </div>
                       <div className="grid grid-cols-3 gap-2 sm:gap-3 w-full md:w-auto md:min-w-[260px]">
                         <div className="rounded-2xl bg-muted/40 border border-border p-3 text-center">

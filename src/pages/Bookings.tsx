@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppHeader } from "@/components/AppHeader";
+import { PageBackButton } from "@/components/PageBackButton";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, Star } from "lucide-react";
 import { format } from "date-fns";
@@ -126,7 +127,10 @@ const Bookings = () => {
     <div className="min-h-screen bg-background">
       <AppHeader />
       <div className="max-w-4xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
-        <h1 className="text-2xl sm:text-3xl font-bold font-display mb-4 sm:mb-6">My Bookings</h1>
+        <div className="flex items-start justify-between gap-3 mb-4">
+          <h1 className="text-2xl sm:text-3xl font-bold font-display">My Bookings</h1>
+          <PageBackButton />
+        </div>
         {bookings.length === 0 ? (
           <div className="text-center py-12 sm:py-16 text-muted-foreground text-sm">No bookings yet.</div>
         ) : (

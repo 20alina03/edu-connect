@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppHeader } from "@/components/AppHeader";
+import { PageBackButton } from "@/components/PageBackButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -37,8 +38,13 @@ const Profile = () => {
     <div className="min-h-screen bg-background">
       <AppHeader />
       <div className="max-w-2xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
-        <h1 className="text-2xl sm:text-3xl font-bold font-display mb-1 sm:mb-2">Your profile</h1>
-        <p className="text-muted-foreground mb-6 sm:mb-8 capitalize text-sm sm:text-base">Role: {role}</p>
+        <div className="flex items-start justify-between gap-3 mb-1 sm:mb-2">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold font-display">Your profile</h1>
+            <p className="text-muted-foreground capitalize text-sm sm:text-base">Role: {role}</p>
+          </div>
+          <PageBackButton />
+        </div>
 
         <div className="space-y-3 sm:space-y-4 bg-card border border-border rounded-lg sm:rounded-xl p-4 sm:p-6">
           <div>

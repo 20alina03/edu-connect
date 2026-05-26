@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { teachersApi } from "@/lib/api/teachers";
-import { studentsApi, type StudentAssignmentItem } from "@/lib/api/students";
+import { studentsApi, type StudentAssignmentItem, type StudentResourceItem } from "@/lib/api/students";
 import { studentNavSections } from "@/components/studentNavigation";
 import { notificationsApi } from "@/lib/api/notifications";
 
@@ -55,6 +55,7 @@ const Dashboard = () => {
   const [stats, setStats] = useState({ upcoming: 0, total: 0, completed: 0, earnings: 0 });
   const [recommendedTeachers, setRecommendedTeachers] = useState<RecommendedTeacher[]>([]);
   const [assignments, setAssignments] = useState<StudentAssignmentItem[]>([]);
+  const [lessonNotes, setLessonNotes] = useState<StudentResourceItem[]>([]);
   const [meetingLinks, setMeetingLinks] = useState<Record<string, string | null>>({});
 
   const isActive = (href: string) => location.pathname === href || location.pathname.startsWith(`${href}/`);
@@ -109,8 +110,14 @@ const Dashboard = () => {
     if (isTeacher) return;
 
     studentsApi.getAssignments()
-      .then(({ assignments: nextAssignments }) => setAssignments(nextAssignments ?? []))
-      .catch(() => setAssignments([]));
+      .then(({ assignments: nextAssignments, resources }) => {
+        setAssignments(nextAssignments ?? []);
+        setLessonNotes([...(resources.lesson_notes ?? []), ...(resources.template_lessons ?? [])]);
+      })
+      .catch(() => {
+        setAssignments([]);
+        setLessonNotes([]);
+      });
   }, [isTeacher]);
 
   const upcomingList = bookings.filter((b) => new Date(b.start_at) >= new Date() && b.status !== "cancelled").slice(0, 5);
@@ -367,6 +374,46 @@ const Dashboard = () => {
                         <div className="text-xs text-muted-foreground">
                           Due {format(new Date(assignment.dueAt), "PPP")}
                         </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
+
+            {!isTeacher && (
+              <section className="rounded-3xl border border-border bg-card/90 p-5 sm:p-6 shadow-sm space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-bold">Learning</div>
+                    <h3 className="font-display font-bold text-lg mt-1">Teacher notes</h3>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => navigate("/reports")} className="rounded-full">
+                    Open reports
+                  </Button>
+                </div>
+
+                {lessonNotes.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-4 text-sm text-muted-foreground">
+                    Book sessions first to unlock notes and handouts from your teachers.
+                  </div>
+                ) : (
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {lessonNotes.slice(0, 4).map((note) => (
+                      <div key={note.id} className="rounded-2xl border border-border bg-background/70 p-4 space-y-2">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <h4 className="font-semibold mt-1 line-clamp-2">{note.title}</h4>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">Teacher: {note.teacher}</span>
+                              <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-[11px] font-semibold text-foreground">Description: {note.description || "Teacher notes"}</span>
+                            </div>
+                          </div>
+                          <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full border", note.portal === "islamic" ? "bg-primary/10 text-primary border-primary/20" : "bg-blue-500/10 text-blue-600 border-blue-500/20")}>{note.portal}</span>
+                        </div>
+                        <a href={note.driveUrl} target="_blank" rel="noreferrer" className="inline-flex text-sm font-semibold text-primary hover:underline">
+                          Open file
+                        </a>
                       </div>
                     ))}
                   </div>
