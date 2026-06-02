@@ -15,9 +15,13 @@ This guide helps you set up Google OAuth for the Login and Sign-up pages.
 - Choose **Web application**
 - Add authorized JavaScript origins:
   - `http://localhost:5173` (for development)
+  - `https://ilmrise.com` (production)
+  - `https://www.ilmrise.com` (production)
   - `https://yourdomain.com` (for production)
 - Add authorized redirect URIs:
   - `http://localhost:5173/login` (for development)
+  - `https://ilmrise.com/login` (production)
+  - `https://www.ilmrise.com/login` (production)
   - `https://yourdomain.com/login` (for production)
 - Copy your **Client ID**
 
@@ -133,7 +137,7 @@ app.post('/api/auth/google', async (req, res) => {
 ## Testing
 
 1. Start your development server: `npm run dev`
-2. Navigate to http://localhost:5173/login
+2. Navigate to http://localhost:5173/login for local development, or https://ilmrise.com/login in production
 3. Click "Login with Google"
 4. Complete the Google authentication flow
 
