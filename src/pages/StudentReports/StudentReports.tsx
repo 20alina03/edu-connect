@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppHeader } from "@/components/AppHeader";
 import { PageBackButton } from "@/components/PageBackButton";
@@ -27,6 +27,7 @@ interface BookingReport {
   portal: "islamic" | "school";
   subject: string;
   teacher_name: string;
+  teacher_id?: string;
   teacher_phone?: string;
   start_at: string;
   duration_min: number;
@@ -55,6 +56,7 @@ interface Assessment {
   percentage: number;
   date: string;
   teacher_name: string;
+  teacher_id?: string;
   teacher_phone?: string;
   remarks?: string;
   status: "completed" | "pending" | "failed";
@@ -62,6 +64,7 @@ interface Assessment {
 
 interface TeacherContact {
   name: string;
+  teacherId?: string;
   phone?: string;
   subject: string;
   portal: "islamic" | "school";
@@ -109,7 +112,6 @@ const ContactModal = ({
   const waLink = `https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(
     `Assalamu Alaikum, I am your student. I wanted to discuss my progress in ${teacher.subject}.`
   )}`;
-  const callLink = `tel:+${phone.replace(/\D/g, "")}`;
 
   return (
     <div className="sr-modal-overlay" onClick={onClose}>
@@ -154,14 +156,25 @@ const ContactModal = ({
         </div>
 
         {/* Actions */}
-        <div className="grid grid-cols-2 gap-3">
-          <a
-            href={callLink}
-            className="flex items-center justify-center gap-2 bg-primary text-white font-semibold text-sm py-3 rounded-xl hover:bg-primary/90 transition-colors"
-          >
-            <Phone className="w-4 h-4" />
-            Call Now
-          </a>
+        <div className={cn("grid gap-3", teacher.teacherId ? "grid-cols-2" : "grid-cols-1") }>
+          {teacher.teacherId ? (
+            <Link
+              to={`/messages/${teacher.teacherId}`}
+              className="flex items-center justify-center gap-2 bg-primary text-white font-semibold text-sm py-3 rounded-xl hover:bg-primary/90 transition-colors"
+            >
+              <MessageCircle className="w-4 h-4" />
+              Message Teacher
+            </Link>
+          ) : (
+            <button
+              type="button"
+              disabled
+              className="flex items-center justify-center gap-2 bg-muted text-muted-foreground font-semibold text-sm py-3 rounded-xl cursor-not-allowed"
+            >
+              <MessageCircle className="w-4 h-4" />
+              Message unavailable
+            </button>
+          )}
           <a
             href={waLink}
             target="_blank"
@@ -177,34 +190,6 @@ const ContactModal = ({
           Tapping WhatsApp will open a pre-filled message to the teacher
         </p>
       </div>
-      {/* Rating modal */}
-      {ratingBookingId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setRatingBookingId(null)} />
-          <div className="relative bg-card border border-border rounded-xl p-4 w-full max-w-md">
-            <h3 className="font-bold mb-2">Rate your teacher</h3>
-            <div className="flex items-center gap-2 mb-3">
-              {[5,4,3,2,1].map((v) => (
-                <button key={v} onClick={() => setRatingValue(v)} className={cn("text-2xl", ratingValue >= v ? "text-yellow-400" : "text-muted-foreground")}>★</button>
-              ))}
-            </div>
-            <textarea value={ratingComment} onChange={(e) => setRatingComment(e.target.value)} className="w-full border border-border rounded-lg p-2 mb-3" placeholder="Optional comment" />
-            <div className="flex items-center justify-end gap-2">
-              <Button variant="outline" onClick={() => setRatingBookingId(null)}>Cancel</Button>
-              <Button onClick={async () => {
-                try {
-                  await reviewsApi.create({ booking_id: ratingBookingId!, rating: ratingValue, comment: ratingComment || undefined });
-                  setBookings((cur) => cur.map((b) => b.id === ratingBookingId ? { ...b, rating: ratingValue } : b));
-                  setRatingBookingId(null);
-                  setRatingComment("");
-                } catch (err) {
-                  console.error(err);
-                }
-              }}>Submit</Button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
@@ -307,6 +292,7 @@ const StudentReports = () => {
             ...b,
             portal: idx % 2 === 0 ? "islamic" : "school",
             teacher_name: `Teacher ${idx + 1}`,
+            teacher_id: b.teacher_id,
             teacher_phone: "923001234567",
             attendance_status: b.attendance_status ?? null,
             attendance_marked_at: b.attendance_marked_at ?? null,
@@ -353,6 +339,7 @@ const StudentReports = () => {
               totalMarks: 100, marksObtained: 92, percentage: 92,
               date: new Date(Date.now() - 7 * 86400000).toISOString(),
               teacher_name: "Ustadh Ahmed",
+              teacher_id: undefined,
               teacher_phone: teacherPhones["Ustadh Ahmed"],
               remarks: "Excellent pronunciation and Tajweed. Keep practicing the longer surahs.",
               status: "completed",
@@ -363,6 +350,7 @@ const StudentReports = () => {
               totalMarks: 50, marksObtained: 45, percentage: 90,
               date: new Date(Date.now() - 14 * 86400000).toISOString(),
               teacher_name: "Sister Fatima",
+              teacher_id: undefined,
               teacher_phone: teacherPhones["Sister Fatima"],
               remarks: "Good understanding of the rules. Practice with more words to improve accuracy.",
               status: "completed",
@@ -373,6 +361,7 @@ const StudentReports = () => {
               totalMarks: 100, marksObtained: 78, percentage: 78,
               date: new Date(Date.now() - 10 * 86400000).toISOString(),
               teacher_name: "Mr. Johnson",
+              teacher_id: undefined,
               teacher_phone: teacherPhones["Mr. Johnson"],
               remarks: "Good effort. Need to work on complex number solutions. Practice more problems.",
               status: "completed",
@@ -383,6 +372,7 @@ const StudentReports = () => {
               totalMarks: 100, marksObtained: 85, percentage: 85,
               date: new Date(Date.now() - 5 * 86400000).toISOString(),
               teacher_name: "Ms. Roberts",
+              teacher_id: undefined,
               teacher_phone: teacherPhones["Ms. Roberts"],
               remarks: "Excellent analysis. Your understanding of themes is impressive. Well written essay.",
               status: "completed",
@@ -393,6 +383,7 @@ const StudentReports = () => {
               totalMarks: 40, marksObtained: 34, percentage: 85,
               date: new Date(Date.now() - 3 * 86400000).toISOString(),
               teacher_name: "Ustadh Ali",
+              teacher_id: undefined,
               teacher_phone: teacherPhones["Ustadh Ali"],
               remarks: "Great score! You have a strong grasp of Islamic history. Keep it up!",
               status: "completed",
@@ -403,6 +394,7 @@ const StudentReports = () => {
               totalMarks: 100, marksObtained: 88, percentage: 88,
               date: new Date(Date.now() - 20 * 86400000).toISOString(),
               teacher_name: "Dr. Smith",
+              teacher_id: undefined,
               teacher_phone: teacherPhones["Dr. Smith"],
               remarks: "Very good understanding of cell organelles. A few minor details missed.",
               status: "completed",
@@ -443,6 +435,7 @@ const StudentReports = () => {
       if (!map.has(a.teacher_name)) {
         map.set(a.teacher_name, {
           name: a.teacher_name,
+          teacherId: a.teacher_id,
           phone: a.teacher_phone,
           subject: a.subject,
           portal: a.portal,
@@ -470,6 +463,46 @@ const StudentReports = () => {
       {/* Contact Modal */}
       {contactTeacher && (
         <ContactModal teacher={contactTeacher} onClose={() => setContactTeacher(null)} />
+      )}
+
+      {ratingBookingId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setRatingBookingId(null)} />
+          <div className="relative bg-card border border-border rounded-xl p-4 w-full max-w-md">
+            <h3 className="font-bold mb-2">Rate your teacher</h3>
+            <div className="flex items-center gap-2 mb-3">
+              {[5, 4, 3, 2, 1].map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setRatingValue(v)}
+                  className={cn("text-2xl", ratingValue >= v ? "text-yellow-400" : "text-muted-foreground")}
+                >
+                  ★
+                </button>
+              ))}
+            </div>
+            <textarea
+              value={ratingComment}
+              onChange={(e) => setRatingComment(e.target.value)}
+              className="w-full border border-border rounded-lg p-2 mb-3"
+              placeholder="Optional comment"
+            />
+            <div className="flex items-center justify-end gap-2">
+              <Button variant="outline" onClick={() => setRatingBookingId(null)}>Cancel</Button>
+              <Button onClick={async () => {
+                try {
+                  await reviewsApi.create({ booking_id: ratingBookingId!, rating: ratingValue, comment: ratingComment || undefined });
+                  setBookings((cur) => cur.map((b) => b.id === ratingBookingId ? { ...b, rating: ratingValue } : b));
+                  setRatingBookingId(null);
+                  setRatingComment("");
+                } catch (err) {
+                  console.error(err);
+                }
+              }}>Submit</Button>
+            </div>
+          </div>
+        </div>
       )}
 
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-8 space-y-6">
@@ -750,7 +783,7 @@ const StudentReports = () => {
                                         <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
                                           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Teacher's Remarks</span>
                                           <button
-                                            onClick={() => setContactTeacher({ name: a.teacher_name, phone: a.teacher_phone, subject: a.subject, portal: a.portal })}
+                                            onClick={() => setContactTeacher({ name: a.teacher_name, teacherId: a.teacher_id, phone: a.teacher_phone, subject: a.subject, portal: a.portal })}
                                             className="flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-lg bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 transition-colors whitespace-nowrap"
                                           >
                                             <MessageCircle className="w-3 h-3" /> Contact Teacher
@@ -851,7 +884,7 @@ const StudentReports = () => {
                                 </td>
                                 <td className="py-2.5 px-2">
                                   <button
-                                    onClick={() => setContactTeacher({ name: a.teacher_name, phone: a.teacher_phone, subject: a.subject, portal: a.portal })}
+                                    onClick={() => setContactTeacher({ name: a.teacher_name, teacherId: a.teacher_id, phone: a.teacher_phone, subject: a.subject, portal: a.portal })}
                                     className="flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-lg bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 transition-colors whitespace-nowrap"
                                   >
                                     <MessageCircle className="w-3 h-3" /> Contact
@@ -918,7 +951,7 @@ const StudentReports = () => {
                         <div className="flex items-center justify-between gap-2 mb-1">
                           <div className="font-semibold text-sm">{a.teacher_name} · Remarks</div>
                           <button
-                            onClick={() => setContactTeacher({ name: a.teacher_name, phone: a.teacher_phone, subject: a.subject, portal: a.portal })}
+                            onClick={() => setContactTeacher({ name: a.teacher_name, teacherId: a.teacher_id, phone: a.teacher_phone, subject: a.subject, portal: a.portal })}
                             className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 transition-colors whitespace-nowrap"
                           >
                             <MessageCircle className="w-3 h-3" /> Contact Teacher
@@ -954,8 +987,8 @@ const StudentReports = () => {
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <span className={cn("text-base font-extrabold", scoreColor(a.percentage))}>{a.percentage}%</span>
                         <span className="text-xs text-muted-foreground">{new Date(a.date).toLocaleDateString()}</span>
-                        <button
-                          onClick={() => setContactTeacher({ name: a.teacher_name, phone: a.teacher_phone, subject: a.subject, portal: a.portal })}
+                                    <button
+                                    onClick={() => setContactTeacher({ name: a.teacher_name, teacherId: a.teacher_id, phone: a.teacher_phone, subject: a.subject, portal: a.portal })}
                           className="flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-lg bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 transition-colors"
                         >
                           <MessageCircle className="w-3 h-3" /> Contact
@@ -993,7 +1026,7 @@ const StudentReports = () => {
                             {b.rating}/5
                           </span>
                           <button
-                            onClick={() => setContactTeacher({ name: b.teacher_name, phone: b.teacher_phone, subject: b.subject, portal: b.portal })}
+                            onClick={() => setContactTeacher({ name: b.teacher_name, teacherId: b.teacher_id, phone: b.teacher_phone, subject: b.subject, portal: b.portal })}
                             className="flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-lg bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 transition-colors"
                           >
                             <MessageCircle className="w-3 h-3" /> Contact

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { format } from "date-fns";
-import { ArrowRight, Calendar, Home as HomeIcon, MapPin, MessageCircle, ShieldCheck, Star, Wifi, BookOpen, Lock, Send } from "lucide-react";
+import { ArrowRight, Calendar, Home as HomeIcon, MapPin, MessageCircle, Phone, ShieldCheck, Star, Wifi, BookOpen, Lock, Send } from "lucide-react";
 import { PortalNav } from "@/components/PortalNav/PortalNav";
 import { PageBackButton } from "@/components/PageBackButton";
 import { Button } from "@/components/ui/button";
@@ -87,6 +87,10 @@ const TeacherProfilePage = () => {
   const averageRating = reviews.length > 0 ? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length) : Number(teacher.rating ?? 0);
   const noteAccess = Boolean(teacher.note_access);
   const canReview = role === "student" && eligibleBookings.length > 0;
+  const teacherPhone = teacher.profile?.phone?.trim() ?? "";
+  const whatsappLink = teacherPhone
+    ? `https://wa.me/${teacherPhone.replace(/\D/g, "")}?text=${encodeURIComponent(`Assalamu Alaikum, I would like to contact you about ${teacherName}.`)}`
+    : "";
 
   const submitReview = async () => {
     if (!eligibleBookings[0]) return;
@@ -112,11 +116,8 @@ const TeacherProfilePage = () => {
 
       <header className={cn("teacher-profile-header", isIslamic ? "bg-forest" : "bg-navy")}>
         <div className="teacher-profile-header-inner">
-          <div className="flex items-center gap-3">
-            <PageBackButton />
-            <div className={cn("teacher-profile-avatar", isIslamic ? "bg-primary-light text-primary-dark" : "bg-secondary-bg text-secondary") }>
-              {teacherName.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase()}
-            </div>
+          <div className={cn("teacher-profile-avatar", isIslamic ? "bg-primary-light text-primary-dark" : "bg-secondary-bg text-secondary") }>
+            {teacherName.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase()}
           </div>
           <div className="flex-1 text-white">
             <h1 className="font-display font-extrabold text-2xl sm:text-3xl lg:text-4xl mb-1 sm:mb-2">{teacherName}</h1>
@@ -145,8 +146,40 @@ const TeacherProfilePage = () => {
       <div className="teacher-profile-body">
         <main className="space-y-6 sm:space-y-8 lg:space-y-10">
           <section>
-            <h2 className="teacher-profile-section-title">About {teacherName.split(" ")[0]}</h2>
+            <div className="mb-3 sm:mb-4">
+              <PageBackButton />
+            </div>
+            <h2 className="teacher-profile-section-title">About Teacher</h2>
             <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">{teacher.bio || "This teacher has not added a bio yet."}</p>
+          </section>
+
+          <section>
+            <h2 className="teacher-profile-section-title">Contact</h2>
+            <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 space-y-4">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Phone number</div>
+                  <div className="mt-1 font-semibold">
+                    {teacherPhone ? `+${teacherPhone.replace(/\D/g, "")}` : "Not shared yet"}
+                  </div>
+                </div>
+                {teacherPhone && (
+                  <a
+                    href={whatsappLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-2 text-sm font-semibold text-white hover:bg-[#22c55e] transition-colors"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    WhatsApp
+                  </a>
+                )}
+              </div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Phone className="w-4 h-4" />
+                {teacherPhone ? "WhatsApp opens in your browser or app" : "Add a phone number to enable WhatsApp contact"}
+              </div>
+            </div>
           </section>
 
           <section>
