@@ -7,7 +7,9 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:server": "cd server && tsc --project tsconfig.json",
+    "build:all": "npm run build && npm run build:server"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
