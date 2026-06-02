@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const getAppOrigin = () =>
     typeof window !== "undefined"
       ? window.location.origin
-      : import.meta.env.VITE_APP_URL ?? "http://localhost:5173";
+      : import.meta.env.VITE_APP_URL ?? "https://ilmrise.com";
 
   const getRedirectUrl = (redirectPath = "/") =>
     new URL(redirectPath, getAppOrigin()).toString();

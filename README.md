@@ -22,7 +22,7 @@ The frontend uses Supabase only for **auth** (sign in / sign up / Google OAuth) 
    - `service_role` secret key (`SUPABASE_SERVICE_ROLE_KEY`) — keep server-side only.
 3. **SQL Editor → New query**, paste the contents of `supabase/migrations/*.sql` and run.
 4. **Authentication → Providers**: enable **Email** (and **Google** if you want OAuth).
-5. **Authentication → URL Configuration**: add `http://localhost:5173` to Site URL and Redirect URLs.
+5. **Authentication → URL Configuration**: add `https://ilmrise.com` and `https://www.ilmrise.com` to Site URL and Redirect URLs.
 
 ## 2 · Run the backend
 
@@ -51,7 +51,8 @@ Required frontend env vars (`.env`):
 ```
 VITE_SUPABASE_URL=https://YOUR-PROJECT.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=your-anon-key
-VITE_API_URL=http://localhost:4000/api
+VITE_API_URL=/api
+VITE_APP_URL=https://ilmrise.com
 ```
 
 ---
