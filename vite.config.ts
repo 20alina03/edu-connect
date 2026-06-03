@@ -11,6 +11,10 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
+  define: {
+    // Safely set NODE_ENV via vite config instead of .env file
+    "process.env.NODE_ENV": JSON.stringify(mode),
+  },
   plugins: [react()],
   resolve: {
     alias: {

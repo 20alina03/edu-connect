@@ -21,6 +21,8 @@ const AvailabilityItemSchema = z.object({
   available_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
 });
 
+type AvailabilityRow = z.infer<typeof AvailabilityItemSchema> & { teacher_id: string };
+
 const LessonItemSchema = z.object({
   id: z.string().uuid().optional(),
   title: z.string().min(1),
@@ -511,7 +513,7 @@ teacherDashboardRouter.put(
     const maxDateKey = localDateKey(new Date(Date.now() + (60 * 86400000)));
     const { data: sampleAvailability, error: sampleError } = await supabaseAdmin.from("availability").select("*").eq("teacher_id", req.user!.id).limit(1);
     const hasAvailableDateColumn = !sampleError && Boolean((sampleAvailability ?? [])[0] && Object.prototype.hasOwnProperty.call((sampleAvailability ?? [])[0], "available_date"));
-    const availability = req.body.availability.map((slot: z.infer<typeof AvailabilityItemSchema>) => ({
+    const availability: AvailabilityRow[] = req.body.availability.map((slot: z.infer<typeof AvailabilityItemSchema>) => ({
       teacher_id: req.user!.id,
       day_of_week: slot.day_of_week,
       start_time: slot.start_time,

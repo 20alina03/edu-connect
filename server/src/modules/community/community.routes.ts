@@ -48,8 +48,8 @@ communityRouter.get(
       .order("created_at", { ascending: false })
       .limit(200);
 
-    if (parsed.data?.portal) {
-      query = query.eq("portal", parsed.data.portal);
+    if (parsed.data) {
+      query = query.eq("portal", parsed.data);
     }
 
     const { data, error } = await query;

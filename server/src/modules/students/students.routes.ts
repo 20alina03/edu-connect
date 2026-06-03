@@ -14,6 +14,18 @@ const inferPortal = (subjects: string[] | null | undefined) => (
 
 const normalizeTeacherName = (value: string | null | undefined) => value?.trim() || "Teacher";
 
+type AssessmentRow = {
+  id: string;
+  teacher_id: string;
+  title: string;
+  description: string | null;
+  file_url: string | null;
+  file_name: string | null;
+  file_type: "pdf" | "image" | null;
+  created_at: string;
+  due_at?: string | null;
+};
+
 const supportsDueAt = async () => {
   const probe = await supabaseAdmin.from("teacher_assessments").select("due_at").limit(1);
   return !probe.error || !probe.error.message.toLowerCase().includes("due_at");
@@ -70,32 +82,47 @@ studentsRouter.get(
     const hasDueAt = await supportsDueAt();
 
     const [assessmentResult, solutionResult] = assessmentIds.length > 0
-      ? await Promise.all([
-          supabaseAdmin
-            .from("teacher_assessments")
-            .select(hasDueAt
-              ? "id, teacher_id, title, description, file_url, file_name, file_type, created_at, due_at"
-              : "id, teacher_id, title, description, file_url, file_name, file_type, created_at")
-            .in("id", assessmentIds)
-            .is("deleted_at", null)
-            .order("created_at", { ascending: false }),
-          supabaseAdmin
-            .from("teacher_assessment_solutions")
-            .select("assessment_id, student_id, submitted_at, marks, max_marks, feedback, graded_at, file_url, file_name")
-            .eq("student_id", studentId)
-            .in("assessment_id", assessmentIds)
-            .order("submitted_at", { ascending: false }),
-        ])
+      ? hasDueAt
+        ? await Promise.all([
+            supabaseAdmin
+              .from("teacher_assessments")
+              .select("id, teacher_id, title, description, file_url, file_name, file_type, created_at, due_at")
+              .in("id", assessmentIds)
+              .is("deleted_at", null)
+              .order("created_at", { ascending: false }),
+            supabaseAdmin
+              .from("teacher_assessment_solutions")
+              .select("assessment_id, student_id, submitted_at, marks, max_marks, feedback, graded_at, file_url, file_name")
+              .eq("student_id", studentId)
+              .in("assessment_id", assessmentIds)
+              .order("submitted_at", { ascending: false }),
+          ])
+        : await Promise.all([
+            supabaseAdmin
+              .from("teacher_assessments")
+              .select("id, teacher_id, title, description, file_url, file_name, file_type, created_at")
+              .in("id", assessmentIds)
+              .is("deleted_at", null)
+              .order("created_at", { ascending: false }),
+            supabaseAdmin
+              .from("teacher_assessment_solutions")
+              .select("assessment_id, student_id, submitted_at, marks, max_marks, feedback, graded_at, file_url, file_name")
+              .eq("student_id", studentId)
+              .in("assessment_id", assessmentIds)
+              .order("submitted_at", { ascending: false }),
+          ])
       : [{ data: [], error: null }, { data: [], error: null }];
 
     if (assessmentResult.error) throw badRequest(assessmentResult.error.message);
     if (solutionResult.error) throw badRequest(solutionResult.error.message);
 
+    const assessmentRows = (assessmentResult.data ?? []) as AssessmentRow[];
+
     const teacherIds = [...new Set([
       ...bookedTeacherIds,
       ...templateLessons.map((lesson) => lesson.teacher_id),
       ...(noteLessonsResult.data ?? []).map((lesson) => lesson.teacher_id),
-      ...(assessmentResult.data ?? []).map((assessment) => assessment.teacher_id),
+      ...assessmentRows.map((assessment) => assessment.teacher_id),
     ])];
 
     const [profileResult, teacherProfileResult] = teacherIds.length > 0
@@ -116,7 +143,7 @@ studentsRouter.get(
 
     const solutionMap = new Map((solutionResult.data ?? []).map((solution) => [solution.assessment_id, solution]));
 
-    const assignments = (assessmentResult.data ?? [])
+    const assignments = assessmentRows
       .map((assessment) => {
         const assignmentLink = assessmentLinks.find((row) => row.assessment_id === assessment.id);
         const solution = solutionMap.get(assessment.id) ?? null;
@@ -130,7 +157,7 @@ studentsRouter.get(
           teacher: teacherName(assessment.teacher_id),
           teacherId: assessment.teacher_id,
           teacherAvatar: teacherAvatar(assessment.teacher_id),
-          dueAt: (assessment as { due_at?: string | null }).due_at ?? assessment.created_at,
+          dueAt: assessment.due_at ?? assessment.created_at,
           assignedAt: assignmentLink?.created_at ?? assessment.created_at,
           submittedAt: solution?.submitted_at ?? null,
           score: solution?.marks ?? null,
@@ -196,15 +223,16 @@ studentsRouter.post(
     if (!assignedRows || assignedRows.length === 0) throw badRequest("Student not assigned to this assessment");
 
     // Fetch assessment to check due date
-    const { data: [assessment], error: assessmentErr } = await supabaseAdmin
+    const { data: assessmentRows, error: assessmentErr } = await supabaseAdmin
       .from("teacher_assessments")
       .select("id, teacher_id, due_at")
       .eq("id", assessmentId)
       .limit(1);
     if (assessmentErr) throw badRequest(assessmentErr.message);
+    const assessment = (assessmentRows ?? [])[0] as { id: string; teacher_id: string; due_at: string | null } | undefined;
     if (!assessment) throw badRequest("Assessment not found");
 
-    const dueAt = (assessment as any).due_at ? new Date((assessment as any).due_at).getTime() : null;
+    const dueAt = assessment.due_at ? new Date(assessment.due_at).getTime() : null;
     const now = Date.now();
     if (dueAt && now > dueAt) throw badRequest("Cannot submit after due date");
 
