@@ -6,12 +6,13 @@ import {
   ChevronRight, Clock, Filter, MapPin, MessageSquare, Plus,
   Save, School2, TrendingUp, User, Users, XCircle, Menu, X,
   LayoutDashboard, FileText, Video, GraduationCap, LogOut,
-  Bell, Settings, ChevronDown, Star,
+  Bell, Settings, ChevronDown, Star, ExternalLink,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppHeader } from "@/components/AppHeader";
 import { teachersApi } from "@/lib/api/teachers";
+import { bookingsApi } from "@/lib/api/bookings";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -141,6 +142,8 @@ const TeacherDashboard = () => {
   const [loading,            setLoading]            = useState(true);
   const [savingProfile,      setSavingProfile]      = useState(false);
   const [bookingActionId,    setBookingActionId]    = useState<string | null>(null);
+  // Calendar links keyed by bookingId — populated when teacher confirms a booking
+  const [calendarLinks,      setCalendarLinks]      = useState<Record<string, string>>({});
   const [bookings,           setBookings]           = useState<BookingRow[]>([]);
   const [availability,       setAvailability]       = useState<AvailabilityRow[]>([newSlot()]);
   const [studentProfiles,    setStudentProfiles]    = useState<Record<string, StudentProfile>>({});
@@ -281,9 +284,15 @@ const TeacherDashboard = () => {
   const updateBookingStatus = async (id: string, status: BookingRow["status"]) => {
     setBookingActionId(id);
     try {
-      const { error } = await supabase.from("bookings").update({ status }).eq("id", id);
-      if (error) throw error;
+      const result = await bookingsApi.setStatus(id, status);
       toast.success(`Booking marked ${status}`);
+
+      // When confirming: capture teacher calendar link from backend response
+      if (status === "confirmed" && result.teacherCalendarLink) {
+        setCalendarLinks((prev) => ({ ...prev, [id]: result.teacherCalendarLink! }));
+        toast.success("Confirmation + calendar emails sent to student 📩");
+      }
+
       void loadDashboard();
     } catch (e: any) { toast.error(e?.message ?? "Failed to update booking"); }
     finally         { setBookingActionId(null); }
@@ -328,11 +337,6 @@ const TeacherDashboard = () => {
         <div className="td-loading-spinner" />
       </div>
     );
-                            {b.notes && (
-                              <div className="mt-1 text-[11px] text-muted-foreground max-w-[18rem] truncate">
-                                Topic: {b.notes}
-                              </div>
-                            )}
   }
 
   /* ── Shared props for modules ── */
@@ -455,6 +459,7 @@ const TeacherDashboard = () => {
               bookingTotalPages={bookingTotalPages}
               bookingActionId={bookingActionId}
               bookings={bookings}
+              calendarLinks={calendarLinks}
               savingProfile={savingProfile}
               toggleSubject={toggleSubject}
               updateEducation={updateEducation}
@@ -470,7 +475,7 @@ const TeacherDashboard = () => {
           )}
 
           {activeModule === "sessions" && (
-            <SessionsModule {...sharedProps} updateBookingStatus={updateBookingStatus} bookingActionId={bookingActionId} />
+            <SessionsModule {...sharedProps} updateBookingStatus={updateBookingStatus} bookingActionId={bookingActionId} calendarLinks={calendarLinks} />
           )}
 
           {activeModule === "assessments" && (
@@ -503,6 +508,7 @@ const DashboardHome = ({
   upcomingBookings, pendingBookings, completedBookings, totalEarnings, totalStudents,
   studentSummaries, studentProfiles, filteredBookings, pagedBookings,
   bookingFilter, bookingPage, bookingTotalPages, bookingActionId, bookings,
+  calendarLinks,
   savingProfile, toggleSubject, updateEducation, addEducation, removeEducation,
   saveProfile, deleteProfile, updateBookingStatus, setBookingFilter, setBookingPage, navigate,
 }: any) => {
@@ -646,7 +652,7 @@ const DashboardHome = ({
                             <td className="font-semibold">${Number(b.price_usd).toFixed(2)}</td>
                             <td><span className={statusBadgeClass[b.status]}>{b.status}</span></td>
                             <td>
-                              <div className="flex gap-1">
+                              <div className="flex gap-1 flex-wrap">
                                 {b.status === "pending" && (
                                   <>
                                     <Button size="sm" className="h-6 px-2 text-xs" onClick={() => updateBookingStatus(b.id, "confirmed")} disabled={bookingActionId === b.id}>Accept</Button>
@@ -655,6 +661,13 @@ const DashboardHome = ({
                                 )}
                                 {b.status === "confirmed" && new Date(b.start_at) < new Date() && (
                                   <Button size="sm" className="h-6 px-2 text-xs" onClick={() => updateBookingStatus(b.id, "completed")} disabled={bookingActionId === b.id}>Complete</Button>
+                                )}
+                                {b.status === "confirmed" && calendarLinks[b.id] && new Date(b.start_at) > new Date() && (
+                                  <a href={calendarLinks[b.id]} target="_blank" rel="noreferrer"
+                                    className="inline-flex items-center gap-1 rounded-md border border-[#4285F4]/40 bg-[#4285F4]/5 px-2 py-1 text-[10px] font-semibold text-[#4285F4] hover:bg-[#4285F4]/10 transition h-6">
+                                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/></svg>
+                                    Calendar
+                                  </a>
                                 )}
                               </div>
                             </td>
@@ -731,6 +744,14 @@ const DashboardHome = ({
                             <XCircle className="mr-1.5 h-3.5 w-3.5" /> Decline
                           </Button>
                         </>
+                      )}
+                      {b.status === "confirmed" && calendarLinks[b.id] && (
+                        <a href={calendarLinks[b.id]} target="_blank" rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-[#4285F4]/30 bg-[#4285F4]/5 px-3 py-1.5 text-xs font-semibold text-[#4285F4] hover:bg-[#4285F4]/10 transition">
+                          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/></svg>
+                          Add to Google Calendar
+                          <ExternalLink className="w-3 h-3 opacity-60" />
+                        </a>
                       )}
                     </div>
                   </div>

@@ -18,8 +18,23 @@ export interface Booking {
   updated_at: string;
 }
 
+export interface SetStatusResult {
+  booking: Booking;
+  /** Populated for teacher when status → confirmed */
+  teacherCalendarLink?: string;
+  /** Populated for student when status → confirmed */
+  studentCalendarLink?: string;
+}
+
+export interface CreateBookingResult {
+  booking: Booking;
+  /** "Add to Google Calendar" link for the student */
+  studentCalendarLink: string;
+}
+
 export const bookingsApi = {
-  list: () => api.get<{ bookings: Booking[] }>(`/bookings`),
+  list: () => api.get<{ bookings: Booking[] }>("/bookings"),
+
   create: (data: {
     teacher_id: string;
     subject: string;
@@ -28,7 +43,8 @@ export const bookingsApi = {
     mode: "online" | "home_visit" | "both";
     notes?: string;
     price_usd: number;
-  }) => api.post<{ booking: Booking }>(`/bookings`, data),
+  }) => api.post<CreateBookingResult>("/bookings", data),
+
   setStatus: (id: string, status: Booking["status"]) =>
-    api.patch<{ booking: Booking }>(`/bookings/${id}/status`, { status }),
+    api.patch<SetStatusResult>(`/bookings/${id}/status`, { status }),
 };

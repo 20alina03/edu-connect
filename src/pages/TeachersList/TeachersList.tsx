@@ -98,13 +98,13 @@ const TeachersList = ({ portal }: { portal: Portal }) => {
       <div className="teachers-list-content">
         {/* SIDEBAR */}
         <aside className="teachers-list-sidebar">
-          <h3 className="font-display font-bold mb-4">Filters</h3>
+          <h3 className="font-display font-bold text-sm mb-3">Filters</h3>
 
-          <div className="mb-5">
+          <div className="mb-4">
             <div className="teachers-list-filter-title">Subject</div>
-            <div className="space-y-2">
+            <div className="space-y-1">
               {allSubjects.map(s => (
-                <label key={s} className="flex items-center gap-2 cursor-pointer text-sm">
+                <label key={s} className="flex items-center gap-1.5 cursor-pointer text-xs">
                   <Checkbox checked={subjects.includes(s)} onCheckedChange={() => toggleSubject(s)}/>
                   <span>{s}</span>
                 </label>
@@ -112,14 +112,14 @@ const TeachersList = ({ portal }: { portal: Portal }) => {
             </div>
           </div>
 
-          <div className="mb-5">
+          <div className="mb-4">
             <div className="teachers-list-filter-title">Gender</div>
             {[
               ["any", "Any"],
               ["male", "Male"],
               ["female", "Female"],
             ].map(([g, label]) => (
-              <label key={g} className="flex items-center gap-2 cursor-pointer text-sm capitalize py-0.5">
+              <label key={g} className="flex items-center gap-1.5 cursor-pointer text-xs capitalize py-0.5">
                 <input type="radio" name="g" checked={gender === g} onChange={() => setGender(g)}
                   className={isIslamic ? "accent-primary" : "accent-secondary"}/>
                 <span>{g === "male" ? (isIslamic ? "Male (Ustadh)" : "Male") : g === "female" ? (isIslamic ? "Female (Sister)" : "Female") : label}</span>
@@ -127,10 +127,10 @@ const TeachersList = ({ portal }: { portal: Portal }) => {
             ))}
           </div>
 
-          <div className="mb-5">
+          <div className="mb-4">
             <div className="teachers-list-filter-title">Mode</div>
             {[ ["any","Any"], ["online","Online"], ["home_visit","Home Visit"] ].map(([v,l]) => (
-              <label key={v} className="flex items-center gap-2 cursor-pointer text-sm py-0.5">
+              <label key={v} className="flex items-center gap-1.5 cursor-pointer text-xs py-0.5">
                 <input type="radio" name="m" checked={mode === v} onChange={() => setMode(v)}
                   className={isIslamic ? "accent-primary" : "accent-secondary"}/>
                 <span>{l}</span>
@@ -141,7 +141,7 @@ const TeachersList = ({ portal }: { portal: Portal }) => {
           <div>
             <div className="teachers-list-filter-title">Max price · ${maxPrice}/hr</div>
             <Slider value={[maxPrice]} onValueChange={(v) => setMaxPrice(v[0])} min={10} max={isIslamic ? 60 : 100} step={5}/>
-            <div className="flex justify-between text-[10px] text-muted-foreground mt-2">
+            <div className="flex justify-between text-[10px] text-muted-foreground mt-1.5">
               <span>$10</span><span>${isIslamic ? 60 : 100}</span>
             </div>
           </div>
@@ -168,7 +168,7 @@ const TeachersList = ({ portal }: { portal: Portal }) => {
             </select>
           </div>
 
-          <div className="space-y-3">
+          <div className="teachers-list-cards">
             {filtered.length === 0 ? (
               <div className="teachers-list-empty">
                 No teachers match your filters. Try widening the price range or removing a subject.

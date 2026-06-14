@@ -22,6 +22,7 @@ interface SessionsModuleProps {
   onReload: () => void;
   updateBookingStatus: (id: string, status: BookingRow["status"]) => void;
   bookingActionId: string | null;
+  calendarLinks?: Record<string, string>;
 }
 
 type SessionTab = "active" | "upcoming" | "past";
@@ -34,7 +35,7 @@ interface AttendanceRecord {
 }
 
 export const SessionsModule = ({
-  user, bookings, studentProfiles, onReload, updateBookingStatus, bookingActionId,
+  user, bookings, studentProfiles, onReload, updateBookingStatus, bookingActionId, calendarLinks = {},
 }: SessionsModuleProps) => {
   const [tab, setTab] = useState<SessionTab>("upcoming");
   const [editingLinkId, setEditingLinkId] = useState<string | null>(null);
@@ -108,7 +109,7 @@ export const SessionsModule = ({
     try {
       const { error } = await supabase
         .from("bookings")
-        .update({ attendance_status: status, attendance_marked_at: new Date().toISOString() })
+        .update({ attendance_status: status, attendance_marked_at: new Date().toISOString() } as any)
         .eq("id", bookingId);
       if (error) throw error;
       setAttendance((prev) => ({
@@ -339,7 +340,7 @@ export const SessionsModule = ({
 
                 {/* Accept/Decline */}
                 {b.status === "pending" && (
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     <Button size="sm" onClick={() => updateBookingStatus(b.id, "confirmed")} disabled={bookingActionId === b.id}>
                       <CheckCircle className="mr-1.5 h-3.5 w-3.5" /> Accept
                     </Button>
@@ -347,6 +348,14 @@ export const SessionsModule = ({
                       <XCircle className="mr-1.5 h-3.5 w-3.5" /> Decline
                     </Button>
                   </div>
+                )}
+                {b.status === "confirmed" && calendarLinks[b.id] && (
+                  <a href={calendarLinks[b.id]} target="_blank" rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-[#4285F4]/30 bg-[#4285F4]/5 px-3 py-1.5 text-xs font-semibold text-[#4285F4] hover:bg-[#4285F4]/10 transition">
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/></svg>
+                    Add to Google Calendar
+                    <ExternalLink className="w-3 h-3 opacity-60" />
+                  </a>
                 )}
               </div>
             ))
@@ -369,6 +378,7 @@ export const SessionsModule = ({
                 booking={b}
                 studentName={studentName(b.student_id)}
                 meetingLink={getMeetingLink(b) ?? undefined}
+                calendarLink={calendarLinks[b.id]}
                 attendance={attendance[b.id] ?? (b.attendance_status ? { bookingId: b.id, status: b.attendance_status, markedAt: b.attendance_marked_at ?? new Date().toISOString() } : undefined)}
                 onMarkAttendance={markAttendance}
                 onUpdateStatus={updateBookingStatus}
@@ -387,12 +397,13 @@ export const SessionsModule = ({
 
 /* ── Session Card ── */
 const SessionCard = ({
-  booking: b, studentName, meetingLink, attendance, onMarkAttendance,
+  booking: b, studentName, meetingLink, calendarLink, attendance, onMarkAttendance,
   onUpdateStatus, bookingActionId, showAttendance, variant, started,
 }: {
   booking: BookingRow;
   studentName: string;
   meetingLink?: string;
+  calendarLink?: string;
   attendance?: AttendanceRecord;
   onMarkAttendance: (bookingId: string, status: "present" | "absent" | "late") => void;
   onUpdateStatus: (id: string, status: BookingRow["status"]) => void;
@@ -432,6 +443,15 @@ const SessionCard = ({
           <Video className="h-4 w-4 text-primary flex-shrink-0" />
           <span className="text-xs font-medium text-primary truncate">{meetingLink}</span>
           <ExternalLink className="h-3 w-3 text-primary ml-auto flex-shrink-0" />
+        </a>
+      )}
+
+      {calendarLink && b.status === "confirmed" && (
+        <a href={calendarLink} target="_blank" rel="noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-[#4285F4]/30 bg-[#4285F4]/5 px-3 py-1.5 text-xs font-semibold text-[#4285F4] hover:bg-[#4285F4]/10 transition">
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-02-2zm0 16H5V9h14v11z"/></svg>
+          Add to Google Calendar
+          <ExternalLink className="w-3 h-3 opacity-60" />
         </a>
       )}
 

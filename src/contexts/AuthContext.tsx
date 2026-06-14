@@ -162,11 +162,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Requests Google Calendar scope so Supabase stores the OAuth token.
+  // access_type=offline + prompt=consent ensures Google returns a refresh token
+  // so the backend (google-calendar.ts) can create calendar events server-side.
   const signInWithGoogle = async (role: AppRole = "student") => {
     localStorage.setItem("ilmrise.pendingRole", role);
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: getRedirectUrl("/") },
+      options: {
+        redirectTo: getRedirectUrl("/"),
+        scopes: "https://www.googleapis.com/auth/calendar.events",
+        queryParams: {
+          access_type: "offline",
+          prompt: "consent",
+        },
+      },
     });
   };
 

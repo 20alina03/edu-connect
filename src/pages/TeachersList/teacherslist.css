@@ -2,26 +2,54 @@
 
 .teachers-list-search { @apply border-b border-border; }
 
-.teachers-list-search-inner { @apply max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 lg:py-8; }
+.teachers-list-search-inner { @apply max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-5; }
 
 .teachers-list-searchbar { @apply bg-white/[.06] border border-white/10 rounded-full flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 w-full sm:max-w-2xl; }
 
-.teachers-list-content { @apply max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-8 grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-4 sm:gap-6; }
+/* Main layout: narrow sidebar (200px) + wide card area */
+.teachers-list-content {
+  @apply max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 grid grid-cols-1 gap-4;
+}
 
-.teachers-list-sidebar { 
-  @apply bg-card border border-border rounded-xl sm:rounded-2xl p-4 sm:p-5 h-fit lg:sticky lg:top-16 lg:max-h-[calc(100vh-5rem)] overflow-y-auto;
+@media (min-width: 1024px) {
+  .teachers-list-content {
+    grid-template-columns: 200px 1fr;
+    gap: 1.25rem;
+  }
+}
+
+.teachers-list-sidebar {
+  @apply bg-card border border-border rounded-xl p-3 h-fit;
   order: 2;
 }
 
-@media (max-width: 1024px) {
+@media (min-width: 1024px) {
+  .teachers-list-sidebar {
+    order: 0;
+    position: sticky;
+    top: 4rem;
+    max-height: calc(100vh - 5rem);
+    overflow-y: auto;
+  }
+}
+
+/* On tablet/mobile sidebar appears above cards */
+@media (max-width: 1023px) {
   .teachers-list-sidebar {
     order: -1;
   }
 }
 
-.teachers-list-filter-title { @apply text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2; }
+/* On mobile, sidebar filters in a compact horizontal scrollable row */
+@media (max-width: 767px) {
+  .teachers-list-sidebar {
+    @apply rounded-lg p-3;
+  }
+}
 
-.teachers-list-chip-row { @apply flex flex-wrap gap-2 mb-3 min-h-6; }
+.teachers-list-filter-title { @apply text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5; }
+
+.teachers-list-chip-row { @apply flex flex-wrap gap-1.5 mb-3 min-h-6; }
 
 .teachers-list-chip { @apply text-[10px] font-semibold px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 capitalize; }
 
@@ -29,17 +57,19 @@
 
 .teachers-list-empty { @apply text-center py-12 sm:py-16 text-muted-foreground text-sm px-4; }
 
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-  .teachers-list-content {
-    @apply gap-3;
-  }
+/* Teacher cards grid – single column by default, 2-col at large screens */
+.teachers-list-cards {
+  @apply space-y-3;
+}
 
-  .teachers-list-sidebar {
-    @apply rounded-lg p-3;
+@media (min-width: 1280px) {
+  .teachers-list-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
   }
-
-  .teachers-list-search-inner {
-    @apply px-3 py-4;
+  .teachers-list-cards > * {
+    /* reset space-y spacing when in grid mode */
+    margin-top: 0 !important;
   }
 }

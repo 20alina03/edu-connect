@@ -9,6 +9,12 @@ import { validate } from "../../middleware/validate.js";
 
 export const teacherDashboardRouter = Router();
 
+// ── Protected sub-router for all /me routes ──────────────────────────────────
+// Only /me/* routes require auth + teacher role.
+// The public GET / and GET /:id routes on teachersRouter are NOT affected.
+const meRouter = Router();
+meRouter.use(requireAuth, requireRole("teacher"));
+
 const TeachingModeSchema = z.enum(["online", "home_visit", "both"]);
 const GenderSchema = z.enum(["male", "female"]);
 const ISLAMIC_SUBJECTS = new Set(["Quran", "Tajweed", "Hifz", "Noorani Qaida", "Arabic", "Islamic Studies"]);
@@ -181,9 +187,6 @@ const normalizeAssessment = (item: z.infer<typeof AssessmentItemSchema>) => ({
 
 const getTeacher = async (userId: string) => {
   const [profileResult, teacherResult, availabilityResult, lessonResult, lessonStudentResult, assessmentResult, assessmentStudentResult, solutionResult] = await Promise.all([
-    // Use limit(1) and handle the array result to avoid errors when duplicate
-    // rows exist temporarily (race conditions) which would make `.maybeSingle()`
-    // fail with "Cannot coerce the result to a single JSON object".
     supabaseAdmin.from("profiles").select("id, full_name, phone, avatar_url").eq("id", userId).limit(1),
     supabaseAdmin.from("teacher_profiles").select("*").eq("user_id", userId).limit(1),
     fetchAvailability(userId),
@@ -241,7 +244,6 @@ const getTeacher = async (userId: string) => {
     })),
   }));
 
-  // Extract single rows from the limited selects (take first row if present)
   const profileRow = (profileResult.data ?? [])[0] ?? null;
   const teacherRow = (teacherResult.data ?? [])[0] ?? null;
 
@@ -359,14 +361,13 @@ const replaceAssessments = async (userId: string, assessmentsInput: z.infer<type
   }
 };
 
-teacherDashboardRouter.use(requireAuth, requireRole("teacher"));
+// ── /me routes (all protected: requireAuth + requireRole("teacher")) ──────────
 
-teacherDashboardRouter.get(
-  "/me",
+meRouter.get(
+  "/",
   asyncHandler(async (req, res) => {
     let data = await getTeacher(req.user!.id);
 
-    // Auto-create the profiles row if it was somehow missed at signup.
     if (!data.profile) {
       const { error: profileError } = await supabaseAdmin
         .from("profiles")
@@ -375,19 +376,14 @@ teacherDashboardRouter.get(
           full_name: req.user!.email ? req.user!.email.split("@")[0] : "Teacher",
         }, { onConflict: "id" });
       if (profileError) throw badRequest(profileError.message);
-      // Re-fetch after creating the row
       data = await getTeacher(req.user!.id);
     }
 
-    // Auto-create the teacher_profiles row if it was somehow missed at signup.
-    // This makes the dashboard resilient to existing users who signed up before
-    // the trigger was hardened, or whose metadata didn't include role='teacher'.
     if (!data.teacher) {
       const { error: upsertError } = await supabaseAdmin
         .from("teacher_profiles")
         .upsert({ user_id: req.user!.id, is_active: true }, { onConflict: "user_id" });
       if (upsertError) throw badRequest(upsertError.message);
-      // Re-fetch after creating the row
       data = await getTeacher(req.user!.id);
     }
 
@@ -407,14 +403,12 @@ teacherDashboardRouter.get(
   }),
 );
 
-teacherDashboardRouter.patch(
-  "/me/profile",
+meRouter.patch(
+  "/profile",
   validate({ body: TeacherProfilePatchSchema }),
   asyncHandler(async (req, res) => {
     const body = req.body as z.infer<typeof TeacherProfilePatchSchema>;
 
-    // Only send fields that were actually provided – sending `undefined`
-    // causes Supabase to return 422 Unprocessable Content.
     const profilePatch: Record<string, unknown> = {
       id: req.user!.id,
       updated_at: new Date().toISOString(),
@@ -430,7 +424,6 @@ teacherDashboardRouter.patch(
       .single();
     if (profileError) throw badRequest(profileError.message);
 
-    // Build teacher_profiles patch with only provided fields
     const teacherPatch: Record<string, unknown> = {
       user_id: req.user!.id,
       is_active: true,
@@ -459,8 +452,8 @@ teacherDashboardRouter.patch(
   }),
 );
 
-teacherDashboardRouter.delete(
-  "/me/profile",
+meRouter.delete(
+  "/profile",
   asyncHandler(async (req, res) => {
     const now = new Date().toISOString();
     const { error: availabilityError } = await supabaseAdmin.from("availability").delete().eq("teacher_id", req.user!.id);
@@ -496,8 +489,8 @@ teacherDashboardRouter.delete(
   }),
 );
 
-teacherDashboardRouter.get(
-  "/me/availability",
+meRouter.get(
+  "/availability",
   asyncHandler(async (req, res) => {
     const availability = await fetchAvailability(req.user!.id);
     if (availability.error) throw badRequest(availability.error.message);
@@ -505,8 +498,8 @@ teacherDashboardRouter.get(
   }),
 );
 
-teacherDashboardRouter.put(
-  "/me/availability",
+meRouter.put(
+  "/availability",
   validate({ body: z.object({ availability: z.array(AvailabilityItemSchema) }) }),
   asyncHandler(async (req, res) => {
     const todayKey = localDateKey(new Date());
@@ -557,16 +550,16 @@ teacherDashboardRouter.put(
   }),
 );
 
-teacherDashboardRouter.get(
-  "/me/portfolio",
+meRouter.get(
+  "/portfolio",
   asyncHandler(async (req, res) => {
     const { lesson_notes, template_lessons, assessments } = await getTeacher(req.user!.id);
     res.json({ lesson_notes, template_lessons, assessments });
   }),
 );
 
-teacherDashboardRouter.put(
-  "/me/portfolio",
+meRouter.put(
+  "/portfolio",
   validate({ body: PortfolioSchema }),
   asyncHandler(async (req, res) => {
     const body = req.body as z.infer<typeof PortfolioSchema>;
@@ -580,3 +573,6 @@ teacherDashboardRouter.put(
     res.json({ teacher: refreshed });
   }),
 );
+
+// ── Mount the protected meRouter under /me ────────────────────────────────────
+teacherDashboardRouter.use("/me", meRouter);
